@@ -103,17 +103,21 @@
 | `question_id` | str | LongMemEval 原生 id | 主键 |
 | `question` | str | 原样 | 只读，不改 |
 | `query_form` | enum | `current` / `retrospective` / `abstention` | **问句形态（新增，必填）**。`current`=问当前状态；`retrospective`=问旧值（问句含 `initially/previous/before/first N months` 等回溯限定词）；`abstention`=该拒答。**这一列决定层 1 的分母分层，见 §5。** |
-| `new_value` | str | 官方 `answer` | **只读**，来自数据集 |
+| `new_value` | str | 自标（或官方 answer） | **语义当前值**。current 题通常等于官方 answer；retrospective 题是**较晚 session 的当前值**。⚠️ v3 起不再定义为「官方 answer 只读」——该定义与 §2「retrospective 的 answer 是旧值」自相矛盾，pilot 已暴露 |
+| `official_answer` | str | 只读 | 官方 `answer` 原样，仅用于追溯，不参与指标计算 |
+| `official_answer_role` | enum | `current` / `old` / null | 官方 answer 是当前值（current 题）还是旧值（retrospective 题）；abstention 为 null |
+| `official_answer_session_index` | int | `0` / `1` / null | 官方 answer 所在 gold session 的**相对索引**（0=较早，1=较晚）；abstention 为 null |
 | `stale_value` | str | 自标 | 旧事实的**具体值**（不是整句） |
 | `stale_source_session_id` | str | `answer_*` | 旧值所在 gold session id |
 | `new_source_session_id` | str | `answer_*` | 新值所在 gold session id |
 | `session_order_source` | enum | `answer_match_index` / `manual` | **新旧 session 的判定依据**。自动 = answer 严格匹配 + **haystack 索引顺序**；人工 = 逐题确认。**日期不作为判定依据**（77/78 与索引一致，1/78 相反，详见 §2）。 |
-| `gold_session_index` | int | 0 / 1 | answer 值所在 gold session 在 haystack 中的**索引**（不是日期序） |
+| `gold_session_index` | int | `0` / `1` / null | **当前值**所在 gold session 的相对索引（0=较早，1=较晚）。⚠️ v3 起不再定义为「官方 answer 所在」——对 retrospective 题两者不同（官方 answer 在较早=0，当前值在较晚=1）；abstention 为 null |
+| `stale_value_is_placeholder` | bool | `true` / `false` | 旧值是否为**占位词**（例：`5a4f22c0` 的 assistant 表格里写 `Old Company`，不是具体公司名）。true 时该题在层 1a 聚合中**单列或剔除**，不得静默算 0 |
 | `is_abstention` | bool | `true` / `false` | `_abs` 拒答变体标 `true`，**这类题不进入层 1 分母** |
-| `conflict_type` | enum | `时效` / `语义` / `偏好反转` | 冲突性质 |
-| `expected_resolution` | enum | `覆盖` / `并存` / `标失效` / `升级人工` | 记忆层应采取的裁决 |
+| `conflict_type` | enum | `时效` / `语义` / `偏好反转` / null | 冲突性质；abstention 题可为 null |
+| `expected_resolution` | enum | `覆盖` / `并存` / `标失效` / `升级人工` / null | 记忆层应采取的裁决；abstention 题可为 null |
 | `entity` | str | 自由文本 | 被更新的属性名（如「个人 5K 最好成绩」） |
-| `match_mode` | enum | `exact` / `normalized` / `fuzzy` | 人工确认的匹配方式，供阈值敏感性分析用 |
+| `match_mode` | enum | `exact` / `normalized` / `fuzzy` / null | 人工确认的匹配方式，供阈值敏感性分析用；abstention 题可为 null |
 | `note` | str | 自由文本 | 歧义、无法判定等 |
 
 **每题必须能定位到一句原文**，使「stale_value 出现在回答里」这件事可被第三方复核。
@@ -385,3 +389,26 @@ pilot 通过后才批量标剩余题。**若 pilot 显示 schema 不够，改 sc
 9. **session 原文不进仓库**；本协议与 `ku78.jsonl` 只含自标字段与官方 id / answer，不含第三方会话文本。
 10. **`query_form` 由关键词判定会有误判**（如 `my previous company` / `my former manager` 指向非时间实体）。层 1a/1b 的分母依赖这一列，因此 pilot 必须实测该列的误判率，并在报告中给出人工复核后的最终分布。
 11. **首版「8/72 题日期方向与语义相反」已作废**（同日二次实测修正，§2）。若此前有任何文字沿用该口径，一律以本版 §2 的三分表为准。
+
+---
+
+## 10. v3 变更记录（2026-11-08，pilot10 后）
+
+依据 `dataset/v1/pilot10-给DeepSeek的说明.md` 的 Q1–Q5，已核实数据后定稿：
+
+| # | 变更 | 原因 | 依据 |
+|---|---|---|---|
+| 1 | `new_value` 语义改为「语义当前值」；新增 `official_answer` / `official_answer_role` / `official_answer_session_index` | §3 原「`new_value` = 官方 answer」与 §2「retrospective 的 answer 是旧值」自相矛盾；pilot 06/07/08 撞上 | pilot Q1 |
+| 2 | `gold_session_index` 语义改为「**当前值**所在」；官方 answer 所在另用 `official_answer_session_index` | 对 retrospective 题两者不同（官方 answer 在较早=0，当前值在较晚=1） | pilot Q2 |
+| 3 | 新增 `stale_value_is_placeholder` | `5a4f22c0` 的旧值是 assistant 表格里的占位词 `Old Company`（已核实 session `answer_b0f3dfff_1`，idx 7），不是具体公司名 | pilot Q4 |
+| 4 | `conflict_type` / `expected_resolution` / `match_mode` 允许 `null` | abstention 题无冲突、无裁决 | pilot Q3 |
+| 5 | 06（`07741c44`）的数据歧义**已排除**：官方 gold = `under my bed`（`answer_7e9ad7b4_1`，idx 7，"keeping them under my bed"）；`a few pairs hidden away in my closet` 指另外几双，不构成旧鞋的旧位置 | 已读两个 gold session 原文 | pilot Q5 |
+
+**pilot10 回填结果**：10 行已按 v3 回填到 `dataset/v1/annotations-pilot10-v2.jsonl`，校验通过（`scripts/backfill_pilot10.py`）：
+- current 6 题：`new_value` 均为官方 answer 归一化子串；
+- retrospective 3 题：`stale_value` 均为官方 answer 归一化子串；
+- abstention 1 题：`is_abstention=true`，其余字段 null；
+- 非 abs 题的 `stale/new_source_session_id` 均属于 `answer_session_ids`。
+
+**占位旧值题的处理约定**：`stale_value_is_placeholder=true` 的题**不进层 1a 主分母**，在报告里单列（列出 question_id 与原因），不静默算 0。
+
