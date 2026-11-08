@@ -41,6 +41,10 @@ async def test_mcp_tools_roundtrip():
     from mcp import ClientSession, StdioServerParameters  # noqa: F401
     from mcp.client.stdio import stdio_client
 
+    # 唯一 attribute，保证测试可重复跑（上次 forget 会把旧 fact 置为失效）
+    import uuid
+    attr = f"mcp check {uuid.uuid4().hex[:8]}"
+
     async with stdio_client(_params()) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
@@ -50,17 +54,17 @@ async def test_mcp_tools_roundtrip():
 
             w = await session.call_tool(
                 "memory_write",
-                {"entity_id": "user:mcp", "attribute": "mcp check", "value": "ok-2023", "valid_from": "2023-01-01"},
+                {"entity_id": "user:mcp", "attribute": attr, "value": "ok-2023", "valid_from": "2023-01-01"},
             )
             text = "".join(getattr(c, "text", "") for c in (w.content or []))
             assert "fact_id" in text, text
             fact_id = json.loads(text)["fact_id"]
 
-            s = await session.call_tool("memory_search", {"query": "mcp check", "budget_tokens": 500})
+            s = await session.call_tool("memory_search", {"query": attr, "budget_tokens": 500})
             stext = "".join(getattr(c, "text", "") for c in (s.content or []))
-            assert "user:mcp.mcp check = ok-2023" in stext, stext
+            assert f"user:mcp.{attr} = ok-2023" in stext, stext
 
-            f = await session.call_tool("memory_forget", {"entity_id": "user:mcp", "attribute": "mcp check"})
+            f = await session.call_tool("memory_forget", {"entity_id": "user:mcp", "attribute": attr})
             ftext = "".join(getattr(c, "text", "") for c in (f.content or []))
             assert "marked invalid" in ftext, ftext
             assert fact_id in ftext, ftext
