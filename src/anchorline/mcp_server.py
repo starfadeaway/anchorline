@@ -10,13 +10,14 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Iterator
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 from anchorline.db import session_factory
 from anchorline.memory.store import FactStore
 from anchorline.tools import build_tools
 
-mcp = FastMCP("anchorline-memory")
+# mcp 2.x：FastMCP 已更名为 MCPServer（from mcp.server.mcpserver import MCPServer）
+mcp = MCPServer("anchorline-memory")
 
 
 @contextmanager
@@ -65,4 +66,4 @@ def memory_forget(entity_id: str, attribute: str, at: str | None = None) -> str:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="stdio")
