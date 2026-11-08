@@ -27,15 +27,8 @@ dist/
 build/
 *.tsbuildinfo
 
-# ---- 大数据（可重建或体积过大，不入库） ----
-dataset/v2/trajectories.jsonl
-dataset/v2/traj_index.json
-dataset/longmemeval_s_cleaned.json
-dataset/*.tar.gz
-dataset/v2/*.tar.gz
-# V1 标注材料含 gold session 原文（MIT 只覆盖 benchmark 自身层，第三方 session 不入库）
-dataset/v1/*.md
-dataset/v1/*.jsonl
+# ---- dataset/ 整体不入库（本地保留：数据、核验产物、官方源码） ----
+dataset/
 
 # ---- 运行时产物 ----
 *.log
