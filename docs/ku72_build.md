@@ -1,59 +1,60 @@
-# V1-KU 72 题构建报告（可入库版）
+# V1-KU 72 题标注与分母台账（v3.1，已完成标注）
 
-> 配套协议：`docs/annotation-protocol-ku78.md`（v2）
-> 生成脚本：`dataset/v1/build_ku72.py`（读 `longmemeval_s_cleaned.json` + `order_recheck.json`）
-> 产物：`data/annotations/ku72.jsonl`（72 行骨架；不含任何 session 原文）
-> 材料（**不入库**，含 session 原文）：`dataset/v1/manual16.md`、`dataset/v1/pilot10.md`
+> 协议：`docs/annotation-protocol-ku78.md`（v3 + v3.1）
+> 数据：`data/annotations/ku72.jsonl`（72 行，不含 session 原文，可入库）
+> 分母：`data/annotations/ku72_denominators.json`
+> 标注材料与原始记录：`dataset/v1/`（本地保留、不入库）
+> 合并脚本：`scripts/merge_annotations.py`；构建：`scripts/build_ku72.py`；材料：`scripts/make_annotation_batch.py`
 
-## 1. 分层结果
+## 1. 状态
 
-| 层 | 问句形态 | 题数 | 来源 |
+**72 题全部完成人工标注**（pilot10 10 题 + 剩余 63 题），schema v3.1 定稿。无 `manual_needed`、无 abstention 混入 72。
+
+## 2. 分层与分母（最终）
+
+| 层 | 问句形态 | 题数 | 指标 |
 |---|---|---|---|
-| 1a | `current` | **49** | answer 唯一命中较晚索引 gold session |
-| 1b | `retrospective` | **7** | answer 唯一命中较早索引 gold session |
-| — | `manual_needed` | **16** | 14 NEITHER + 2 BOTH |
-| 1c | `abstention`（`_abs`） | **6** | 不进 72 |
+| **1a** | `current` | **63** | 与标注协议的一致率（分母 63）；过期事实率（有效分母 **60**） |
+| **1b** | `retrospective` | **9** | 回溯一致率（取到旧值才算对） |
+| **1c** | `abstention`（`_abs`） | **6** | 单列，不进 1a/1b |
 
-**72 = 49 + 7 + 16**。16 题判层后，1a/1b 分母需重算 —— **72 与 168 一样仍是 provisional。**
+- **1a + 1b = 72**。
+- **过期事实率有效分母 = 63 − 1（占位旧值 `5a4f22c0`）− 2（无旧值 `22d2cb42`、`5c40ec5b`）= 60**。
+- 与标注协议的一致率分母用 63（所有 current 题都能判）。
 
-## 2. `data/annotations/ku72.jsonl` 字段状态
+> 72 与 168 一样：本文件的分母是「标注完成后」的口径；报告定稿时仍写明「V1-KU 75→72 的剔除依据（6 道 `_abs`）」。
 
-| 字段 | 已预填 | 待人工 |
+## 3. 标注流程（已完成）
+
+1. **pilot10**（10 题）：定死 schema，暴露 Q1–Q5（new_value 语义、gold_session_index、abstention null、占位词、06 数据歧义）→ v3 定稿。
+2. **剩余 63 题**：`manual15.md` + `remaining48.md`；15 道 manual 全部判层（14 current + 1 retrospective `10e09553`），48 道批标。
+3. **合并**：`scripts/merge_annotations.py` 把 pilot10-v2（9 行）+ remaining-fixed（63 行）写回 `ku72.jsonl`；校验 0 errors。
+4. **分母重算**：见上表。
+
+## 4. 特殊题清单（报告时必须单列/说明）
+
+| 类型 | question_id | 处理 |
 |---|---|---|
-| `question_id` / `question` | ✅ | — |
-| `query_form` | ✅（49 current / 7 retrospective / 16 manual_needed） | 16 题判层 |
-| `new_value` | ✅ 官方 `answer`（只读） | 1b 题需按「answer = 旧值」对调角色 |
-| `stale_source_session_id` / `new_source_session_id` | ✅（按索引序） | — |
-| `session_order_source` | ✅（`answer_match_index` / `manual`） | 16 题人工 |
-| `gold_session_index` | ✅（0 = 较早索引，1 = 较晚索引） | 16 题为 null |
-| `stale_value` | ❌ | **全部 72 题需人工确认** |
-| `conflict_type` / `expected_resolution` / `entity` / `match_mode` | ❌ | **全部 72 题** |
+| 占位旧值 | `5a4f22c0` | `stale_value="Old Company"`（assistant 表格占位），`stale_value_is_placeholder=true`；**不进过期事实率** |
+| 无旧值（首次发生） | `22d2cb42`、`5c40ec5b` | `stale_value=null`；**不进过期事实率** |
+| 复合答案 / 双槽位 | `031748ae`、`f685340e`、`c4ea545c`、`c6853660` | `new_value` 填具体当前值；官方复合句在 `official_answer`；`query_form=current` |
+| 措辞差异 | `89941a94` | 题目 `gravel bike` vs 原文 `new hybrid bike`；答案由 road bike 支持，保留，note 标注 |
+| 日期反序已知题 | `618f13b2` | 按 haystack 索引判（不改） |
 
-## 3. Pilot 10 题（先标这 10 题，schema 定死后才批量标）
+## 5. 下一步（V1）
 
-| # | question_id | 类型 | 用途 |
-|---|---|---|---|
-| 1 | `5a4f22c0` | current | 回溯限定词指**非时间实体**（`previous company` 类），检验关键词一刀切 |
-| 2–5 | `6aeb4375` / `830ce83f` / `852ce960` / `945e3d21` | current | 常规现行值题 |
-| 6 | `07741c44` | retrospective | `initially` |
-| 7 | `50635ada` | retrospective | `previous … before` |
-| 8 | `0ddfec37` | retrospective | `first three months` |
-| 9 | `6aeb4375_abs` | abstention | 拒答变体 |
-| 10 | `6a1eabeb` | manual_needed | BOTH/NEITHER 流程压力 |
+1. **自重复一致性**：随机 16 题（含上述特殊题）间隔 ≥7 天重标，比对一致率。
+2. **跨模型交叉标注**：用与主 judge 不同的模型独立标同样 16 题。
+3. **判定规则固化**：exact / normalized / fuzzy；fuzzy 阈值 0.7 / 0.8 / 0.9 敏感性分析，报告结论是否翻转。
+4. **复核记录表**：填 `docs/annotation-protocol-ku78.md` §7（标注者、两轮日期、一致率、交叉模型）。
+5. 词汇级坑：`89941a94` 的 old/new 都是 "Yes (...)"，过期检测区分度弱，聚合时单列。
 
-> ⚠️ **未覆盖的风险**：49 道 `current` 题的官方 `answer` 归一化后**均 ≤ 6 token**（实测 0 道长答案）。因此 pilot 无法覆盖「长答案匹配器稳定性」这一项；协议 Step 2.5 原定的「至少 1 道长答案」在自动定位集上无样本。报告需在局限里写明，或在 16 题人工判层后补一条长答案样本。
+## 6. 复现
 
-## 4. 下一步（V1）
-
-1. 人工读 `dataset/v1/pilot10.md`，按 schema 标 10 题 → 定死 schema。
-2. 批量标剩余 62 题 + 16 题人工判层（`manual16.md`）。
-3. 16 题判层后重算 1a/1b 分母。
-4. 16 题自重复（间隔 ≥7 天）+ 跨模型交叉复核。
-5. 判定规则固化（exact / normalized / fuzzy）+ fuzzy 阈值 0.7/0.8/0.9 敏感性分析。
-
-## 5. 纪律
-
-- **不看日期判新旧**：按 haystack 数组索引顺序；唯一反例 `618f13b2` 已在协议记录。
-- **1b 题的 answer 是旧值**：`new_value` 字段仍存官方 answer，人工必须对调 stale/new 角色。
-- 指标名一律「**与标注协议的一致率**」，不用「裁决准确率」。
-- `session` 原文**不入库**（`.gitignore` 已排除 `dataset/v1/*.md`）。
+```powershell
+.venv\Scripts\python.exe scripts\build_ku72.py            # 生成骨架
+.venv\Scripts\python.exe scripts\make_annotation_batch.py # 生成待标材料
+# （人工标注）
+.venv\Scripts\python.exe scripts\fix_and_validate_remaining.py
+.venv\Scripts\python.exe scripts\merge_annotations.py     # 合并 + 分母
+```

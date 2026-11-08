@@ -1,0 +1,19 @@
+{
+  "n_total": 72,
+  "by_query_form": {
+    "current": 63,
+    "retrospective": 9
+  },
+  "layer_1a_current": 63,
+  "layer_1b_retrospective": 9,
+  "layer_1c_abstention": 6,
+  "stale_value_placeholder_ids": [
+    "5a4f22c0"
+  ],
+  "stale_value_null_ids": [
+    "22d2cb42",
+    "5c40ec5b"
+  ],
+  "stale_fact_rate_denominator": 60,
+  "note": "1a 与协议一致率分母=63；过期事实率有效分母=1a − placeholder − null_stale"
+}

@@ -107,7 +107,7 @@
 | `official_answer` | str | 只读 | 官方 `answer` 原样，仅用于追溯，不参与指标计算 |
 | `official_answer_role` | enum | `current` / `old` / null | 官方 answer 是当前值（current 题）还是旧值（retrospective 题）；abstention 为 null |
 | `official_answer_session_index` | int | `0` / `1` / null | 官方 answer 所在 gold session 的**相对索引**（0=较早，1=较晚）；abstention 为 null |
-| `stale_value` | str | 自标 | 旧事实的**具体值**（不是整句） |
+| `stale_value` | str / null | 自标 | 旧事实的**具体值**（不是整句）。**null = 无旧值（首次发生）**：例 `22d2cb42`（旧状态是"还没送修"）、`5c40ec5b`（旧状态是"还没见面"）——候选店名/计划不算旧值。`stale_value=null` 的题不参与"过期事实率"计算 |
 | `stale_source_session_id` | str | `answer_*` | 旧值所在 gold session id |
 | `new_source_session_id` | str | `answer_*` | 新值所在 gold session id |
 | `session_order_source` | enum | `answer_match_index` / `manual` | **新旧 session 的判定依据**。自动 = answer 严格匹配 + **haystack 索引顺序**；人工 = 逐题确认。**日期不作为判定依据**（77/78 与索引一致，1/78 相反，详见 §2）。 |
@@ -411,4 +411,13 @@ pilot 通过后才批量标剩余题。**若 pilot 显示 schema 不够，改 sc
 - 非 abs 题的 `stale/new_source_session_id` 均属于 `answer_session_ids`。
 
 **占位旧值题的处理约定**：`stale_value_is_placeholder=true` 的题**不进层 1a 主分母**，在报告里单列（列出 question_id 与原因），不静默算 0。
+
+### v3.1 补充（同日晚，63 行批标后）
+
+| # | 规则 | 说明 |
+|---|---|---|
+| 6 | `stale_value` 允许 `null`，表示**无旧值（首次发生）** | `22d2cb42`（未送修，`Rhythm Central` 只是候选）、`5c40ec5b`（未见面）。这类题不参与"过期事实率"，单列 |
+| 7 | **复合答案题**：`new_value` 填**具体当前值**，不是布尔/比较结论 | `c4ea545c` → `four times a week`（不是 `Yes`）；`031748ae` → `5`（不是复合句）；`f685340e` → `every other week`。官方复合句仍完整保存在 `official_answer` |
+| 8 | **双槽位问句**（同时问"刚上任时/现在"、"previously/now"）→ `query_form=current` | `031748ae`、`f685340e` 归 current；旧值仍记录在 `stale_value`。不留 `manual_needed` |
+| 9 | `89941a94` 的 `gravel bike` 与原文 `new hybrid bike` 措辞不一致 | 官方 answer（`Yes. (You have a road bike too.)`）由 S1 的 road bike 支持，**答案成立**；保留 retrospective，在 `note` 标注措辞差异，不剔除 |
 
