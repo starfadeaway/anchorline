@@ -49,6 +49,36 @@ class ChatClient:
         resp = self._client.chat.completions.create(**kwargs)
         return resp.choices[0].message.content or ""
 
+    def complete_with_tools(
+        self,
+        messages: list[dict],
+        tools: list[dict],
+        *,
+        temperature: float = 0.0,
+        max_tokens: int = 2048,
+    ) -> dict:
+        """返回 {"content": str, "tool_calls": [{"id","name","arguments"}]}。
+
+        reasoning 模型（如 deepseek-flash）会先花 token 思考，max_tokens 必须给足，
+        否则 content 为空、tool_calls 为空。
+        """
+        resp = self._client.chat.completions.create(
+            model=self.cfg.model,
+            messages=messages,
+            tools=tools,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        msg = resp.choices[0].message
+        calls = []
+        for tc in msg.tool_calls or []:
+            calls.append({
+                "id": tc.id,
+                "name": tc.function.name,
+                "arguments": tc.function.arguments or "{}",
+            })
+        return {"content": msg.content or "", "tool_calls": calls}
+
 
 class EmbeddingClient:
     def __init__(self, cfg: ReaderConfig):

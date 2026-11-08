@@ -59,7 +59,18 @@ def build_chat_graph(
         reply = model_fn(state["messages"])
         msg = {"role": "assistant", "content": reply.get("content") or ""}
         if reply.get("tool_calls"):
-            msg["tool_calls"] = reply["tool_calls"]
+            # 回传给模型时必须用 OpenAI 标准格式：{id, type:"function", function:{name, arguments}}
+            msg["tool_calls"] = [
+                {
+                    "id": tc.get("id") or f"call_{i}",
+                    "type": "function",
+                    "function": {
+                        "name": tc.get("name") or tc.get("function", {}).get("name", ""),
+                        "arguments": tc.get("arguments") or tc.get("function", {}).get("arguments") or "{}",
+                    },
+                }
+                for i, tc in enumerate(reply["tool_calls"])
+            ]
         messages = [*state["messages"], msg]
         return {
             "messages": messages,

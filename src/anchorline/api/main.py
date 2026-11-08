@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-"""FastAPI 入口（M1 最小）：health + memory search/write + trace 查询 + SSE 聊天占位。
+"""FastAPI 入口：health / memory / trace / 真实 tool-calling 聊天（SSE）。
 
-单 API 副本；SSE 聊天在 M1 后半段接入 LangGraph，当前先返回 501 并保留路由形态。
+聊天路径：LangGraph bounded agent loop（`graph/chat.py`）→ 模型（DeepSeek）
+通过 function calling 调用 `memory_search / memory_write / memory_forget`。
+评测模式不走这里（评测用固定工具路径的 harness）。
 """
 from __future__ import annotations
 
 import json
+import uuid
 from datetime import datetime
 from typing import Any
 
@@ -17,9 +20,12 @@ from sqlalchemy.orm import Session
 
 from anchorline import __version__
 from anchorline.db import get_db
-from anchorline.memory.l3 import assemble, ContextItem
+from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
+from anchorline.llm import reader_client
+from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore
 from anchorline.models import Trace
+from anchorline.tools import TOOL_SCHEMAS
 
 app = FastAPI(title="Anchorline", version=__version__)
 
@@ -48,6 +54,18 @@ class WriteRequest(BaseModel):
 class WriteResponse(BaseModel):
     fact_id: str
     supersedes: str | None = None
+
+
+class ChatRequest(BaseModel):
+    messages: list[dict[str, Any]]
+    max_steps: int = Field(default=6, ge=1, le=16)
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    stop_reason: str
+    steps: int
+    tool_calls: list[dict[str, Any]]
 
 
 @app.get("/health")
@@ -118,9 +136,56 @@ def get_trace(trace_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
     }
 
 
-@app.post("/chat")
-async def chat() -> StreamingResponse:
-    async def _gen():
-        yield "event: error\ndata: " + json.dumps({"detail": "chat 在 M1 后半段接入 LangGraph 后启用"}) + "\n\n"
+def _run_agent(messages: list[dict], db: Session, max_steps: int):
+    store = FactStore(db)
+    reader = reader_client()
+
+    def model_fn(msgs: list[dict]) -> dict:
+        return reader.complete_with_tools(msgs, TOOL_SCHEMAS, max_tokens=2048)
+
+    graph = build_chat_graph(
+        store,
+        model_fn,
+        Bounds(max_steps=max_steps, max_tokens=24000, wall_time_s=180.0),
+    )
+    out = graph.invoke(
+        initial_state(messages),
+        {"configurable": {"thread_id": uuid.uuid4().hex}},
+    )
+    db.commit()
+    return out
+
+
+def _extract_tool_calls(out: dict) -> list[dict[str, Any]]:
+    calls = []
+    for m in out["messages"]:
+        for tc in m.get("tool_calls") or []:
+            fn = tc.get("function") or {}
+            calls.append({
+                "name": fn.get("name") or tc.get("name"),
+                "arguments": fn.get("arguments") or tc.get("arguments"),
+            })
+    return calls
+
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
+    out = _run_agent(req.messages, db, req.max_steps)
+    finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
+    answer = finals[-1]["content"] if finals else ""
+    return ChatResponse(answer=answer, stop_reason=out.get("stop_reason", ""), steps=out["steps"], tool_calls=_extract_tool_calls(out))
+
+
+@app.post("/chat/stream")
+def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingResponse:
+    """SSE：先逐条推 tool 事件，最后推 answer。"""
+
+    def _gen():
+        out = _run_agent(req.messages, db, req.max_steps)
+        for tc in _extract_tool_calls(out):
+            yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
+        finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
+        answer = finals[-1]["content"] if finals else ""
+        yield "event: final\ndata: " + json.dumps({"answer": answer, "stop_reason": out.get("stop_reason", ""), "steps": out["steps"]}, ensure_ascii=False) + "\n\n"
 
     return StreamingResponse(_gen(), media_type="text/event-stream")
