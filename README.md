@@ -32,11 +32,16 @@ dataset/                  # 数据与核验产物（大文件不入库，见 .gi
 ## 当前状态
 
 - M0a：已完成（许可 / 版本 / 结构 / 压缩比 / 15 张题图 / 官方 RAG 源码核验）
-- **M0b：in progress**
-  - G1（15 道带图 `errors-gotchas` 参考答案自洽性）：进行中，产物 `docs/gate_image15.md`
-  - V1-KU 72 题标注：待启动（≥7 天日历等待，必须并行）
-- **G1 只卡 M3**；M1/M2 工程可并行
-- **168 与 72 均未冻结**；153 只作敏感性分析
+- **M0b：已完成**
+  - **G1（15 道带图 `errors-gotchas` 参考答案自洽性）：15/15 自洽，k = 0，V2-web 主分母 = 168**（产物 `docs/gate_image15.md`）
+  - V1-KU：72 题骨架已建（49 current + 7 retrospective + 16 manual_needed），pilot 10 题材料就绪（`docs/ku72_build.md`）
+- **M1：in progress**
+  - 已落地：L0 行级去重（与 `measure_compression` 0.00% 差异）、L1 观测摘要、L3 预算组装、L2 事实存储（supersedes / 不物理删除）、LangGraph 聊天 bounded loop + 确定性摄入 workflow、thin MCP 三工具、FastAPI、Alembic 迁移
+  - 存储：MySQL 8.4.5（5 表）+ LanceDB（1,737 条官方 `raw_state_slice` 向量，4096 维）
+  - 数据：web 100 条轨迹已回放（traces 100 行，L1 事件 1,737，L0 中位 2.64×）
+  - 评测：官方判分函数已移植；B 臂（官方基线）4k 预算下 20 题对 2 题
+  - **A/A pilot（20 题 × N=10）进行中**
+- 168 与 72 的冻结口径：168 已由 G1 裁定为 168 − 0；72 仍 provisional（16 题待判层）
 
 ## 数据与许可边界
 
