@@ -10,8 +10,8 @@ import json
 import os
 import random
 
-# evaluation/ -> anchorline/ -> src/ -> 仓库根
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# src/anchorline/evaluation/pilot.py -> evaluation -> anchorline -> src -> 仓库根
+_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 V2 = os.path.join(_ROOT, "dataset", "v2")
 
 
