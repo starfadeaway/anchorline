@@ -3,6 +3,11 @@
 
 v0.8 分工：**确定性步骤走 workflow**（不是 LLM 循环）；只有聊天才走 `graph/chat.py` 的 agent loop。
 两者都用 LangGraph StateGraph 表达。
+
+L0 与 L1 处理的是不同字段：
+  - L0：states[*].accessibility_tree 的跨 state 行级去重（体积压缩）；
+  - L1：states[*] 的 url / action / thought → 事件行（可读、可追溯）。
+不要把 L1 反解成 L0 的行文本 —— 那是两件事。
 """
 from __future__ import annotations
 
@@ -19,6 +24,7 @@ from anchorline.models import Trace
 class IngestState(TypedDict):
     traj_id: str
     states: list[str]
+    states_meta: list[dict]
     raw_chars: int
     l0_text: str
     l0_lines: int
@@ -29,14 +35,8 @@ class IngestState(TypedDict):
 
 
 def build_ingest_graph(db: Session):
-    deduper = L0Deduper()
-
     def l0(state: IngestState) -> dict:
-        deduper._seen.clear()
-        deduper.stats.raw_lines = 0
-        deduper.stats.novel_lines = 0
-        deduper.stats.raw_chars = 0
-        deduper.stats.novel_chars = 0
+        deduper = L0Deduper()
         text = deduper.feed_states(state["states"])
         return {
             "l0_text": text,
@@ -45,14 +45,8 @@ def build_ingest_graph(db: Session):
         }
 
     def l1(state: IngestState) -> dict:
-        lines = [line for line in state["l0_text"].split("\n") if line.strip()]
-        # L0 输出是行文本；L1 需要原始 state 结构才保留 url/action/thought，
-        # 因此这里把 L0 行按 state 分块反向解析为事件（每块的行前缀含 "#idx | @url | action=.. | thought=.."）
-        events = []
-        for line in lines:
-            if line.startswith("#"):
-                events.append(line)
-        return {"l1_text": "\n".join(events), "events": len(events)}
+        events = summarize_states(state["states_meta"])
+        return {"l1_text": events_to_text(events), "events": len(events)}
 
     def persist(state: IngestState) -> dict:
         trace = Trace(
@@ -79,15 +73,13 @@ def build_ingest_graph(db: Session):
 
 
 def ingest_trajectory(traj: dict, db: Session) -> IngestState:
-    """确定性摄入一条轨迹：states -> L0 -> L1 -> trace。"""
-    states = [
-        (s.get("accessibility_tree") or "")
-        for s in (traj.get("states") or [])
-        if isinstance(s, dict)
-    ]
+    """确定性摄入一条轨迹：a11y → L0；state 元数据 → L1；最后 trace。"""
+    states_meta = [s for s in (traj.get("states") or []) if isinstance(s, dict)]
+    states = [(s.get("accessibility_tree") or "") for s in states_meta]
     state: IngestState = {
         "traj_id": str(traj.get("id", "unknown")),
         "states": states,
+        "states_meta": states_meta,
         "raw_chars": sum(len(s) for s in states),
         "l0_text": "",
         "l0_lines": 0,
@@ -96,5 +88,4 @@ def ingest_trajectory(traj: dict, db: Session) -> IngestState:
         "l0_ratio": 0.0,
         "trace_id": None,
     }
-    out = build_ingest_graph(db).invoke(state)
-    return out
+    return build_ingest_graph(db).invoke(state)

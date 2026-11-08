@@ -35,6 +35,9 @@ def test_ingest_dedupes_across_states_and_writes_trace(db):
     assert out["l0_text"].count("[1] link 'Home'") == 1
     assert out["l0_lines"] == 4  # nav, item A, [1] link 'Home', item B
     assert out["l0_ratio"] > 1.0
+    # L1 事件来自 url/action/thought，不是 a11y 行
+    assert out["events"] == 3
+    assert "action=click('1')" in out["l1_text"]
     rows = db.query(Trace).all()
     assert len(rows) == 1
     assert rows[0].layers == "L0>L1"

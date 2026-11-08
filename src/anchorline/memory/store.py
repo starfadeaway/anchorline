@@ -48,22 +48,31 @@ class FactStore:
             return existing
 
         old = self.current(entity_id, attribute)
+        supersedes_id: str | None = None
+        if old is not None:
+            if valid_from >= old.valid_from:
+                # 新值更晚或同时：旧事实失效（不删除），有效区间截止到新值生效时刻
+                old.valid_to = valid_from
+                supersedes_id = old.id
+            else:
+                # 乱序补写更早的事实：插入为历史区间，不改变当前值；
+                # 该历史事实的有效期截止到当前事实的生效时间。
+                supersedes_id = None
+
         fact = Fact(
             entity_id=entity_id,
             attribute=attribute,
             value=value,
             valid_from=valid_from,
+            valid_to=(old.valid_from if old is not None and valid_from < old.valid_from else None),
             source_session_id=source_session_id,
             source_message_id=source_message_id,
             confidence=confidence,
             fact_type=fact_type,
             conflict_type=conflict_type,
-            supersedes_id=old.id if old is not None else None,
+            supersedes_id=supersedes_id,
         )
         self.db.add(fact)
-        if old is not None:
-            # 旧事实失效（不删除），有效区间截止到新值生效时刻
-            old.valid_to = valid_from
         self.db.flush()
         return fact
 

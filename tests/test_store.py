@@ -46,6 +46,22 @@ def test_write_same_valid_from_is_idempotent(db):
     assert db.query(Fact).count() == 1
 
 
+def test_out_of_order_earlier_write_does_not_clobber_current(db):
+    store = FactStore(db)
+    t_new = datetime(2023, 5, 30, 10, 0)
+    t_old = datetime(2023, 1, 1, 10, 0)
+    store.write(entity_id="user:liu", attribute="5K best time", value="25:50", valid_from=t_new)
+    f_old = store.write(entity_id="user:liu", attribute="5K best time", value="24:00", valid_from=t_old)
+    db.commit()
+
+    cur = store.current("user:liu", "5K best time")
+    assert cur is not None and cur.value == "25:50"
+    assert f_old.valid_to == t_new
+    assert f_old.supersedes_id is None
+    hist = store.history("user:liu", "5K best time")
+    assert [(h.value, h.valid_from) for h in hist] == [("24:00", t_old), ("25:50", t_new)]
+
+
 def test_search_text_hits_attribute_and_value(db):
     store = FactStore(db)
     store.write(entity_id="user:liu", attribute="frequent flyer status", value="Gold", valid_from=datetime(2023, 1, 1))
