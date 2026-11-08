@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from openai import OpenAI  # noqa: E402
 
+from anchorline.config import Settings  # noqa: E402
 from anchorline.evaluation.v1_judge import normalize  # noqa: E402
 
 KU = os.path.join(ROOT, "dataset", "longmemeval_s_cleaned.json")
@@ -88,8 +89,10 @@ def main() -> int:
     sample = DISPUTED + random.sample(pool, 16 - len(DISPUTED))
     print("sample:", sample)
 
-    client = OpenAI(base_url="https://api.minimax.chat/v1", api_key=os.environ.get("MINIMAX_API_KEY") or _env_key())
-    model = os.environ.get("MINIMAX_MODEL") or "MiniMax-M3"
+    # 统一走 Settings（.env）：key 不在此处明文读取、不打印
+    s = Settings()
+    client = OpenAI(base_url=s.minimax_base_url, api_key=s.minimax_api_key)
+    model = s.minimax_model
 
     results = []
     t0 = time.time()
@@ -189,14 +192,6 @@ def main() -> int:
     print(f"query_form一致 {qf_ok}/{valid} | stale严格 {sv_ok}/{valid} / 归一 {sv_ok_n}/{valid} | new严格 {nv_ok}/{valid} / 归一 {nv_ok_n}/{valid}")
     print("written:", OUT_JSONL, OUT_MD)
     return 0
-
-
-def _env_key() -> str:
-    for line in open(os.path.join(ROOT, ".env"), encoding="utf-8"):
-        line = line.strip()
-        if line.startswith("MINIMAX_API_KEY="):
-            return line.split("=", 1)[1]
-    return ""
 
 
 if __name__ == "__main__":

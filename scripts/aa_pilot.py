@@ -27,21 +27,16 @@ import lancedb  # noqa: E402
 
 from anchorline.config import Settings  # noqa: E402
 from anchorline.evaluation.baseline_arm import answer_baseline  # noqa: E402
-from anchorline.evaluation.metrics import LLM_JUDGE_FUNCS, parse_eval_function_spec, score_deterministic  # noqa: E402
+from anchorline.evaluation.metrics import (  # noqa: E402
+    LLM_JUDGE_FUNCS,
+    parse_eval_function_spec,
+    score_deterministic,
+)
+from anchorline.evaluation.pilot import sample_deterministic  # noqa: E402
 from anchorline.llm import embedding_client, reader_client  # noqa: E402
 
 V2 = os.path.join(ROOT, "dataset", "v2")
 OUT = os.path.join(ROOT, "data", "eval")
-
-
-def load_questions():
-    qs = {}
-    with open(os.path.join(V2, "questions.jsonl"), encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                q = json.loads(line)
-                qs[q["id"]] = q
-    return qs
 
 
 def main():
@@ -52,16 +47,9 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
-    qs = load_questions()
-    web = [q for q in qs.values() if str(q.get("environment", "")).startswith("webarena")]
-    non_abs = [q for q in web if parse_eval_function_spec(q["eval_function"])[0] not in LLM_JUDGE_FUNCS
-               and "abstention" not in q["eval_function"]]
-    # 只取确定性判分题（14 道 llm judge 题单列，不进 A/A）
-    non_abs = [q for q in non_abs if str(q.get("environment", "")).startswith("webarena")
-               and not q["id"].endswith("_abs")]
-    random.seed(args.seed)
-    sample = random.sample(non_abs, min(args.limit, len(non_abs)))
-    print(f"候选确定性题 {len(non_abs)}；pilot 抽 {len(sample)} 题；N={args.n}；temp={args.temp}")
+    # B/D 臂共用同一抽样函数，保证同题
+    sample = sample_deterministic(limit=args.limit, seed=args.seed)
+    print(f"pilot {len(sample)} 题；N={args.n}；temp={args.temp}")
 
     tbl = lancedb.connect(os.path.join(ROOT, "data", "lancedb")).open_table("v2_web_slices")
     reader = reader_client(Settings())

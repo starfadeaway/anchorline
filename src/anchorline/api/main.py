@@ -70,15 +70,18 @@ class ChatResponse(BaseModel):
 
 @app.get("/health")
 def health(db: Session = Depends(get_db)) -> dict[str, Any]:
+    """健康检查：数据库不可用时**不回显异常原文**（异常里可能带 DSN/密码）。"""
     try:
         db.execute(text("SELECT 1"))
         db_ok = True
-    except Exception as exc:
+    except Exception:
         db_ok = False
-        detail = str(exc)
-    else:
-        detail = ""
-    return {"status": "ok" if db_ok else "degraded", "version": __version__, "db": db_ok, "detail": detail}
+    return {
+        "status": "ok" if db_ok else "degraded",
+        "version": __version__,
+        "db": db_ok,
+        "detail": "" if db_ok else "database connection failed (details redacted)",
+    }
 
 
 @app.post("/memory/search", response_model=SearchResponse)

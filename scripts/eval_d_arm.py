@@ -20,11 +20,8 @@ import lancedb  # noqa: E402
 
 from anchorline.config import Settings  # noqa: E402
 from anchorline.evaluation.d_arm import answer_d_arm  # noqa: E402
-from anchorline.evaluation.metrics import (  # noqa: E402
-    LLM_JUDGE_FUNCS,
-    parse_eval_function_spec,
-    score_deterministic,
-)
+from anchorline.evaluation.metrics import score_deterministic  # noqa: E402
+from anchorline.evaluation.pilot import sample_deterministic  # noqa: E402
 from anchorline.llm import embedding_client, reader_client  # noqa: E402
 
 V2 = os.path.join(ROOT, "dataset", "v2")
@@ -34,26 +31,9 @@ OUT_MD = os.path.join(ROOT, "docs", "d_arm_pilot.md")
 B_PILOT = os.path.join(ROOT, "data", "eval", "aa_pilot.json")
 
 
-def load_questions():
-    qs = {}
-    with open(os.path.join(V2, "questions.jsonl"), encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                q = json.loads(line)
-                qs[q["id"]] = q
-    return qs
-
-
 def main() -> int:
-    qs = load_questions()
-    web = [q for q in qs.values() if str(q.get("environment", "")).startswith("webarena")]
-    deterministic = [
-        q for q in web
-        if parse_eval_function_spec(q["eval_function"])[0] not in LLM_JUDGE_FUNCS
-        and not q["id"].endswith("_abs")
-    ]
-    random.seed(42)
-    sample = random.sample(deterministic, 20)
+    # 与 B 臂共用同一抽样函数（seed=42），保证同题
+    sample = sample_deterministic(limit=20, seed=42)
 
     tbl = lancedb.connect(os.path.join(ROOT, "data", "lancedb")).open_table(TABLE)
     reader = reader_client(Settings())

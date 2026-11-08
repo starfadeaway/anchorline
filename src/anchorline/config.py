@@ -44,6 +44,13 @@ class Settings(BaseSettings):
             f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}?charset=utf8mb4"
         )
 
+    def safe_dsn(self) -> str:
+        """脱敏 DSN：只给日志/诊断用，**永不包含密码**。"""
+        return (
+            f"mysql+pymysql://{self.mysql_user}:***"
+            f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}"
+        )
+
     def redacted(self) -> dict[str, str]:
         """安全打印：key 一律变成 ***。"""
         data = self.model_dump()

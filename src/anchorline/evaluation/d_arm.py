@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from anchorline.evaluation.reader import build_messages
 from anchorline.llm import ChatClient, EmbeddingClient
+from anchorline.memory.l3 import assemble_blocks
 from anchorline.retrieval.baseline import (
     DEFAULT_TOP_K,
     format_query_for_embedding,
@@ -44,7 +45,7 @@ def answer_d_arm(
     context_budget_tokens: int = 4000,
 ) -> DArmResult:
     hits = retrieve_d(tbl, embedder, question, top_k=top_k)
-    items = []
+    items: list[tuple[float, str]] = []
     for h in hits:
         sim = 1.0 - float(h.get("_distance") or 0.0)
         block = (
@@ -57,28 +58,14 @@ def answer_d_arm(
         )
         items.append((sim, block))
 
-    budget_chars = context_budget_tokens * 4
-    used = 0
-    parts: list[str] = []
-    dropped = 0
-    for _, block in sorted(items, key=lambda kv: -kv[0]):
-        if used >= budget_chars:
-            dropped += 1
-            continue
-        remain = budget_chars - used
-        if len(block) <= remain:
-            parts.append(block)
-            used += len(block)
-        else:
-            parts.append(block[:remain])
-            used += remain
-    context = "\n\n".join(parts) if parts else "(empty)"
+    context, used_tokens, dropped = assemble_blocks(items, context_budget_tokens)
+    context = context or "(empty)"
     messages = build_messages(question, context)
     answer = reader.complete(messages, temperature=temperature, max_tokens=max_tokens)
     return DArmResult(
         answer=answer,
         hits=hits,
-        context_tokens=used // 4,
+        context_tokens=used_tokens,
         question=question,
         dropped_entries=dropped,
     )

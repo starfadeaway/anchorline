@@ -58,3 +58,44 @@ def assemble(items: list[ContextItem], budget_tokens: int) -> AssemblyResult:
         used_tokens += cost
 
     return AssemblyResult(text="\n\n".join(blocks), used_tokens=used_tokens, used_items=used, dropped_items=dropped)
+
+
+def assemble_blocks(
+    blocks: list[tuple[float, str]],
+    budget_tokens: int,
+    *,
+    chars_per_token: int = CHARS_PER_TOKEN,
+) -> tuple[str, int, int]:
+    """长文本块（B 臂切片 / D 臂 state 条目）的预算组装。
+
+    与 `assemble` 的区别：单个块可能远超预算，**截断到剩余预算而不是整块丢弃**
+    （同官方 `truncate_memory_context` 语义）。B 臂与 D 臂共用本函数，保证预算口径一致。
+
+    参数:
+        blocks: [(score, text)]；score 越大越优先。
+        budget_tokens: token 预算（按 chars_per_token 折算成字符）。
+    返回:
+        (组装后的文本, 实际用掉的 tokens, 被完全丢弃的块数)
+    """
+    if budget_tokens <= 0:
+        return "", 0, len(blocks)
+
+    budget_chars = budget_tokens * chars_per_token
+    used_chars = 0
+    dropped = 0
+    parts: list[str] = []
+    for _, block in sorted(blocks, key=lambda sb: -sb[0]):
+        text = block.strip()
+        if not text:
+            continue
+        if used_chars >= budget_chars:
+            dropped += 1
+            continue
+        remain = budget_chars - used_chars
+        if len(text) <= remain:
+            parts.append(text)
+            used_chars += len(text)
+        else:
+            parts.append(text[:remain])
+            used_chars += remain
+    return ("\n\n".join(parts) if parts else ""), used_chars // chars_per_token, dropped
