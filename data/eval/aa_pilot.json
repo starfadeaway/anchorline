@@ -1,0 +1,222 @@
+{
+ "config": {
+  "arm": "B_official_raw_state_slice",
+  "reader_model": "deepseek-flash",
+  "embedding_model": "Qwen/Qwen3-Embedding-8B",
+  "temperature": 1.0,
+  "n_per_question": 1,
+  "questions": 20,
+  "top_k": 6
+ },
+ "noise_floor": {
+  "pairwise_abs_diff_mean": 0.0,
+  "pairwise_abs_diff_max": 0.0,
+  "nonzero_pairs": 0,
+  "pairs_total": 0,
+  "question_span_mean": 0,
+  "question_span_max": 0
+ },
+ "per_question": [
+  {
+   "question_id": "2c45ecbb",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07b49858",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6a23675f",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "60f2b293",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5cb7289b",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "36fe48ef",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "289aea4a",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "eab07e81",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "1e011eb5",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "fec652a9",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "abadf765",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07fff330",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07d86be1",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "238c3621",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5a85ca0f",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5db4899c",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "d886b018",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "eef545a0",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "4f92aa38",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "a92dff92",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  }
+ ],
+ "elapsed_s": 140.8
+}

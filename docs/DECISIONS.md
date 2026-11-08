@@ -13,6 +13,7 @@
 | ADR-005 | **V2 臂只跑 insert + query**；写入侧（merge / supersede / conflict / consolidation）只在 V1-KU | ✅ 已定 | v0.8 §4 / §5 |
 | ADR-006 | **指标名固定**：V1 用「与标注协议的一致率」，不用「裁决准确率」 | ✅ 已定 | v0.8 §6.2.2 |
 | ADR-007 | **不进官方 leaderboard**，只报同 reader / judge / embedding / 预算下的相对结果 | ✅ 已定 | v0.8 §10 |
+| ADR-008 | **pilot 模型配置**：reader + judge = `deepseek-flash`（DeepSeek，1M ctx，reasoning 模型需给足 max_tokens）；embedding = `Qwen/Qwen3-Embedding-8B`（SiliconFlow，4096 维）；rerank = `BAAI/bge-reranker-v2-m3`。评测模式冻结，换模型只用于聊天模式 | ⚠️ **pilot 配置，待拍板** | v0.8 §2.2 provider 分工；与官方默认（Qwen3.5-9B / Qwen3-Embedding-8B / gpt-5.2）不同，报告只报同配置相对结果 |
 
 ## 待办
 
