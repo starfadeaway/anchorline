@@ -32,6 +32,8 @@ def normalize(text: object, *, digitize: bool = False) -> str:
     s = str(text or "").lower()
     s = s.replace("$", " ").replace(",", " ")
     s = re.sub(r"[^\w\s.]", " ", s)
+    # 去掉非小数的句号（"Main St." -> "Main St"），保留 "1.5" 这类小数
+    s = re.sub(r"(?<!\d)\.|\.(?!\d)", " ", s)
     if digitize:
         for word, num in NUM_WORDS.items():
             s = re.sub(rf"(?<!\w){word}(?!\w)", num, s)
@@ -103,6 +105,39 @@ def judge_took_old(
 
 
 CONCLUSION_TOKENS = {"yes", "no", "true", "false"}
+
+# 值等价比较时忽略的停用词/功能词（代词、单位连接词）
+VALUE_STOPWORDS = {
+    "the", "a", "an", "my", "your", "his", "her", "their", "our",
+    "per", "of", "on", "in", "at", "for", "with", "and", "or",
+}
+
+
+def content_tokens(text: object) -> set[str]:
+    return {
+        t for t in normalize(text, digitize=True).split()
+        if t not in VALUE_STOPWORDS
+    }
+
+
+def value_equivalent(a: object, b: object) -> bool:
+    """值等价（用于交叉标注比对与「同一事实」判定）：
+
+    - 都为空 → True；一空一非空 → False；
+    - 归一化后相等 → True；
+    - 内容词集合有包含关系（"4 engineers" ⊃ "4"、"30 dozen" ⊃ "30"）→ True；
+    - 否则 token F1 >= 0.8 → True。
+    """
+    if a is None or b is None:
+        return a is None and b is None
+    if normalize(a) == normalize(b):
+        return True
+    ca, cb = content_tokens(a), content_tokens(b)
+    if not ca or not cb:
+        return False
+    if ca <= cb or cb <= ca:
+        return True
+    return token_f1(" ".join(sorted(ca)), " ".join(sorted(cb))) >= 0.8
 
 
 def is_ambiguous_record(record: dict, *, threshold: float = 0.8) -> bool:

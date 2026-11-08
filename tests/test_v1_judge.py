@@ -60,3 +60,18 @@ def test_ambiguous_record_not_triggered_by_plain_overlap():
 def test_normalize_keeps_decimal():
     assert normalize("25:50") == "25 50"
     assert normalize("$420") == "420"
+    assert normalize("Main St.") == "main st"
+    assert normalize("1.5 hours") == "1.5 hours"
+
+
+def test_value_equivalent_granularity():
+    from anchorline.evaluation.v1_judge import value_equivalent
+
+    assert value_equivalent("4 engineers", "4")
+    assert value_equivalent("30 dozen", "30")
+    assert value_equivalent("in the bedroom", "in my bedroom")
+    assert value_equivalent("3 times per week", "three times a week")
+    assert value_equivalent("Main St.", "the music shop on Main St")
+    assert not value_equivalent("under my bed", "shoe rack in the closet")
+    assert value_equivalent(None, None)
+    assert not value_equivalent(None, "x")
