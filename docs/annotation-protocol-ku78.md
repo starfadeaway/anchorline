@@ -421,3 +421,10 @@ pilot 通过后才批量标剩余题。**若 pilot 显示 schema 不够，改 sc
 | 8 | **双槽位问句**（同时问"刚上任时/现在"、"previously/now"）→ `query_form=current` | `031748ae`、`f685340e` 归 current；旧值仍记录在 `stale_value`。不留 `manual_needed` |
 | 9 | `89941a94` 的 `gravel bike` 与原文 `new hybrid bike` 措辞不一致 | 官方 answer（`Yes. (You have a road bike too.)`）由 S1 的 road bike 支持，**答案成立**；保留 retrospective，在 `note` 标注措辞差异，不剔除 |
 
+### v3.2 补充（MiniMax agent 交叉后，人工仲裁）
+
+| # | 规则 | 依据 |
+|---|---|---|
+| 10 | **布尔事实的旧状态为 `No` 时填 `No`，不填 null**。`null` 只用于「该事实此前从未存在」 | `b01defab`：S1「读到一半暂时搁置」= 旧值 `No`；MiniMax 误判为 null。而 `22d2cb42`（未送修）、`5c40ec5b`（未见面）才是「从未存在」 |
+| 11 | **问题时间窗优先于累计口径** | `5831f84d`：题目问 `in the past few weeks`，旧值取同口径的 `10`，不取同 session 的累计 `12` |
+
