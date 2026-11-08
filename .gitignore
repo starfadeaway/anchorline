@@ -1,0 +1,50 @@
+# ---- secrets ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+API_KEY*
+*credentials*
+*.p12
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+*.egg-info/
+.coverage
+htmlcov/
+
+# ---- node / frontend ----
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# ---- 大数据（可重建或体积过大，不入库） ----
+dataset/v2/trajectories.jsonl
+dataset/v2/traj_index.json
+dataset/longmemeval_s_cleaned.json
+dataset/*.tar.gz
+dataset/v2/*.tar.gz
+
+# ---- 运行时产物 ----
+*.log
+logs/
+data/lancedb/
+data/mysql/
+*.sqlite
+*.db
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

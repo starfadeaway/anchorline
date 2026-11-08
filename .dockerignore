@@ -1,0 +1,27 @@
+.git
+.gitignore
+.github
+node_modules
+**/__pycache__
+**/*.pyc
+.venv
+venv
+
+# 不把数据集与大文件塞进镜像
+dataset/v2/trajectories.jsonl
+dataset/v2/traj_index.json
+dataset/longmemeval_s_cleaned.json
+dataset/*.tar.gz
+dataset/v2/*.tar.gz
+
+# 密钥与日志
+.env
+.env.*
+!.env.example
+*.log
+*.sqlite
+*.db
+
+# 前端构建产物
+dist
+build
