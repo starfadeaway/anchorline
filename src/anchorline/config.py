@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+"""配置：只从环境变量 / .env 读取；不得把 key 写入代码或日志。"""
+from __future__ import annotations
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    # --- LLM providers（OpenAI-compatible） ---
+    deepseek_base_url: str = ""
+    deepseek_api_key: str = ""
+    deepseek_reader_model: str = ""
+    deepseek_judge_model: str = ""
+
+    siliconflow_base_url: str = ""
+    siliconflow_api_key: str = ""
+    siliconflow_embedding_model: str = ""
+    siliconflow_rerank_model: str = ""
+
+    minimax_base_url: str = ""
+    minimax_api_key: str = ""
+    minimax_model: str = ""
+
+    # --- MySQL 8 ---
+    mysql_host: str = "127.0.0.1"
+    mysql_port: int = 3306
+    mysql_database: str = "anchorline"
+    mysql_user: str = "anchorline"
+    mysql_password: str = ""
+
+    # --- LanceDB ---
+    lancedb_uri: str = "./data/lancedb"
+
+    # --- eval ---
+    eval_budget_tokens: int = 4000
+    eval_judge_prompt_sha256: str = ""
+
+    @property
+    def mysql_dsn(self) -> str:
+        return (
+            f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
+            f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}?charset=utf8mb4"
+        )
+
+    def redacted(self) -> dict[str, str]:
+        """安全打印：key 一律变成 ***。"""
+        data = self.model_dump()
+        for k in list(data):
+            if k.endswith("_api_key"):
+                data[k] = "***" if data[k] else ""
+        return data
