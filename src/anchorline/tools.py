@@ -1,0 +1,140 @@
+# -*- coding: utf-8 -*-
+"""内存工具：memory_search / memory_write / memory_forget（MCP 三工具的本地实现）。
+
+同一套函数既供 LangGraph 聊天/评测路径调用，也供 thin MCP server 暴露 ——
+**MCP 与内部路径同源**（v0.8 M1 退出标准）。
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Callable
+
+from anchorline.memory.l3 import ContextItem, assemble
+from anchorline.memory.store import FactStore
+
+
+@dataclass(frozen=True)
+class ToolResult:
+    ok: bool
+    content: str
+    meta: dict[str, Any]
+
+
+def _parse_valid_from(value: str | None) -> datetime:
+    if not value:
+        return datetime.now()
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    return datetime.now()
+
+
+def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
+    def memory_search(query: str = "", budget_tokens: int = 2000, limit: int = 20) -> ToolResult:
+        facts = store.search_text(query, limit=limit) if query else []
+        items = [
+            ContextItem(
+                text=f"[{f.id[:8]}] {f.entity_id}.{f.attribute} = {f.value} (valid_from={f.valid_from:%Y-%m-%d %H:%M})",
+                score=f.confidence,
+                kind="fact",
+                source_id=f.id,
+            )
+            for f in facts
+        ]
+        asm = assemble(items, budget_tokens)
+        return ToolResult(
+            ok=True,
+            content=asm.text or "(no memory hit)",
+            meta={"used_tokens": asm.used_tokens, "hits": len(facts), "dropped": len(asm.dropped_items)},
+        )
+
+    def memory_write(
+        entity_id: str,
+        attribute: str,
+        value: str,
+        valid_from: str | None = None,
+        confidence: float = 1.0,
+        source_session_id: str | None = None,
+    ) -> ToolResult:
+        fact = store.write(
+            entity_id=entity_id,
+            attribute=attribute,
+            value=value,
+            valid_from=_parse_valid_from(valid_from),
+            confidence=confidence,
+            source_session_id=source_session_id,
+        )
+        return ToolResult(
+            ok=True,
+            content=json.dumps({"fact_id": fact.id, "supersedes": fact.supersedes_id}, ensure_ascii=False),
+            meta={"fact_id": fact.id},
+        )
+
+    def memory_forget(entity_id: str, attribute: str, at: str | None = None) -> ToolResult:
+        cur = store.current(entity_id, attribute)
+        if cur is None:
+            return ToolResult(ok=False, content="fact not found", meta={})
+        cur.valid_to = _parse_valid_from(at)
+        return ToolResult(ok=True, content=f"marked invalid: {cur.id}", meta={"fact_id": cur.id})
+
+    return {
+        "memory_search": memory_search,
+        "memory_write": memory_write,
+        "memory_forget": memory_forget,
+    }
+
+
+TOOL_SCHEMAS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "memory_search",
+            "description": "Search the memory store under a token budget.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "budget_tokens": {"type": "integer", "default": 2000},
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "memory_write",
+            "description": "Write a fact (entity / attribute / value / valid_from).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "entity_id": {"type": "string"},
+                    "attribute": {"type": "string"},
+                    "value": {"type": "string"},
+                    "valid_from": {"type": "string"},
+                },
+                "required": ["entity_id", "attribute", "value"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "memory_forget",
+            "description": "Mark a fact invalid without deleting it (no physical delete).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "entity_id": {"type": "string"},
+                    "attribute": {"type": "string"},
+                    "at": {"type": "string"},
+                },
+                "required": ["entity_id", "attribute"],
+            },
+        },
+    },
+]
