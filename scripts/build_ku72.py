@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Build the V1-KU 72-question annotation skeleton + manual-review material.
 
 Inputs (read-only):
@@ -7,9 +7,9 @@ Inputs (read-only):
 
 Outputs:
   data/annotations/ku72.jsonl          72 rows, schema fields only (no session text) -> can be committed
-  dataset/v1/manual16.md               16 题人工判层材料（含 session 原文，不入库）
   dataset/v1/pilot10.md                pilot 10 题材料（含 session 原文，不入库）
   dataset/v1/build_report.md           统计（含少量题面，不入库）
+  （manual 判层材料由 scripts/make_annotation_batch.py 生成，本脚本不再产出重复文件）
 
 Rules (docs/annotation-protocol-ku78.md):
   - 新旧方向按 haystack 索引顺序，不看日期
@@ -139,21 +139,7 @@ def main():
         for a in ann:
             f.write(json.dumps(a, ensure_ascii=False) + "\n")
 
-    # --- manual16.md ---
-    with open(os.path.join(OUT_V1, "manual16.md"), "w", encoding="utf-8") as f:
-        f.write("# V1-KU 16 道待人工判层题（14 NEITHER + 2 BOTH）\n\n")
-        f.write("> 材料含 gold session 原文，**不入库**。用途：人工判 query_form 与 stale/new 定位。\n\n")
-        for n, (qid, q, r, early, late, ei, li) in enumerate(manual, 1):
-            ids = q["haystack_session_ids"]
-            dates = q["haystack_dates"]
-            f.write(f"\n## {n:02d}. `{qid}` — loc={r['loc']}\n\n")
-            f.write(f"- **question**: {q['question']}\n")
-            f.write(f"- **question_date**: {q.get('question_date')}\n")
-            f.write(f"- **answer**: {q.get('answer')}\n")
-            f.write(f"- **gold sessions**: `{early}` (haystack idx {ei}, {dates[ei]}) | `{late}` (haystack idx {li}, {dates[li]})\n\n")
-            for sid, idx in ((early, ei), (late, li)):
-                f.write(f"### session `{sid}`  (idx {idx}, {dates[idx]})\n\n")
-                f.write(msg_lines(q["haystack_sessions"][idx]) + "\n\n")
+    # manual 材料由 scripts/make_annotation_batch.py 统一生成（剔除已标题，避免多份重复文件）
 
     # --- pilot10.md ---
     def pick(pred, k, used):
@@ -246,7 +232,7 @@ def main():
         f.write(f"- 自动定位：1a current {stats['current']} 题；1b retrospective {stats['retrospective']} 题\n")
         f.write(f"- 待人工：{stats['manual']} 题（NEITHER 14 + BOTH 2）\n")
         f.write(f"- 拒答：{stats['abstention']} 题（层 1c，单列）\n")
-        f.write(f"- 输出：`data/annotations/ku72.jsonl`（{len(ann)} 行）、`dataset/v1/manual16.md`、`dataset/v1/pilot10.md`\n")
+        f.write(f"- 输出：`data/annotations/ku72.jsonl`（{len(ann)} 行）、`dataset/v1/pilot10.md`；manual 材料用 `scripts/make_annotation_batch.py` 生成\n")
         f.write("\n## 关键提醒\n\n")
         f.write("- 1b 回溯题的官方 answer 是**旧值**；骨架的 `new_value` 字段仍存官方 answer，人工标注时须把 stale/new 角色对调。\n")
         f.write("- `gold_session_index` 采用「两个 gold session 的相对序」（0=较早索引，1=较晚索引）。\n")
