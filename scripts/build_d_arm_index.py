@@ -6,11 +6,12 @@
   - D：**单 state** 为检索单元，文本 = URL + action + thought + **L0 跨 state 去重后的新增 a11y 行**，
     即「完整轨迹 + 我方 L0 压缩」。
 
-输出：data/lancedb/v2_web_states_d（~1000 行，4096 维）
+数据加载/连接复用 `anchorline.data.v2` 与 `anchorline.retrieval.store`。
+
+输出：data/lancedb/v2_web_states_d（1,737 行，4096 维）
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 import time
@@ -18,9 +19,15 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-import lancedb  # noqa: E402
-
 from anchorline.config import Settings  # noqa: E402
+from anchorline.data.v2 import (  # noqa: E402
+    iter_trajectories,
+    load_questions,
+    load_small,
+    load_traj_index,
+    load_traj_offsets,
+    web_trajectory_ids,
+)
 from anchorline.llm import embedding_client  # noqa: E402
 from anchorline.memory.l0 import L0Deduper  # noqa: E402
 from anchorline.retrieval.baseline import (  # noqa: E402
@@ -28,55 +35,42 @@ from anchorline.retrieval.baseline import (  # noqa: E402
     normalize_vector,
     truncate_middle,
 )
+from anchorline.retrieval.store import open_lancedb  # noqa: E402
 
-V2 = os.path.join(ROOT, "dataset", "v2")
 TABLE = "v2_web_states_d"
 BATCH = 1
 
 ENTRY_TEMPLATE = "URL: {url}\nAction: {action}\nThought: {thought}\nNew a11y lines:\n{a11y}"
 
 
-def load(p):
-    with open(p, encoding="utf-8") as f:
-        return json.load(f)
-
-
 def main():
-    small = load(os.path.join(V2, "lme_v2_small.json"))
-    offs = load(os.path.join(V2, "traj_offsets.json"))
-    idx = load(os.path.join(V2, "traj_index.json"))
-    qs = {}
-    with open(os.path.join(V2, "questions.jsonl"), encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                q = json.loads(line)
-                qs[q["id"]] = q
-    web_qids = [qid for qid, q in qs.items() if str(q.get("environment", "")).startswith("webarena")]
-    web_trajs = sorted({t for qid in web_qids for t in small.get(qid, []) if (idx.get(t) or {}).get("domain") == "web"})
+    qs = load_questions()
+    small = load_small()
+    idx = load_traj_index()
+    offsets = load_traj_offsets()
+    web_trajs = web_trajectory_ids(qs, small, idx)
     print(f"web 轨迹 {len(web_trajs)} 条")
 
     entries = []
-    with open(os.path.join(V2, "trajectories.jsonl"), "rb") as fh:
-        for tid in web_trajs:
-            fh.seek(offs[tid])
-            rec = json.loads(fh.readline().decode("utf-8"))
-            states = [s for s in (rec.get("states") or []) if isinstance(s, dict)]
-            d = L0Deduper()
-            for i, st in enumerate(states):
-                novel = d.feed(st.get("accessibility_tree") or "")
-                text = ENTRY_TEMPLATE.format(
-                    url=st.get("url") or "",
-                    action=st.get("action") or "<none>",
-                    thought=(st.get("thought") or "").strip(),
-                    a11y="\n".join(novel),
-                )
-                entries.append({
-                    "id": f"{tid}:state:{i:04d}",
-                    "traj_id": tid,
-                    "state_index": i,
-                    "goal": str(rec.get("goal") or ""),
-                    "text": truncate_middle(text, EMBEDDING_PRETOKEN_CHAR_CAP),
-                })
+    for tid, rec in iter_trajectories(web_trajs, offsets):
+        states = [s for s in (rec.get("states") or []) if isinstance(s, dict)]
+        # L0 去重器按轨迹重置：只保留该轨迹内首次出现的 a11y 行
+        deduper = L0Deduper()
+        for i, st in enumerate(states):
+            novel = deduper.feed(st.get("accessibility_tree") or "")
+            text = ENTRY_TEMPLATE.format(
+                url=st.get("url") or "",
+                action=st.get("action") or "<none>",
+                thought=(st.get("thought") or "").strip(),
+                a11y="\n".join(novel),
+            )
+            entries.append({
+                "id": f"{tid}:state:{i:04d}",
+                "traj_id": tid,
+                "state_index": i,
+                "goal": str(rec.get("goal") or ""),
+                "text": truncate_middle(text, EMBEDDING_PRETOKEN_CHAR_CAP),
+            })
     print(f"state 条目 {len(entries)} 条；开始 embedding")
 
     emb = embedding_client(Settings())
@@ -90,8 +84,7 @@ def main():
         if (i // BATCH) % 100 == 0:
             print(f"  {i + len(batch)}/{len(entries)}  {time.time() - t0:.0f}s")
 
-    db = lancedb.connect(os.path.join(ROOT, "data", "lancedb"))
-    db.create_table(TABLE, data=rows, mode="overwrite")
+    open_lancedb().create_table(TABLE, data=rows, mode="overwrite")
     print(f"写入 LanceDB 表 {TABLE}：{len(rows)} 行，用时 {time.time() - t0:.0f}s")
 
 

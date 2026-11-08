@@ -23,17 +23,12 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-import lancedb  # noqa: E402
-
 from anchorline.config import Settings  # noqa: E402
 from anchorline.evaluation.baseline_arm import answer_baseline  # noqa: E402
-from anchorline.evaluation.metrics import (  # noqa: E402
-    LLM_JUDGE_FUNCS,
-    parse_eval_function_spec,
-    score_deterministic,
-)
+from anchorline.evaluation.metrics import score_deterministic  # noqa: E402
 from anchorline.evaluation.pilot import sample_deterministic  # noqa: E402
 from anchorline.llm import embedding_client, reader_client  # noqa: E402
+from anchorline.retrieval.store import open_table  # noqa: E402
 
 V2 = os.path.join(ROOT, "dataset", "v2")
 OUT = os.path.join(ROOT, "data", "eval")
@@ -51,7 +46,7 @@ def main():
     sample = sample_deterministic(limit=args.limit, seed=args.seed)
     print(f"pilot {len(sample)} 题；N={args.n}；temp={args.temp}")
 
-    tbl = lancedb.connect(os.path.join(ROOT, "data", "lancedb")).open_table("v2_web_slices")
+    tbl = open_table("v2_web_slices")
     reader = reader_client(Settings())
     embedder = embedding_client(Settings())
 

@@ -6,25 +6,14 @@ aa_pilot（B 臂 A/A）与 eval_d_arm（D 臂）此前各写了一份「加载 V
 """
 from __future__ import annotations
 
-import json
-import os
 import random
 
-# src/anchorline/evaluation/pilot.py -> evaluation -> anchorline -> src -> 仓库根
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-V2 = os.path.join(_ROOT, "dataset", "v2")
+from anchorline.data.v2 import load_questions as _load_v2_questions
 
 
 def load_v2_questions(path: str | None = None) -> dict[str, dict]:
-    """读取 `questions.jsonl`，返回 {question_id: question}。"""
-    path = path or os.path.join(V2, "questions.jsonl")
-    qs: dict[str, dict] = {}
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                q = json.loads(line)
-                qs[q["id"]] = q
-    return qs
+    """复用 `anchorline.data.v2.load_questions`（保留本模块的薄包装）。"""
+    return _load_v2_questions(path)
 
 
 def deterministic_web_questions(qs: dict[str, dict] | None = None) -> list[dict]:

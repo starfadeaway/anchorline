@@ -16,13 +16,12 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-import lancedb  # noqa: E402
-
 from anchorline.config import Settings  # noqa: E402
 from anchorline.evaluation.d_arm import answer_d_arm  # noqa: E402
 from anchorline.evaluation.metrics import score_deterministic  # noqa: E402
 from anchorline.evaluation.pilot import sample_deterministic  # noqa: E402
 from anchorline.llm import embedding_client, reader_client  # noqa: E402
+from anchorline.retrieval.store import open_table  # noqa: E402
 
 V2 = os.path.join(ROOT, "dataset", "v2")
 TABLE = "v2_web_states_d"
@@ -35,7 +34,7 @@ def main() -> int:
     # 与 B 臂共用同一抽样函数（seed=42），保证同题
     sample = sample_deterministic(limit=20, seed=42)
 
-    tbl = lancedb.connect(os.path.join(ROOT, "data", "lancedb")).open_table(TABLE)
+    tbl = open_table(TABLE)
     reader = reader_client(Settings())
     embedder = embedding_client(Settings())
 
