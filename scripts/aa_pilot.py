@@ -40,8 +40,10 @@ def main():
     ap.add_argument("--limit", type=int, default=20)
     ap.add_argument("--temp", type=float, default=1.0)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--out", default=None, help="结果 JSON 路径（默认 data/eval/aa_pilot.json）")
     args = ap.parse_args()
 
+    out_path = args.out or os.path.join(OUT, "aa_pilot.json")
     # B/D 臂共用同一抽样函数，保证同题
     sample = sample_deterministic(limit=args.limit, seed=args.seed)
     print(f"pilot {len(sample)} 题；N={args.n}；temp={args.temp}")
@@ -102,7 +104,7 @@ def main():
         "per_question": results,
         "elapsed_s": round(time.time() - t0, 1),
     }
-    path = os.path.join(OUT, "aa_pilot.json")
+    path = out_path
     with open(path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1)
     print("=== A/A noise floor ===")

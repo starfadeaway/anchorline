@@ -52,11 +52,16 @@ def sign_flip_pvalue(diffs: np.ndarray, n_perm: int = 10000, seed: int = 0) -> f
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=1, help="每题重复次数")
+    ap.add_argument("--limit", type=int, default=20, help="题数（154 = 全部确定性题）")
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--out", default=None, help="结果 JSON 路径")
+    ap.add_argument("--md-out", default=None, help="报告 md 路径")
     args = ap.parse_args()
+    out_json = args.out or OUT_JSON
+    out_md = args.md_out or OUT_MD
 
     # 与 B 臂共用同一抽样函数，保证同题
-    sample = sample_deterministic(limit=20, seed=args.seed)
+    sample = sample_deterministic(limit=args.limit, seed=args.seed)
     tbl = open_table(TABLE)
     reader = reader_client(Settings())
     embedder = embedding_client(Settings())
@@ -106,7 +111,7 @@ def main() -> int:
         "per_question": results,
         "elapsed_s": round(time.time() - t0, 1),
     }
-    with open(OUT_JSON, "w", encoding="utf-8") as f:
+    with open(out_json, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1, default=float)
 
     lines = [
@@ -133,11 +138,11 @@ def main() -> int:
         "> 判读规则（v0.8）：与 A/A 噪声底（配对 |Δ| 均值 6.3pp）比较；置换检验 p<0.05 且差异 > 噪声底才可称差异。",
         f"> B 为 10 次均值、D 为 {args.n} 次均值；若 n≠10，仍不是严格同次数，报告需注明。",
     ])
-    with open(OUT_MD, "w", encoding="utf-8") as f:
+    with open(out_md, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
     print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1, default=float))
-    print("written:", OUT_JSON, OUT_MD)
+    print("written:", out_json, out_md)
     return 0
 
 

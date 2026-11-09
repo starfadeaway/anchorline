@@ -84,5 +84,5 @@ def answer_baseline(
         context_tokens=used_tokens,
         question=question,
         dropped_slices=dropped,
-        total_hit_tokens=sum(len(i.text) // 4 for i in items),
+        total_hit_tokens=sum(len(text) // 4 for _, text in items),
     )
