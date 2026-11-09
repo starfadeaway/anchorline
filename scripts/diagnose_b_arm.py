@@ -12,7 +12,7 @@
   - retrieval_miss：top-1 的 goal 与题目语义无关（启发式，人工复核）
 
 输出：data/eval/b_diag.json
-      docs/b_arm_diagnosis.md
+      reports/b_arm_diagnosis.md
 """
 from __future__ import annotations
 

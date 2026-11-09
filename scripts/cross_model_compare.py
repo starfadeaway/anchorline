@@ -2,7 +2,7 @@
 """用值等价规则重算 MiniMax 交叉标注的一致率（不重跑模型）。
 
 输入：dataset/v1/cross-model-16.jsonl（含 model parsed + human）
-输出：docs/cross_model_16.md（可入库摘要）
+输出：reports/cross_model_16.md（可入库摘要）
       dataset/v1/cross-model-16-compare.md（逐题明细，不入库）
 """
 from __future__ import annotations

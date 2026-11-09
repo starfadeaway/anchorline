@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Descriptions, Row, Statistic, Table, Tag, Typography, message } from "antd";
-import { api, type ChatSession, type SettingsOut, type TraceRow } from "../api";
+import { api, type ApiMetrics, type ChatSession, type SettingsOut, type TraceRow } from "../api";
 
-const { Paragraph } = Typography;
+const { Paragraph, Text } = Typography;
 
-/** 监控页：服务/DB 状态、计数、最近 trace、平均 token。 */
+/** 监控页：服务/DB 状态、真实请求指标（延迟分位数/错误率/QPS）、最近 trace。 */
 export default function MonitorPage() {
   const [health, setHealth] = useState<{ status: string; db: boolean } | null>(null);
   const [env, setEnv] = useState<SettingsOut | null>(null);
+  const [metrics, setMetrics] = useState<ApiMetrics | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     api.health().then(setHealth).catch((e) => setError(String(e)));
+    api.metrics().then(setMetrics).catch(() => setMetrics(null));
     api.settings().then(setEnv).catch(() => setEnv(null));
     api.listSessions().then(setSessions).catch(() => setSessions([]));
     fetch("/api/traces?limit=50")
@@ -40,11 +42,19 @@ export default function MonitorPage() {
 
   return (
     <Card title="系统监控">
-      <Paragraph type="secondary">数据来自 /health、/sessions、/traces 与运行配置；用于快速判断服务是否正常。</Paragraph>
+      <Paragraph type="secondary">
+        数据来自 <Text code>/health</Text>、<Text code>/metrics</Text>（最近 1000 次真实请求的延迟分位数/错误率/QPS）、
+        <Text code>/sessions</Text> 与 <Text code>/traces</Text>。
+      </Paragraph>
       {error && <Paragraph type="danger">{error}</Paragraph>}
-      <Row gutter={12} style={{ marginBottom: 14 }}>
+      <Row gutter={[12, 12]} style={{ marginBottom: 14 }}>
         <Col span={4}><Card size="small"><Statistic title="服务" value={health?.status ?? "—"} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="数据库" value={health?.db ? "正常" : "异常"} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="p50 延迟" value={metrics?.p50_ms ?? 0} suffix="ms" /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="p95 延迟" value={metrics?.p95_ms ?? 0} suffix="ms" /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="错误率" value={((metrics?.error_rate ?? 0) * 100).toFixed(2)} suffix="%" /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="QPS" value={metrics?.qps ?? 0} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="采样请求" value={metrics?.n ?? 0} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="会话数" value={sessions.length} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="消息数" value={totalMessages} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="trace（最近50）" value={traces.length} /></Card></Col>

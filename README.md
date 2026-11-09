@@ -9,9 +9,16 @@
 | 基准 | 角色 | 分母 |
 |---|---|---|
 | **LongMemEval-V2 web 子集** | 主评测（环境状态 / 动态跟踪 / 流程 / 陷阱 / 前提） | **168**（G1 裁定 k=0，当前口径） |
-| **LongMemEval-S knowledge-update** | 冲突专项（过期事实 / 冲突裁决 / 回溯意图） | **72**（1a 63 / 1b 9 / 1c 6；标注完成，冻结口径见 `docs/ku72_build.md`） |
+| **LongMemEval-S knowledge-update** | 冲突专项（过期事实 / 冲突裁决 / 回溯意图） | **72**（1a 63 / 1b 9 / 1c 6；标注完成，冻结口径见 `reports/ku72_build.md`） |
 
 > 168 与 72 都是「该阶段的冻结口径」，不是不可变的最终分母；改口径必须写进文档。
+
+## 与 LoreKeeper 的定位边界
+
+- **Anchorline = 会话/轨迹的记忆层**：事实级（entity / attribute / value），管冲突、回溯、预算。
+- **LoreKeeper = 游戏 wiki 的知识库**：chunk / 页面级检索问答。
+- 两者的桥接只复用 **检索组件**（BM25 / 向量 / RRF / rerank）在 LoreKeeper 数据集上做对照实验（见 `reports/lorekeeper_bridge.md`），**不是把两个项目合并**。
+- 聊天里的 `memory_search` 只查 Anchorline 的 facts；对 LoreKeeper 知识库的检索是 `kb_search`（规划中）。
 
 ## 技术栈（已锁定）
 

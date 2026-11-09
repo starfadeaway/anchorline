@@ -1,12 +1,10 @@
 import { useEffect } from "react";
 import { Layout, Menu, Typography, message } from "antd";
-import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileTextOutlined, DashboardOutlined, MessageOutlined, SettingOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileTextOutlined, DashboardOutlined, SettingOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import ChatPage from "./pages/ChatPage";
 import MemoryPage from "./pages/MemoryPage";
 import EvalPage from "./pages/EvalPage";
-import TracesPage from "./pages/TracesPage";
-import ComparePage from "./pages/ComparePage";
 import SessionsPage from "./pages/SessionsPage";
 import ReviewPage from "./pages/ReviewPage";
 import ReportsPage from "./pages/ReportsPage";
@@ -16,30 +14,20 @@ import SettingsPage from "./pages/SettingsPage";
 const { Sider, Content, Header } = Layout;
 const { Text } = Typography;
 
+// 菜单 7 项；对比/Trace 并入评测页 Tabs，会话管理从聊天页「管理」进入
 const items = [
   { key: "/chat", icon: <CommentOutlined />, label: <Link to="/chat">聊天</Link> },
   { key: "/memory", icon: <DatabaseOutlined />, label: <Link to="/memory">记忆</Link> },
-  {
-    key: "eval",
-    icon: <ExperimentOutlined />,
-    label: "评测",
-    children: [
-      { key: "/eval", label: <Link to="/eval">结论与说明</Link> },
-      { key: "/compare", label: <Link to="/compare">臂对比</Link> },
-      { key: "/traces", label: <Link to="/traces">Trace</Link> },
-    ],
-  },
+  { key: "/eval", icon: <ExperimentOutlined />, label: <Link to="/eval">评测</Link> },
   { key: "/review", icon: <SafetyCertificateOutlined />, label: <Link to="/review">审核</Link> },
   { key: "/reports", icon: <FileTextOutlined />, label: <Link to="/reports">报告</Link> },
   { key: "/monitor", icon: <DashboardOutlined />, label: <Link to="/monitor">监控</Link> },
-  { key: "/sessions", icon: <MessageOutlined />, label: <Link to="/sessions">会话管理</Link> },
   { key: "/settings", icon: <SettingOutlined />, label: <Link to="/settings">设置</Link> },
 ];
 
 export default function App() {
   const loc = useLocation();
-  const flat = items.flatMap((i) => (i.children ? i.children : [i]));
-  const selected = flat.find((i) => loc.pathname.startsWith(i.key))?.key ?? "/chat";
+  const selected = items.find((i) => loc.pathname.startsWith(i.key))?.key ?? "/chat";
 
   // 启动时应用本地保存的主题色与日夜模式
   useEffect(() => {
@@ -77,7 +65,7 @@ export default function App() {
       </Header>
       <Layout>
         <Sider width={168} className="app-sider">
-          <Menu mode="inline" selectedKeys={[selected]} defaultOpenKeys={["eval"]} items={items} />
+          <Menu mode="inline" selectedKeys={[selected]} items={items} />
         </Sider>
         <Content className="app-content">
           <Routes>
@@ -85,13 +73,12 @@ export default function App() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/memory" element={<MemoryPage />} />
             <Route path="/eval" element={<EvalPage />} />
-            <Route path="/traces" element={<TracesPage />} />
-            <Route path="/compare" element={<ComparePage />} />
             <Route path="/sessions" element={<SessionsPage />} />
             <Route path="/review" element={<ReviewPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/monitor" element={<MonitorPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/chat" replace />} />
           </Routes>
         </Content>
       </Layout>

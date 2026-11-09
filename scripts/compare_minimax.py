@@ -3,7 +3,7 @@
 
 输入：data/annotations/ku72.jsonl（人类）
       dataset/v1/minimax-package/annotations-minimax.jsonl（MiniMax agent）
-输出：docs/minimax_cross.md（可入库摘要）
+输出：reports/minimax_cross.md（可入库摘要）
       dataset/v1/minimax-compare.md（逐题明细，不入库）
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ MM = os.path.join(ROOT, "dataset", "v1", "minimax-package", "annotations-minimax
 OUT_DOC = os.path.join(ROOT, "docs", "minimax_cross.md")
 OUT_DETAIL = os.path.join(ROOT, "dataset", "v1", "minimax-compare.md")
 
-# 人工仲裁（依据数据核实，见 docs/ku72_build.md 与协议 v3.2）
+# 人工仲裁（依据数据核实，见 reports/ku72_build.md 与协议 v3.2）
 ARBITRATION = {
     "d7c942c3": ("表述差异（语义等价）", "保留人类 `Yes./No.`；MiniMax 的具体描述可入 note，不改 gold"),
     "b01defab": ("规则分歧：null vs No", "保留人类 `No`。协议 v3.2 补充：布尔事实的旧状态为 No 时填 `No`；`null` 只用于「该事实此前从未存在」（如从未送修/从未见面）"),

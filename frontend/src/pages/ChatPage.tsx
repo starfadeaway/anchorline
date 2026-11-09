@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, Card, Collapse, Descriptions, Empty, Input, List, message, Segmented, Space, Table, Tooltip, Typography } from "antd";
-import { DownloadOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownloadOutlined, PlusOutlined, SettingOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type Recall, type SettingsOut, type TraceRow } from "../api";
 
 const { Text } = Typography;
@@ -172,6 +173,9 @@ export default function ChatPage() {
           extra={
             <Space size={4}>
               <Button size="small" icon={<PlusOutlined />} onClick={startNew}>新建</Button>
+              <Tooltip title="会话管理（导出/删除）">
+                <Link to="/sessions"><Button size="small" icon={<SettingOutlined />} /></Link>
+              </Tooltip>
               <Tooltip title="导出当前会话 Markdown">
                 <Button size="small" icon={<DownloadOutlined />} onClick={exportMarkdown} />
               </Tooltip>

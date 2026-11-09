@@ -5,7 +5,7 @@
 配对检验用 sign-flip 置换检验（不依赖 scipy）。
 
 输出：data/eval/d_arm_20.json
-      docs/d_arm_pilot.md
+      reports/d_arm_pilot.md
 """
 from __future__ import annotations
 

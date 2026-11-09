@@ -8,7 +8,7 @@
   4. 输出 168 题两臂准确率、配对差、置换检验、judge prompt sha256。
 
 输出：data/eval/arm_168.json
-      docs/m3_168.md
+      reports/m3_168.md
 """
 from __future__ import annotations
 

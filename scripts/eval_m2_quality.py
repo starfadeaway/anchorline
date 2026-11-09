@@ -5,7 +5,7 @@
 2. 冲突裁决一致率：conflict_type ∈ {时效, 数值, 否定, 无}，expected_resolution ∈ {覆盖, 并存, 无法裁决}
 
 输入：V1 会话原文（dataset/v1/minimax-package/questions/<id>.md，含 Question / Official answer / Session A/B）
-输出：data/eval/m2_quality.json + docs/m2_quality.md
+输出：data/eval/m2_quality.json + reports/m2_quality.md
 """
 from __future__ import annotations
 

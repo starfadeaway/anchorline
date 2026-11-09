@@ -113,6 +113,16 @@ export type LoreKeeperBridge = {
   page: { n: number; k: number; summary: Record<string, Record<string, number>> } | null;
 };
 
+export type ApiMetrics = {
+  n: number;
+  p50_ms: number;
+  p95_ms: number;
+  p99_ms: number;
+  error_rate: number;
+  qps: number;
+  recent?: { ts: number; path: string; status: number; ms: number }[];
+};
+
 export type Msg = { role: "user" | "assistant"; content: string; created_at?: string };
 
 /** 统一的接口错误：status=0 表示网络/超时。 */
@@ -170,6 +180,7 @@ export function downloadMarkdown(filename: string, content: string): void {
 
 export const api = {
   health: () => json<{ status: string; db: boolean }>("/api/health", undefined, 10_000),
+  metrics: () => json<ApiMetrics>("/api/metrics"),
   settings: () => json<SettingsOut>("/api/settings", undefined, 10_000),
   facts: (limit = 200) => json<Fact[]>(`/api/memory/facts?limit=${limit}`),
   history: (id: string) => json<Fact[]>(`/api/memory/facts/${id}/history`),

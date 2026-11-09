@@ -39,6 +39,29 @@ EVAL_DIR = os.path.join(ROOT, "data", "eval")
 app = FastAPI(title="Anchorline", version=__version__)
 
 
+@app.middleware("http")
+async def _timing_middleware(request: Request, call_next):
+    """记录每请求耗时/状态（供 /metrics 真实延迟分位数）。"""
+    from anchorline.api import metrics
+
+    t0 = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        metrics.record(request.url.path, 500, (time.perf_counter() - t0) * 1000)
+        raise
+    metrics.record(request.url.path, response.status_code, (time.perf_counter() - t0) * 1000)
+    return response
+
+
+@app.get("/metrics", response_model=dict)
+def api_metrics() -> dict:
+    """最近 1000 请求的延迟分位数 / 错误率 / QPS。"""
+    from anchorline.api.metrics import snapshot
+
+    return snapshot()
+
+
 @app.exception_handler(Exception)
 async def _unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
     """兜底：未处理异常返回 JSON，不把堆栈/DSN 暴露给前端；前端有错误提示。"""
