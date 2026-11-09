@@ -62,17 +62,20 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
         source_session_id: str | None = None,
         supersedes_id: str | None = None,
     ) -> ToolResult:
+        # 记忆的「生效时间」= 写入/记录时间（会话时间），不是对话里提到的事件日期；
+        # 事件日期应保留在 value 文本中（如 "25:50（日期 2023-05-30）"）。
+        record_time = datetime.now()
         # 可选：显式指定要覆盖的旧事实（agent 先 search 拿到旧 id，再 write）
         if supersedes_id:
             old = store.db.get(Fact, supersedes_id)
             if old is not None and old.valid_to is None:
-                old.valid_to = _parse_valid_from(valid_from) or datetime.now()
+                old.valid_to = record_time
                 store.db.flush()
         fact = store.write(
             entity_id=entity_id,
             attribute=attribute,
             value=value,
-            valid_from=_parse_valid_from(valid_from),
+            valid_from=record_time,
             confidence=confidence,
             source_session_id=source_session_id,
         )

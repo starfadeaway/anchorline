@@ -201,6 +201,20 @@ export default function MemoryPage() {
             ))}
           </div>
         </div>
+        <div className="pie-row">
+          <div
+            className="pie"
+            title={`当前 ${current} / 失效 ${stale}`}
+            style={{
+              background: `conic-gradient(#6abe39 ${facts.length ? (current / facts.length) * 100 : 0}%, #4a5568 0)`,
+            }}
+          />
+          <div className="pie-legend">
+            当前值 <b>{current}</b> 条 · 已失效 <b>{stale}</b> 条<br />
+            实体 <b>{groups.length}</b> 个 · 事实总数 <b>{facts.length}</b> 条<br />
+            <Text type="secondary" style={{ fontSize: 11 }}>饼图 = 当前值占比（绿色）/ 失效占比（灰）</Text>
+          </div>
+        </div>
       </Card>
 
       {error && <Alert type="error" showIcon message="记忆加载失败" description={error} style={{ marginBottom: 12 }} />}

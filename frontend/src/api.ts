@@ -20,6 +20,13 @@ export type ChatResp = {
   tool_calls: ToolCall[];
   trace_id: number | null;
   session_id: string | null;
+  meta?: {
+    model?: string;
+    duration_ms?: number | null;
+    total_tokens?: number | null;
+    tool_errors?: number;
+    run_id?: string;
+  };
 };
 
 export type ChatSession = {

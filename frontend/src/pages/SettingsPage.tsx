@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from "react";
-import { Alert, Button, Card, ColorPicker, Descriptions, Divider, Space, Tag, Typography, message } from "antd";
+import { useEffect, useState } from "react";
+import { Alert, Button, Card, ColorPicker, Descriptions, Divider, Segmented, Space, Tag, Typography, message } from "antd";
 import { api, type SettingsOut } from "../api";
 
 const { Paragraph, Text } = Typography;
@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [s, setS] = useState<SettingsOut | null>(null);
   const [err, setErr] = useState("");
   const [color, setColor] = useState<string>(() => localStorage.getItem(THEME_KEY) || "#00d4ff");
+  const [mode, setMode] = useState<string>(() => localStorage.getItem("anchorline-mode") || "dark");
 
   const load = () => {
     api
@@ -69,6 +70,23 @@ export default function SettingsPage() {
       )}
 
       <Divider titlePlacement="start">外观</Divider>
+      <Space wrap style={{ marginBottom: 12 }}>
+        <Text type="secondary">模式</Text>
+        <Segmented
+          value={mode}
+          onChange={(v) => {
+            const m = String(v);
+            setMode(m);
+            localStorage.setItem("anchorline-mode", m);
+            window.location.reload();
+          }}
+          options={[
+            { label: "夜间", value: "dark" },
+            { label: "日间", value: "light" },
+          ]}
+        />
+      </Space>
+      <div />
       <Space wrap>
         {THEMES.map((t) => (
           <Button key={t.name} onClick={() => pick(t.neon, t.neon2)} style={{ borderColor: t.neon, color: t.neon }}>

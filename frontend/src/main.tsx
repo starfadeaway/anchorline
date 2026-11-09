@@ -9,12 +9,14 @@ import "./styles.css";
 
 // 注意：不包 StrictMode —— antd 部分组件的 effect cleanup 在 StrictMode 双调用下会报
 // "destroy is not a function"（开发期问题），生产构建无此行为。
+const light = typeof localStorage !== "undefined" && localStorage.getItem("anchorline-mode") === "light";
+
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <ConfigProvider
       locale={zhCN}
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: light ? theme.defaultAlgorithm : theme.darkAlgorithm,
         token: {
           colorPrimary: "#00d4ff",
           colorInfo: "#00d4ff",

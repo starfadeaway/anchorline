@@ -47,7 +47,8 @@ def test_loop_writes_fact_and_stops_with_done(db):
     facts = db.query(Fact).all()
     assert len(facts) == 1
     assert facts[0].value == "25:50"
-    assert facts[0].valid_from == datetime(2023, 5, 30)
+    # 语义变更：记忆的生效时间 = 记录/会话时间，不是对话里提到的事件日期
+    assert facts[0].valid_from > datetime(2024, 1, 1)
 
 
 def _always_search(messages):

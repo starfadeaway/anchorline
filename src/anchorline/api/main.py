@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -85,6 +86,7 @@ class ChatResponse(BaseModel):
     tool_calls: list[dict[str, Any]]
     trace_id: int | None = None
     session_id: str | None = None
+    meta: dict[str, Any] = {}
 
 
 class FactOut(BaseModel):
@@ -237,6 +239,7 @@ def _run_agent(
     session_id: str | None = None,
 ):
     """跑一轮 LangGraph agent，并把本轮召回/工具调用写入 traces（供前端 Trace 面板）。"""
+    t0 = time.time()
     store = FactStore(db)
     reader = chat_client(model)
 
@@ -267,6 +270,13 @@ def _run_agent(
     db.add(trace)
     db.commit()
     out["trace_id"] = trace.id
+    out["duration_ms"] = int((time.time() - t0) * 1000)
+    out["total_tokens"] = sum(len(str(m.get("content") or "")) for m in out["messages"]) // 4
+    out["tool_errors"] = sum(
+        1
+        for m in out["messages"]
+        if m.get("role") == "tool" and str(m.get("content") or "").startswith("tool error")
+    )
     return out
 
 
@@ -328,6 +338,13 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
         tool_calls=_extract_tool_calls(out),
         trace_id=out.get("trace_id"),
         session_id=sid,
+        meta={
+            "model": req.model,
+            "duration_ms": out.get("duration_ms"),
+            "total_tokens": out.get("total_tokens"),
+            "tool_errors": out.get("tool_errors", 0),
+            "run_id": str(out.get("trace_id") or ""),
+        },
     )
 
 

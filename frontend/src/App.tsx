@@ -21,10 +21,11 @@ export default function App() {
   const loc = useLocation();
   const selected = items.find((i) => loc.pathname.startsWith(i.key))?.key ?? "/chat";
 
-  // 启动时应用本地保存的主题色（设置页可改）
+  // 启动时应用本地保存的主题色与日夜模式
   useEffect(() => {
     const neon = localStorage.getItem("anchorline-theme");
     if (neon) document.documentElement.style.setProperty("--neon", neon);
+    document.documentElement.dataset.theme = localStorage.getItem("anchorline-mode") ?? "dark";
   }, []);
 
   // 全局兜底：未捕获错误 / 未处理的 Promise 拒绝都弹窗提示，不让页面静默崩
