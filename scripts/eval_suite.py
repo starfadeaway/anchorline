@@ -18,7 +18,7 @@ def load(path: str) -> dict[str, list[float]]:
     """返回 qid -> scores（取每题的分数列表）。"""
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
-    items = data.get("items") or data.get("results") or data.get("rows") or []
+    items = data.get("items") or data.get("results") or data.get("rows") or data.get("per_question") or []
     out: dict[str, list[float]] = {}
     for it in items:
         qid = it.get("question_id") or it.get("case_id") or it.get("qid")
