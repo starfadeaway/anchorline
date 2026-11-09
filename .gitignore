@@ -38,6 +38,11 @@ data/mysql/
 *.sqlite
 *.db
 
+# ---- 方案 / 计划 / 私人文档（本地保留，不推送） ----
+docs/HANDOFF.md
+docs/frontend_backend_plan.md
+docs/plans/
+
 # ---- OS / editor ----
 .DS_Store
 Thumbs.db

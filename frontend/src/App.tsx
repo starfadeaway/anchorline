@@ -23,7 +23,8 @@ export default function App() {
   return (
     <Layout className="app-layout">
       <Header className="app-header">
-        <Text strong className="brand">Anchorline</Text>
+        <Text strong className="brand">ANCHORLINE</Text>
+        <span className="status-dot" />
         <Text type="secondary">预算内记忆层 · V2-web 主评测 / V1-KU 冲突专项</Text>
       </Header>
       <Layout>
