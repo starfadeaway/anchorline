@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
-"""D 臂 pilot：与 A/A 同一批 20 题，跑 1 次/题，与 B 臂（10 次均值）对比。
+"""D 臂评测：与 B 臂同一批 20 题、同一 reader/预算/判分。
+
+支持 --n 次重复（默认 1），用于与 B 臂的 10 次均值做**同次数配对检验**。
+配对检验用 sign-flip 置换检验（不依赖 scipy）。
 
 输出：data/eval/d_arm_20.json
       docs/d_arm_pilot.md
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
-import random
 import statistics
 import sys
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
+
+import numpy as np  # noqa: E402
 
 from anchorline.config import Settings  # noqa: E402
 from anchorline.evaluation.d_arm import answer_d_arm  # noqa: E402
@@ -23,17 +28,35 @@ from anchorline.evaluation.pilot import sample_deterministic  # noqa: E402
 from anchorline.llm import embedding_client, reader_client  # noqa: E402
 from anchorline.retrieval.store import open_table  # noqa: E402
 
-V2 = os.path.join(ROOT, "dataset", "v2")
 TABLE = "v2_web_states_d"
 OUT_JSON = os.path.join(ROOT, "data", "eval", "d_arm_20.json")
 OUT_MD = os.path.join(ROOT, "docs", "d_arm_pilot.md")
 B_PILOT = os.path.join(ROOT, "data", "eval", "aa_pilot.json")
 
 
-def main() -> int:
-    # 与 B 臂共用同一抽样函数（seed=42），保证同题
-    sample = sample_deterministic(limit=20, seed=42)
+def sign_flip_pvalue(diffs: np.ndarray, n_perm: int = 10000, seed: int = 0) -> float:
+    """配对差的 sign-flip 置换检验（双侧）：返回 p 值。
 
+    H0：D 与 B 的配对差关于 0 对称（无差异）。
+    """
+    rng = np.random.default_rng(seed)
+    obs = abs(float(np.mean(diffs)))
+    count = 0
+    for _ in range(n_perm):
+        signs = rng.choice((-1.0, 1.0), size=diffs.size)
+        if abs(float(np.mean(diffs * signs))) >= obs:
+            count += 1
+    return (count + 1) / (n_perm + 1)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--n", type=int, default=1, help="每题重复次数")
+    ap.add_argument("--seed", type=int, default=42)
+    args = ap.parse_args()
+
+    # 与 B 臂共用同一抽样函数，保证同题
+    sample = sample_deterministic(limit=20, seed=args.seed)
     tbl = open_table(TABLE)
     reader = reader_client(Settings())
     embedder = embedding_client(Settings())
@@ -41,25 +64,28 @@ def main() -> int:
     results = []
     t0 = time.time()
     for i, q in enumerate(sample, 1):
-        r = answer_d_arm(reader, embedder, tbl, q["question"], temperature=1.0)
-        s = score_deterministic(r.answer, q.get("answer"), q["eval_function"])
+        scores: list[int] = []
+        ctx_tokens: list[int] = []
+        for _ in range(args.n):
+            r = answer_d_arm(reader, embedder, tbl, q["question"], temperature=1.0)
+            s = score_deterministic(r.answer, q.get("answer"), q["eval_function"])
+            scores.append(1 if s else 0)
+            ctx_tokens.append(r.context_tokens)
         results.append({
             "question_id": q["id"],
-            "score": 1 if s else 0,
-            "context_tokens": r.context_tokens,
-            "dropped": r.dropped_entries,
+            "scores": scores,
+            "mean": statistics.mean(scores),
+            "span": max(scores) - min(scores),
+            "context_tokens_mean": int(statistics.mean(ctx_tokens)),
         })
-        print(f"  [{i}/20] {q['id']} score={1 if s else 0} ctx={r.context_tokens}t {time.time()-t0:.0f}s")
+        print(f"  [{i}/{len(sample)}] {q['id']} scores={scores} {time.time()-t0:.0f}s")
 
     b = json.load(open(B_PILOT, encoding="utf-8")) if os.path.exists(B_PILOT) else None
-    b_mean = {}
-    if b:
-        for row in b.get("per_question", []):
-            b_mean[row["question_id"]] = row["mean"]
+    b_mean = {row["question_id"]: row["mean"] for row in (b or {}).get("per_question", [])}
 
-    d_scores = [r["score"] for r in results]
-    pairs = [(r["question_id"], r["score"], b_mean.get(r["question_id"])) for r in results if b_mean]
-    diffs = [d - b for _, d, b in pairs if b is not None]
+    pairs = [(r["question_id"], r["mean"], b_mean[r["question_id"]])
+             for r in results if r["question_id"] in b_mean]
+    diffs = np.array([d - bm for _, d, bm in pairs]) if pairs else np.array([])
 
     summary = {
         "config": {
@@ -70,41 +96,47 @@ def main() -> int:
             "budget_tokens": 4000,
             "top_k": 6,
             "n_questions": len(results),
+            "n_per_question": args.n,
         },
-        "d_accuracy": statistics.mean(d_scores),
+        "d_accuracy": statistics.mean([r["mean"] for r in results]),
         "b_accuracy_reference": statistics.mean(b_mean.values()) if b_mean else None,
-        "paired_diff_d_minus_b_mean": statistics.mean(diffs) if diffs else None,
+        "paired_diff_d_minus_b_mean": float(np.mean(diffs)) if diffs.size else None,
+        "paired_diff_d_minus_b_median": float(np.median(diffs)) if diffs.size else None,
+        "paired_permutation_pvalue": sign_flip_pvalue(diffs) if diffs.size else None,
         "per_question": results,
         "elapsed_s": round(time.time() - t0, 1),
     }
     with open(OUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(summary, f, ensure_ascii=False, indent=1)
+        json.dump(summary, f, ensure_ascii=False, indent=1, default=float)
 
     lines = [
         "# D 臂 pilot（20 题）\n",
-        "> 配置：D = 完整轨迹 + 我方 L0（跨 state 去重）+ 事件/页面文本检索 top-6 + 4k 预算；reader `deepseek-flash`，temperature 1.0。",
-        f"> 题集：与 A/A pilot 相同的 20 题（seed=42，确定性判分）。\n",
+        "> 配置：D = 完整轨迹 + 我方 L0（跨 state 去重）+ 单 state 检索 top-6 + 4k 预算；reader `deepseek-flash`，temperature 1.0。",
+        f"> 题集：与 A/A pilot 相同的 20 题（seed={args.seed}，确定性判分）；**D 每题 {args.n} 次**。\n",
         "| 指标 | 值 |",
         "|---|---|",
-        f"| D 臂准确率（1 次/题） | **{statistics.mean(d_scores):.3f}** |",
-        f"| B 臂参考（A/A 10 次均值） | **{statistics.mean(b_mean.values()):.3f}** |" if b_mean else "| B 臂参考 | 无（缺 aa_pilot.json） |",
-        f"| 配对差 D−B | **{(statistics.mean(diffs) if diffs else float('nan')):+.3f}** |" if diffs else "",
+        f"| D 准确率（{args.n} 次/题均值） | **{summary['d_accuracy']:.3f}** |",
+        f"| B 参考（A/A 10 次均值） | **{summary['b_accuracy_reference']:.3f}** |" if b_mean else "| B 参考 | 无 |",
+        f"| 配对差 D−B（均值） | **{summary['paired_diff_d_minus_b_mean']:+.3f}** |" if diffs.size else "",
+        f"| 配对差中位数 | {summary['paired_diff_d_minus_b_median']:+.3f} |" if diffs.size else "",
+        f"| 置换检验 p（双侧） | **{summary['paired_permutation_pvalue']:.4f}** |" if diffs.size else "",
         "",
         "## 逐题\n",
-        "| qid | D | B(mean) |",
-        "|---|---|---|",
+        "| qid | D 均值 | D 全距 | B(mean) |",
+        "|---|---|---|---|",
     ]
     for qid, d, bm in pairs:
-        lines.append(f"| `{qid}` | {d} | {bm} |")
+        row = next(r for r in results if r["question_id"] == qid)
+        lines.append(f"| `{qid}` | {d:.2f} | {row['span']} | {bm:.2f} |")
     lines.extend([
         "",
-        "> ⚠️ 这是 20 题 pilot，单题翻转 = 5pp；差异需配对检验，不能只看均值。",
-        "> B 臂为 10 次均值、D 臂为 1 次；这不是同次数对比，正式 M3 需统一 N。",
+        "> 判读规则（v0.8）：与 A/A 噪声底（配对 |Δ| 均值 6.3pp）比较；置换检验 p<0.05 且差异 > 噪声底才可称差异。",
+        f"> B 为 10 次均值、D 为 {args.n} 次均值；若 n≠10，仍不是严格同次数，报告需注明。",
     ])
     with open(OUT_MD, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-    print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1))
+    print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1, default=float))
     print("written:", OUT_JSON, OUT_MD)
     return 0
 
