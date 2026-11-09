@@ -26,7 +26,9 @@ export default function ChatPage() {
   useEffect(() => {
     void loadFacts();
   }, []);
-  useEffect(() => bottom.current?.scrollIntoView({ behavior: "smooth" }), [messages]);
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const send = async () => {
     const text = input.trim();
@@ -139,23 +141,25 @@ export default function ChatPage() {
         )}
       </Card>
 
-      <Modal open={!!history} onCancel={() => setHistory(null)} footer={null} title="事实历史">
-        <List
-          size="small"
-          dataSource={history ?? []}
-          renderItem={(h) => (
-            <List.Item>
-              <div>
-                <Text code>{h.value}</Text>
+      {history && (
+        <Modal open onCancel={() => setHistory(null)} footer={null} title="事实历史">
+          <List
+            size="small"
+            dataSource={history}
+            renderItem={(h) => (
+              <List.Item>
                 <div>
-                  <Text type="secondary">{new Date(h.valid_from).toLocaleString()}</Text>
-                  {h.valid_to ? <Text type="secondary"> → 失效于 {new Date(h.valid_to).toLocaleString()}</Text> : <Text type="success"> · 当前</Text>}
+                  <Text code>{h.value}</Text>
+                  <div>
+                    <Text type="secondary">{new Date(h.valid_from).toLocaleString()}</Text>
+                    {h.valid_to ? <Text type="secondary"> → 失效于 {new Date(h.valid_to).toLocaleString()}</Text> : <Text type="success"> · 当前</Text>}
+                  </div>
                 </div>
-              </div>
-            </List.Item>
-          )}
-        />
-      </Modal>
+              </List.Item>
+            )}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
