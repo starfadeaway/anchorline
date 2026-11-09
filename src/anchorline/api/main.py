@@ -17,16 +17,16 @@ from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from anchorline import __version__
 from anchorline.db import get_db
 from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
-from anchorline.llm import reader_client
+from anchorline.llm import chat_client, reader_client
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore
-from anchorline.models import Fact, Trace
+from anchorline.models import Fact, Message, Session as ChatSession, Trace
 from anchorline.tools import TOOL_SCHEMAS
 
 log = logging.getLogger("anchorline.api")
@@ -74,6 +74,8 @@ class WriteResponse(BaseModel):
 class ChatRequest(BaseModel):
     messages: list[dict[str, Any]]
     max_steps: int = Field(default=6, ge=1, le=16)
+    session_id: str | None = None  # 为空则新建会话（聊天模式有会话列表）
+    model: str = "deepseek"  # 聊天模式可切换 deepseek / minimax；评测模式固定
 
 
 class ChatResponse(BaseModel):
@@ -82,6 +84,7 @@ class ChatResponse(BaseModel):
     steps: int
     tool_calls: list[dict[str, Any]]
     trace_id: int | None = None
+    session_id: str | None = None
 
 
 class FactOut(BaseModel):
@@ -226,10 +229,10 @@ def get_trace(trace_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
     }
 
 
-def _run_agent(messages: list[dict], db: Session, max_steps: int):
+def _run_agent(messages: list[dict], db: Session, max_steps: int, model: str = "deepseek"):
     """跑一轮 LangGraph agent，并把本轮召回/工具调用写入 traces（供前端 Trace 面板）。"""
     store = FactStore(db)
-    reader = reader_client()
+    reader = chat_client(model)
 
     def model_fn(msgs: list[dict]) -> dict:
         return reader.complete_with_tools(msgs, TOOL_SCHEMAS, max_tokens=2048)
@@ -276,7 +279,7 @@ def _extract_tool_calls(out: dict) -> list[dict[str, Any]]:
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
     try:
-        out = _run_agent(req.messages, db, req.max_steps)
+        out = _run_agent(req.messages, db, req.max_steps, model=req.model)
     except HTTPException:
         raise
     except Exception as exc:  # 模型/DB 抖动：转成 502，前端弹窗提示而不是整页崩
@@ -284,13 +287,82 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
         raise HTTPException(status_code=502, detail=f"聊天服务暂时不可用（{type(exc).__name__}），请重试") from exc
     finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
     answer = finals[-1]["content"] if finals else ""
+
+    # 会话落库（失败不影响本轮回答）
+    sid = req.session_id
+    try:
+        if not sid:
+            s = ChatSession(domain="chat")
+            db.add(s)
+            db.flush()
+            sid = s.id
+        elif db.get(ChatSession, sid) is None:
+            db.add(ChatSession(id=sid, domain="chat"))
+            db.flush()
+        last_user = next((m for m in reversed(req.messages) if m.get("role") == "user"), None)
+        if last_user:
+            db.add(Message(session_id=sid, role="user", content=str(last_user.get("content") or "")[:8000]))
+        db.add(Message(session_id=sid, role="assistant", content=str(answer or "")[:8000]))
+        db.commit()
+    except Exception:
+        log.exception("failed to persist chat session")
+        db.rollback()
+
     return ChatResponse(
         answer=answer,
         stop_reason=out.get("stop_reason", ""),
         steps=out["steps"],
         tool_calls=_extract_tool_calls(out),
         trace_id=out.get("trace_id"),
+        session_id=sid,
     )
+
+
+class SessionOut(BaseModel):
+    id: str
+    title: str
+    created_at: datetime
+    message_count: int
+
+
+class MessageOut(BaseModel):
+    id: int
+    role: str
+    content: str
+    created_at: datetime
+
+
+@app.get("/sessions", response_model=list[SessionOut])
+def list_sessions(db: Session = Depends(get_db)) -> list[SessionOut]:
+    """聊天会话列表（左侧栏）；标题取首条 user 消息。"""
+    rows = list(
+        db.scalars(
+            select(ChatSession).where(ChatSession.domain == "chat").order_by(ChatSession.created_at.desc()).limit(50)
+        )
+    )
+    out: list[SessionOut] = []
+    for s in rows:
+        msgs = list(db.scalars(select(Message).where(Message.session_id == s.id).order_by(Message.id)))
+        first_user = next((m for m in msgs if m.role == "user"), None)
+        title = (first_user.content.strip()[:60] if first_user else "（空会话）")
+        out.append(SessionOut(id=s.id, title=title, created_at=s.created_at, message_count=len(msgs)))
+    return out
+
+
+@app.get("/sessions/{session_id}/messages", response_model=list[MessageOut])
+def session_messages(session_id: str, db: Session = Depends(get_db)) -> list[MessageOut]:
+    if db.get(ChatSession, session_id) is None:
+        raise HTTPException(status_code=404, detail="session not found")
+    rows = list(db.scalars(select(Message).where(Message.session_id == session_id).order_by(Message.id)))
+    return [MessageOut(id=m.id, role=m.role, content=m.content, created_at=m.created_at) for m in rows]
+
+
+@app.post("/sessions")
+def create_session(db: Session = Depends(get_db)) -> dict[str, str]:
+    s = ChatSession(domain="chat")
+    db.add(s)
+    db.commit()
+    return {"id": s.id}
 
 
 @app.post("/chat/stream")
@@ -299,7 +371,7 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
 
     def _gen():
         try:
-            out = _run_agent(req.messages, db, req.max_steps)
+            out = _run_agent(req.messages, db, req.max_steps, model=req.model)
             for tc in _extract_tool_calls(out):
                 yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
             finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
@@ -333,6 +405,10 @@ class SettingsOut(BaseModel):
     embedding_model: str
     rerank_model: str
     budgets: list[int]
+    # 聊天模式可切换的 provider（评测模式固定，见 m3_summary）
+    minimax_model: str
+    minimax_base_url: str
+    chat_models: list[str]
 
 
 class EvalArmOut(BaseModel):
@@ -399,6 +475,9 @@ def settings_view(db: Session = Depends(get_db)) -> SettingsOut:
         embedding_model=s.siliconflow_embedding_model,
         rerank_model=s.siliconflow_rerank_model,
         budgets=[4000, 8000, 16000],
+        minimax_model=s.minimax_model,
+        minimax_base_url=s.minimax_base_url,
+        chat_models=["deepseek", "minimax"],
     )
 
 

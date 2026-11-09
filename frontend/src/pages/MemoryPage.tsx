@@ -74,10 +74,18 @@ export default function MemoryPage() {
             size="small"
             danger
             disabled={!!r.valid_to}
-            onClick={async () => {
-              await api.invalidate(r.id);
-              void load();
-              message.success("已标记失效（不删除）");
+            onClick={() => {
+              Modal.confirm({
+                title: "把这条记忆标记为失效？",
+                content: "不会删除记录；只是标记为「已失效」，历史仍可查看、可追溯。",
+                okText: "标记失效",
+                cancelText: "取消",
+                onOk: async () => {
+                  await api.invalidate(r.id);
+                  message.success("已标记失效（历史保留）");
+                  void load();
+                },
+              });
             }}
           >
             失效
@@ -98,6 +106,20 @@ export default function MemoryPage() {
         </Space>
       }
     >
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 12 }}
+        message="这段记忆怎么读？"
+        description={
+          <div style={{ lineHeight: 1.7 }}>
+            <div>· <b>事实</b> = （实体, 属性, 值, 生效时间）。同一实体+属性可以有多条历史值。</div>
+            <div>· <b>当前</b> = 这条值仍有效；<b>已失效</b> = 被更新的值替代，或手动标记失效（<b>不删除</b>）。</div>
+            <div>· 点<b>历史</b>看同一属性的完整时间线；点<b>失效</b>把当前值标记为失效（会弹确认框）。</div>
+            <div>· 聊天时 agent 只会召回「当前」值；被替代的旧值仍可追溯。</div>
+          </div>
+        }
+      />
       <Table rowKey="id" size="small" dataSource={filtered} columns={columns} pagination={{ pageSize: 12 }} />
       {error && (
         <Alert

@@ -1,34 +1,58 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button, Card, Descriptions, Empty, Input, List, Modal, Typography, message } from "antd";
-import { api, type ChatResp, type Fact, type Msg } from "../api";
+import { Alert, Button, Card, Descriptions, Empty, Input, List, Select, Space, Typography, message } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { api, type ChatResp, type ChatSession, type Msg } from "../api";
 
 const { Text } = Typography;
 
-/** 聊天页：左记忆侧栏 + 中聊天 + 右 Trace。 */
+/** 聊天页：左会话列表 + 中聊天 + 右 Trace。会话成组保存，可随时切换。 */
 export default function ChatPage() {
-  const [facts, setFacts] = useState<Fact[]>([]);
-  const [history, setHistory] = useState<Fact[] | null>(null);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [active, setActive] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [model, setModel] = useState("deepseek");
   const [trace, setTrace] = useState<ChatResp | null>(null);
   const [error, setError] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
 
-  const loadFacts = () =>
+  const loadSessions = () =>
     api
-      .facts()
+      .listSessions()
       .then((rows) => {
-        setFacts(rows);
+        setSessions(rows);
         setError("");
       })
       .catch((e) => setError(String(e)));
+
   useEffect(() => {
-    void loadFacts();
+    void loadSessions();
   }, []);
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const startNew = () => {
+    setActive(null);
+    setMessages([]);
+    setTrace(null);
+  };
+
+  const openSession = async (id: string) => {
+    try {
+      const rows = await api.sessionMessages(id);
+      setActive(id);
+      setMessages(
+        rows
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+      );
+      setTrace(null);
+    } catch (e) {
+      setError(String(e));
+    }
+  };
 
   const send = async () => {
     const text = input.trim();
@@ -39,10 +63,11 @@ export default function ChatPage() {
     setBusy(true);
     setError("");
     try {
-      const resp = await api.chat(next);
+      const resp = await api.chat(next, { model, sessionId: active });
       setMessages([...next, { role: "assistant", content: resp.answer || "(空回答)" }]);
       setTrace(resp);
-      void loadFacts();
+      if (!active && resp.session_id) setActive(resp.session_id);
+      void loadSessions();
     } catch (e) {
       setError(String(e));
       message.error(`发送失败：${String(e)}`);
@@ -53,22 +78,26 @@ export default function ChatPage() {
 
   return (
     <div className="chat-grid">
-      <Card title="记忆" size="small" className="chat-col" extra={<Button size="small" onClick={() => void loadFacts()}>刷新</Button>}>
+      <Card
+        title="会话"
+        size="small"
+        className="chat-col"
+        extra={<Button size="small" icon={<PlusOutlined />} onClick={startNew}>新建</Button>}
+      >
         <div className="messages">
+          {sessions.length === 0 && <Empty description="还没有会话，发第一条消息即可创建" image={Empty.PRESENTED_IMAGE_SIMPLE} />}
           <List
             size="small"
-            dataSource={facts}
-            locale={{ emptyText: "暂无事实" }}
-            renderItem={(f) => (
+            dataSource={sessions}
+            renderItem={(s) => (
               <List.Item
-                className={`fact-item ${f.valid_to ? "stale" : ""}`}
-                onClick={() => api.history(f.id).then(setHistory).catch((e) => message.error(String(e)))}
+                className={`session-item ${active === s.id ? "active" : ""}`}
+                onClick={() => void openSession(s.id)}
               >
                 <div>
-                  <Text type="secondary" style={{ fontSize: 12 }}>{f.entity_id}.{f.attribute}</Text>
-                  <div>{f.value}</div>
+                  <div className="session-title">{s.title}</div>
                   <Text type="secondary" style={{ fontSize: 11 }}>
-                    {f.conflict_type ?? "—"} · {f.valid_to ? "已失效" : "当前"} · {f.confidence}
+                    {new Date(s.created_at).toLocaleString()} · {s.message_count} 条
                   </Text>
                 </div>
               </List.Item>
@@ -77,7 +106,26 @@ export default function ChatPage() {
         </div>
       </Card>
 
-      <Card title="聊天" size="small" className="chat-col" extra={<Text type="secondary">记忆工具：search / write / forget</Text>}>
+      <Card
+        title="聊天"
+        size="small"
+        className="chat-col"
+        extra={
+          <Space size={6}>
+            <Text type="secondary" style={{ fontSize: 12 }}>模型</Text>
+            <Select
+              size="small"
+              value={model}
+              onChange={setModel}
+              options={[
+                { value: "deepseek", label: "DeepSeek" },
+                { value: "minimax", label: "MiniMax" },
+              ]}
+              style={{ width: 110 }}
+            />
+          </Space>
+        }
+      >
         {error && (
           <Alert
             type="error"
@@ -90,7 +138,12 @@ export default function ChatPage() {
           />
         )}
         <div className="messages">
-          {messages.length === 0 && <Empty description="发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）" />}
+          {messages.length === 0 && (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）"
+            />
+          )}
           {messages.map((m, i) => (
             <div key={i} className="msg">
               <div className="msg-role">{m.role === "user" ? "你" : "Anchorline"}</div>
@@ -120,11 +173,12 @@ export default function ChatPage() {
 
       <Card title="Trace" size="small" className="chat-col">
         {!trace ? (
-          <Empty description="发送消息后显示本轮 trace" />
+          <Empty description="发送消息后显示本轮 trace" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (
           <>
             <Descriptions size="small" column={1} bordered>
               <Descriptions.Item label="trace_id">{trace.trace_id ?? "—"}</Descriptions.Item>
+              <Descriptions.Item label="session_id">{trace.session_id ?? "—"}</Descriptions.Item>
               <Descriptions.Item label="steps">{trace.steps}</Descriptions.Item>
               <Descriptions.Item label="stop_reason">{trace.stop_reason}</Descriptions.Item>
               <Descriptions.Item label="tool_calls">{trace.tool_calls.length}</Descriptions.Item>
@@ -140,26 +194,6 @@ export default function ChatPage() {
           </>
         )}
       </Card>
-
-      {history && (
-        <Modal open onCancel={() => setHistory(null)} footer={null} title="事实历史">
-          <List
-            size="small"
-            dataSource={history}
-            renderItem={(h) => (
-              <List.Item>
-                <div>
-                  <Text code>{h.value}</Text>
-                  <div>
-                    <Text type="secondary">{new Date(h.valid_from).toLocaleString()}</Text>
-                    {h.valid_to ? <Text type="secondary"> → 失效于 {new Date(h.valid_to).toLocaleString()}</Text> : <Text type="success"> · 当前</Text>}
-                  </div>
-                </div>
-              </List.Item>
-            )}
-          />
-        </Modal>
-      )}
     </div>
   );
 }

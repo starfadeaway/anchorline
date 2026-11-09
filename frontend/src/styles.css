@@ -138,6 +138,18 @@ input,
 .fact-value { color: var(--text); margin: 4px 0; }
 .fact-meta { color: var(--weak); font-size: 11px; }
 
+/* 会话列表 */
+.session-item {
+  cursor: pointer; border-radius: 6px; padding: 6px 8px !important;
+  transition: background .15s;
+}
+.session-item:hover { background: rgba(0, 212, 255, 0.06); }
+.session-item.active {
+  background: rgba(0, 212, 255, 0.10);
+  box-shadow: inset 2px 0 0 var(--neon);
+}
+.session-title { color: var(--text); font-size: 13px; line-height: 1.4; margin-bottom: 2px; }
+
 .tool-item { margin-bottom: 8px; }
 .tool-item pre {
   margin: 4px 0 0; white-space: pre-wrap; font-size: 12px;

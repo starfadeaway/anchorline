@@ -39,6 +39,12 @@ export default function SettingsPage() {
           <Descriptions.Item label="judge">{s.judge_model || "—"}</Descriptions.Item>
           <Descriptions.Item label="embedding">{s.embedding_model || "—"}</Descriptions.Item>
           <Descriptions.Item label="rerank">{s.rerank_model || "—"}</Descriptions.Item>
+          <Descriptions.Item label="MiniMax（聊天可选）">
+            {s.minimax_model || "—"}（{s.minimax_base_url || "—"}）
+          </Descriptions.Item>
+          <Descriptions.Item label="聊天可切换">
+            <Space>{s.chat_models.map((m) => <Tag key={m}>{m}</Tag>)}</Space>
+          </Descriptions.Item>
           <Descriptions.Item label="预算档">
             <Space>{s.budgets.map((b) => <Tag key={b}>{b}</Tag>)}</Space>
           </Descriptions.Item>

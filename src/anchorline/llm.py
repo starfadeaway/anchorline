@@ -103,3 +103,15 @@ def judge_client(settings: Settings | None = None) -> ChatClient:
 def embedding_client(settings: Settings | None = None) -> EmbeddingClient:
     s = settings or Settings()
     return EmbeddingClient(ReaderConfig(s.siliconflow_base_url, s.siliconflow_api_key, s.siliconflow_embedding_model))
+
+
+def chat_client(provider: str = "deepseek", settings: Settings | None = None) -> ChatClient:
+    """聊天模式（非评测）可选 provider；评测模式固定用 reader_client/judge_client。
+
+    provider: "deepseek"（默认）| "minimax"
+    """
+    s = settings or Settings()
+    p = (provider or "deepseek").strip().lower()
+    if p == "minimax":
+        return ChatClient(ReaderConfig(s.minimax_base_url, s.minimax_api_key, s.minimax_model))
+    return ChatClient(ReaderConfig(s.deepseek_base_url, s.deepseek_api_key, s.deepseek_reader_model))

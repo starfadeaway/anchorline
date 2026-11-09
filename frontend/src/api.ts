@@ -19,6 +19,21 @@ export type ChatResp = {
   steps: number;
   tool_calls: ToolCall[];
   trace_id: number | null;
+  session_id: string | null;
+};
+
+export type ChatSession = {
+  id: string;
+  title: string;
+  created_at: string;
+  message_count: number;
+};
+
+export type SessionMessage = {
+  id: number;
+  role: string;
+  content: string;
+  created_at: string;
 };
 
 export type EvalArm = {
@@ -37,6 +52,9 @@ export type SettingsOut = {
   embedding_model: string;
   rerank_model: string;
   budgets: number[];
+  minimax_model: string;
+  minimax_base_url: string;
+  chat_models: string[];
 };
 
 export type Msg = { role: "user" | "assistant"; content: string };
@@ -99,7 +117,19 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }),
-  chat: (messages: Msg[], maxSteps = 6) =>
-    json<ChatResp>("/api/chat", post({ messages, max_steps: maxSteps }), 240_000),
+  chat: (messages: Msg[], opts?: { model?: string; sessionId?: string | null }) =>
+    json<ChatResp>(
+      "/api/chat",
+      post({
+        messages,
+        max_steps: 6,
+        model: opts?.model ?? "deepseek",
+        session_id: opts?.sessionId ?? null,
+      }),
+      240_000,
+    ),
+  listSessions: () => json<ChatSession[]>("/api/sessions"),
+  createSession: () => json<{ id: string }>("/api/sessions", post({})),
+  sessionMessages: (id: string) => json<SessionMessage[]>(`/api/sessions/${id}/messages`),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),
 };
