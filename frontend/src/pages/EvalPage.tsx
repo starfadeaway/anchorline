@@ -107,21 +107,42 @@ export default function EvalPage() {
                   type="info"
                   showIcon
                   style={{ marginBottom: 12 }}
-                  message={`LoreKeeper 数据集桥接（${bridge.n} 题，页面级 Recall@${bridge.k}）`}
+                  message={`LoreKeeper 数据集桥接（48 题有 gold_pages，Recall@${bridge.k}）`}
                   description={
                     <div style={{ lineHeight: 1.8 }}>
                       <div>· 数据：LoreKeeper 的 56 题评测集（48 题有 gold_pages）+ 三库 chunk 索引（bge-m3 1024 维，10,843 chunk）。</div>
                       <div>· 查询向量与 LoreKeeper 原生一致（BAAI/bge-m3），只替换检索策略。</div>
-                      <div>· 结论：<b>融合检索与纯向量持平，rerank 在页面级 gold 口径下轻微有害</b>（负结果，不美化）。</div>
+                      <div>· <b>chunk 级</b>：融合与纯向量持平，rerank 轻微有害；</div>
+                      <div>· <b>页面级重排</b>：按页面聚合后再 rerank，Recall@1 <b>0.854 → 0.917</b>（+3 题、0 反向，+6.25pp；置换检验 p=0.25 → <b>方向正确、样本不足不称显著</b>）。</div>
                     </div>
                   }
                 />
+                <Text strong>chunk 级检索</Text>
                 <Table
                   rowKey="method"
                   size="small"
                   pagination={false}
-                  dataSource={Object.entries(bridge.summary).map(([method, m]) => ({
-                    method: method === "plain_pages" ? "纯向量（LoreKeeper 原生）" : method === "hybrid_pages" ? "Anchorline RRF + rerank" : method,
+                  style={{ marginTop: 6, marginBottom: 16 }}
+                  dataSource={Object.entries(bridge.chunk ?? {}).map(([method, m]) => ({
+                    method: method === "plain_pages" ? "纯向量（LoreKeeper 原生）" : method === "hybrid_pages" ? "Anchorline RRF (+rerank)" : method,
+                    ...m,
+                  }))}
+                  columns={[
+                    { title: "方法", dataIndex: "method" },
+                    { title: "Recall@1", dataIndex: "recall@1", render: (v: number) => v.toFixed(4) },
+                    { title: "Recall@3", dataIndex: "recall@3", render: (v: number) => v.toFixed(4) },
+                    { title: "Recall@5", dataIndex: "recall@5", render: (v: number) => v.toFixed(4) },
+                    { title: "MRR", dataIndex: "mrr", render: (v: number) => v.toFixed(4) },
+                  ]}
+                />
+                <Text strong>页面级重排</Text>
+                <Table
+                  rowKey="method"
+                  size="small"
+                  pagination={false}
+                  style={{ marginTop: 6 }}
+                  dataSource={Object.entries(bridge.page?.summary ?? {}).map(([method, m]) => ({
+                    method: method === "plain_pages" ? "页面聚合（无 rerank）" : method === "hybrid_pages" ? "页面聚合 + 页面级 rerank" : method,
                     ...m,
                   }))}
                   columns={[
@@ -133,7 +154,7 @@ export default function EvalPage() {
                   ]}
                 />
                 <Paragraph type="secondary" style={{ marginTop: 12 }}>
-                  完整报告：<Text code>docs/lorekeeper_bridge.md</Text>；复现：<Text code>scripts/lorekeeper_bridge.py</Text>。
+                  完整报告：<Text code>docs/lorekeeper_bridge.md</Text>；复现：<Text code>scripts/lorekeeper_bridge.py --mode page</Text>。
                 </Paragraph>
               </>
             ) : (

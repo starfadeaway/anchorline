@@ -109,7 +109,8 @@ export type ReviewDecision = {
 export type LoreKeeperBridge = {
   n: number;
   k: number;
-  summary: Record<string, Record<string, number>>;
+  chunk: Record<string, Record<string, number>> | null;
+  page: { n: number; k: number; summary: Record<string, Record<string, number>> } | null;
 };
 
 export type Msg = { role: "user" | "assistant"; content: string; created_at?: string };

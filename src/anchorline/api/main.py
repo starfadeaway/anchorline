@@ -830,13 +830,23 @@ def _load_eval(name: str) -> dict | None:
 
 @app.get("/eval/lorekeeper", response_model=dict)
 def eval_lorekeeper() -> dict:
-    """LoreKeeper 数据集桥接实验汇总（页面级 Recall/MRR）。"""
-    path = os.path.join(EVAL_DIR, "lorekeeper_bridge.json")
-    if not os.path.exists(path):
+    """LoreKeeper 数据集桥接实验汇总（chunk 级 + 页面级重排）。"""
+    base = os.path.join(EVAL_DIR, "lorekeeper_bridge.json")
+    page = os.path.join(EVAL_DIR, "lorekeeper_bridge_page.json")
+    if not os.path.exists(base):
         raise HTTPException(status_code=404, detail="lorekeeper bridge result not found")
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    return {"n": data.get("n"), "k": data.get("k"), "summary": data.get("summary")}
+    with open(base, encoding="utf-8") as f:
+        chunk = json.load(f)
+    out = {"n": chunk.get("n"), "k": chunk.get("k"), "chunk": chunk.get("summary"), "page": None}
+    if os.path.exists(page):
+        with open(page, encoding="utf-8") as f:
+            page_data = json.load(f)
+        out["page"] = {
+            "n": page_data.get("n"),
+            "k": page_data.get("k"),
+            "summary": page_data.get("summary"),
+        }
+    return out
 
 
 @app.get("/eval/summary", response_model=list[EvalArmOut])
