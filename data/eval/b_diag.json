@@ -1,0 +1,350 @@
+[
+ {
+  "question_id": "e77d1287",
+  "question": "I am using our reddit-based custom forum website. When I open a post thread page, what labeled field appears in the small top-right sidebar box, below the post's point count statistics? Mark your final answer (should be a short phrase) in \\boxed{}.",
+  "gold": "Short URL",
+  "answer": "\\boxed{Search comments}",
+  "score": 0,
+  "f1": 0.0,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "1ad1af4b",
+    "center": 6,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.375
+   },
+   {
+    "traj_id": "1ad1af4b",
+    "center": 7,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.374
+   },
+   {
+    "traj_id": "1ad1af4b",
+    "center": 2,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.323
+   }
+  ]
+ },
+ {
+  "question_id": "5387d23d",
+  "question": "I am using our reddit-based custom forum website. On the Create submission page, does subscribing to a forum change anything in the bar under \"Forum\" and, if so, what changes? Your final answer should be wrapped in \\boxed{}.",
+  "gold": "heart",
+  "answer": "\\boxed{Yes. In the forum info panel for the selected forum, subscribing changes the subscription control from “Subscribe / No subscribers” (or “Subscribe 0”) to “Unsubscribe / 1 subscriber.” The forum selection itself under “Forum” does not change.}",
+  "score": 0,
+  "f1": 0.0,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "1ad1af4b",
+    "center": 7,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.453
+   },
+   {
+    "traj_id": "2af3e2bb",
+    "center": 15,
+    "goal": "Re-post the image of costume contest in this page to funny subreddit and note \"from /f/pics\"",
+    "sim": 0.451
+   },
+   {
+    "traj_id": "1ad1af4b",
+    "center": 6,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.443
+   }
+  ]
+ },
+ {
+  "question_id": "a12b7094",
+  "question": "I am using our reddit-based custom forum website. When I click my account name in the top-right corner, a menu pops up. How many links are there, and what are their names? You should first answer with a number in English (e.g., one, two, three), followed by a comma-separated list of names, and wrap your entire final answer in \\boxed{}.",
+  "gold": "six, Profile, My account, User settings, Block list, Dark mode, Log out",
+  "answer": "\\boxed{four, Profile, My account, User settings, Block list}",
+  "score": 0,
+  "f1": 0.667,
+  "type": "near",
+  "top_hits": [
+   {
+    "traj_id": "3331c568",
+    "center": 0,
+    "goal": "Change my reddit bio to \"I am a robot\"",
+    "sim": 0.501
+   },
+   {
+    "traj_id": "b1c719fb",
+    "center": 0,
+    "goal": "Edit my post on Star Trek Starfleet Academy series by adding a line to the body that says \"Every watch makes me feel lik",
+    "sim": 0.49
+   },
+   {
+    "traj_id": "2d00b63d",
+    "center": 0,
+    "goal": "Change my reddit bio to \"Freelance Web Developer\"",
+    "sim": 0.488
+   }
+  ]
+ },
+ {
+  "question_id": "4266cb67",
+  "question": "I am using our reddit-based custom forum website. Among the forum creator view, subscriber-only forum view, and viewer-only forum view, which views do not have the `Mute this forum` feature on the right side of the page? List the applicable views in this order: `Forum creator`, `Subscriber-only`, `Viewer-only`. If none apply, answer `none`. Wrap your final answer in `\\boxed{}`.",
+  "gold": "Forum creator, Subscriber-only, Viewer-only",
+  "answer": "\\boxed{Forum creator}",
+  "score": 0,
+  "f1": 0.5,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "1ad1af4b",
+    "center": 7,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.323
+   },
+   {
+    "traj_id": "1ad1af4b",
+    "center": 6,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.319
+   },
+   {
+    "traj_id": "3331c568",
+    "center": 0,
+    "goal": "Change my reddit bio to \"I am a robot\"",
+    "sim": 0.286
+   }
+  ]
+ },
+ {
+  "question_id": "91d0775e",
+  "question": "I am using our magento-based shopping admin dashboard. Which option correctly combines one dashboard fact and one orders-grid fact from this environment?\n\nA. The Most Viewed Products tab is placed between Customers and Bestsellers and the Orders grid includes a Braintree Transaction Source column.\nB. The Most Viewed Products tab is placed between Customers and Bestsellers and the Orders grid does not include a Braintree Transaction Source column.\nC. The New Customers tab is placed between Bestsellers and Most Viewed Products, and the Orders grid includes a Braintree Transaction Source column.\nD. The New Customers tab is placed between Bestsellers and Most Viewed Products, and the Orders grid does not include a Braintree Transaction Source column.\n\nPut your final answer into \\boxed{} format like \\boxed{A}.",
+  "gold": "A",
+  "answer": "\\boxed{A}",
+  "score": 1,
+  "f1": 0.667,
+  "type": "near",
+  "top_hits": [
+   {
+    "traj_id": "87d5dc7f",
+    "center": 1,
+    "goal": "What's the total number of items sold in the most recent 7 orders?",
+    "sim": 0.526
+   },
+   {
+    "traj_id": "8db2b8cf",
+    "center": 1,
+    "goal": "Modify the address of order #301 to 321 Birch Boulevard, Suite 200, Dallas, TX, 75201",
+    "sim": 0.514
+   },
+   {
+    "traj_id": "11c4dfb8",
+    "center": 1,
+    "goal": "Update order #306 with the UPS tracking number 55591023930",
+    "sim": 0.514
+   }
+  ]
+ },
+ {
+  "question_id": "07ab3723",
+  "question": "I am using our magento-based custom shopping admin website. I would like to notify a user to reorder for a recend pending order. I have pinpointed that order and entered its detail page. According to our usual workflow, with the action space below, how many more actions do I need to perform to conclude this task?\n\nAction Space:\nscroll(delta_x: float, delta_y: float), keyboard_press(key: str), click(bid: str, button='left', modifiers=[]), fill(bid: str, value: str, enable_autocomplete_menu: bool = False), hover(bid: str), tab_focus(index: int), new_tab(), go_back(), go_forward(), tab_close(), select_option(bid: str, options: str | list[str])\n\nYour final answer should be an English number (e.g., one, two, three, ...) wrapped in \\boxed{}.",
+  "gold": "three",
+  "answer": "\\boxed{four}",
+  "score": 0,
+  "f1": 0.0,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "2305e825",
+    "center": 5,
+    "goal": "Notify Lily Potter in their most recent pending order with message \"Thanks, your order is ready to be shipped!\"",
+    "sim": 0.339
+   },
+   {
+    "traj_id": "2305e825",
+    "center": 6,
+    "goal": "Notify Lily Potter in their most recent pending order with message \"Thanks, your order is ready to be shipped!\"",
+    "sim": 0.327
+   },
+   {
+    "traj_id": "02817e5d",
+    "center": 5,
+    "goal": "Cancel order 301",
+    "sim": 0.327
+   }
+  ]
+ },
+ {
+  "question_id": "06e965cf",
+  "question": "I am using our reddit-based custom forum website. Which option correctly lists the ways to sort posts on a subreddit, in the exact order shown in the dropdown?\nA. Hot, New, Top, Rising, Controversial\nB. Hot, New, Active, Top, Controversial, Most Commented\nC. Hot, New, Rising, Controversial, Top, Gilded\nD. Hot, New, Top, Rising\nYour final answer should be wrapped in \\boxed{} like \\boxed{A}.",
+  "gold": "B",
+  "answer": "\\boxed{A}",
+  "score": 0,
+  "f1": 0.0,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "2e8f6477",
+    "center": 3,
+    "goal": "Reply to the first reply in this post with \"don't panic\"",
+    "sim": 0.318
+   },
+   {
+    "traj_id": "2e8f6477",
+    "center": 2,
+    "goal": "Reply to the first reply in this post with \"don't panic\"",
+    "sim": 0.291
+   },
+   {
+    "traj_id": "1ad1af4b",
+    "center": 2,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.271
+   }
+  ]
+ },
+ {
+  "question_id": "8f70bc0e",
+  "question": "I am using our magento-based shopping admin dashboard. On the edit review page in this environment, what is the name of the action between \"Previous\" and \"Delete Review\" in the top toolbar? Your final answer should be wrapped in \\boxed{}.",
+  "gold": "Reset",
+  "answer": "\\boxed{Save Review}",
+  "score": 0,
+  "f1": 0.0,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "bfd28157",
+    "center": 14,
+    "goal": "Tell me the reasons why customers like Antonia Racer Tank",
+    "sim": 0.462
+   },
+   {
+    "traj_id": "576d210a",
+    "center": 8,
+    "goal": "Tell me the reasons why customers like Circe hooded fleece",
+    "sim": 0.456
+   },
+   {
+    "traj_id": "639cb243",
+    "center": 6,
+    "goal": "Show me the customers who have expressed dissatisfaction with Circe fleece?",
+    "sim": 0.429
+   }
+  ]
+ },
+ {
+  "question_id": "07d86be1",
+  "question": "I am using our magento-based custom shopping website and I am on the \"My Account\" profile page. If I click the \"View Order\" link associated with one of the items on the page, I will be brought to the order's detail page. At the same time, what is the index, starting from one, of the active tab on the left column? What are the names of the active tab and all the tabs above it? Your final answer should be in English, for example one, two, three, followed by the tab names. Separate everything with commas and wrap your final answer in \\boxed{}.",
+  "gold": "two, My Orders, My Account",
+  "answer": "\\boxed{four, Account Dashboard, Account Information, Address Book, My Orders}",
+  "score": 0,
+  "f1": 0.462,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "2ab85f90",
+    "center": 25,
+    "goal": "Compare the payment difference of the last 4 cancelled orders and completed orders",
+    "sim": 0.465
+   },
+   {
+    "traj_id": "87d5dc7f",
+    "center": 28,
+    "goal": "What's the total number of items sold in the most recent 7 orders?",
+    "sim": 0.46
+   },
+   {
+    "traj_id": "e5aec2da",
+    "center": 35,
+    "goal": "What is the size configuration of the picture frame I bought 2022",
+    "sim": 0.457
+   }
+  ]
+ },
+ {
+  "question_id": "3f366e15",
+  "question": "I am using our reddit-based custom forum website. On the right sidebar of a forum page, what subscription-related link appears under the created date besides the Subscribe button? Mark your final answer (should be a short phrase) in \\boxed{}.",
+  "gold": "Subscribe via RSS",
+  "answer": "\\boxed{RSS feed}",
+  "score": 0,
+  "f1": 0.333,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "2e8f6477",
+    "center": 3,
+    "goal": "Reply to the first reply in this post with \"don't panic\"",
+    "sim": 0.412
+   },
+   {
+    "traj_id": "2e8f6477",
+    "center": 2,
+    "goal": "Reply to the first reply in this post with \"don't panic\"",
+    "sim": 0.401
+   },
+   {
+    "traj_id": "1ad1af4b",
+    "center": 7,
+    "goal": "Create a new forum named Cyberpunk, with a description of Welcome to the future, and include ['Games', 'Books', 'Movies'",
+    "sim": 0.375
+   }
+  ]
+ },
+ {
+  "question_id": "0fe2c676",
+  "question": "I am using our reddit-based custom forum website and I am already on my account home page. Which statement is correct about the minimum actions needed to fully update my biography versus edit the body of my latest visible submission by adding one new line?\n\nA. Updating my biography needs fewer actions.\nB. Editing the latest visible submission needs fewer actions.\nC. They need the same minimum number of actions.\nD. At least one of the two tasks is impossible from this page.\n\nYour final answer should be wrapped in \\boxed{} like \\boxed{A}.",
+  "gold": "C",
+  "answer": "\\boxed{A}",
+  "score": 0,
+  "f1": 0.0,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "3331c568",
+    "center": 5,
+    "goal": "Change my reddit bio to \"I am a robot\"",
+    "sim": 0.529
+   },
+   {
+    "traj_id": "3331c568",
+    "center": 4,
+    "goal": "Change my reddit bio to \"I am a robot\"",
+    "sim": 0.521
+   },
+   {
+    "traj_id": "2d00b63d",
+    "center": 4,
+    "goal": "Change my reddit bio to \"Freelance Web Developer\"",
+    "sim": 0.517
+   }
+  ]
+ },
+ {
+  "question_id": "d886b018",
+  "question": "I am using our reddit-based custom forum website. I am on the page that lists all the forums and I would like to upvote the top three posts ever in a forum. How many clicks do I need to complete the action? Your final answer should be in English (e.g., one, two, three) and wrapped in \\boxed{}.",
+  "gold": "eight",
+  "answer": "\\boxed{six}",
+  "score": 0,
+  "f1": 0.0,
+  "type": "wrong",
+  "top_hits": [
+   {
+    "traj_id": "2e8f6477",
+    "center": 3,
+    "goal": "Reply to the first reply in this post with \"don't panic\"",
+    "sim": 0.365
+   },
+   {
+    "traj_id": "2e8f6477",
+    "center": 2,
+    "goal": "Reply to the first reply in this post with \"don't panic\"",
+    "sim": 0.354
+   },
+   {
+    "traj_id": "2e8f6477",
+    "center": 1,
+    "goal": "Reply to the first reply in this post with \"don't panic\"",
+    "sim": 0.332
+   }
+  ]
+ }
+]

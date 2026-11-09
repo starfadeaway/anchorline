@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import text
@@ -24,7 +24,7 @@ from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
 from anchorline.llm import reader_client
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore
-from anchorline.models import Trace
+from anchorline.models import Fact, Trace
 from anchorline.tools import TOOL_SCHEMAS
 
 app = FastAPI(title="Anchorline", version=__version__)
@@ -66,6 +66,78 @@ class ChatResponse(BaseModel):
     stop_reason: str
     steps: int
     tool_calls: list[dict[str, Any]]
+    trace_id: int | None = None
+
+
+class FactOut(BaseModel):
+    id: str
+    entity_id: str
+    attribute: str
+    value: str
+    valid_from: datetime
+    valid_to: datetime | None
+    confidence: float
+    supersedes_id: str | None
+    fact_type: str
+    conflict_type: str | None
+
+
+@app.get("/memory/facts", response_model=list[FactOut])
+def list_facts(
+    entity_id: str | None = None,
+    attribute: str | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+) -> list[FactOut]:
+    """记忆浏览器：分页列出事实（当前值与历史都返回，valid_to 为空才是当前值）。"""
+    from sqlalchemy import select
+
+    stmt = select(Fact).order_by(Fact.created_at.desc()).limit(limit).offset(offset)
+    if entity_id:
+        stmt = stmt.where(Fact.entity_id == entity_id)
+    if attribute:
+        stmt = stmt.where(Fact.attribute.like(f"%{attribute}%"))
+    rows = list(db.scalars(stmt))
+    return [
+        FactOut(
+            id=f.id,
+            entity_id=f.entity_id,
+            attribute=f.attribute,
+            value=f.value,
+            valid_from=f.valid_from,
+            valid_to=f.valid_to,
+            confidence=f.confidence,
+            supersedes_id=f.supersedes_id,
+            fact_type=f.fact_type,
+            conflict_type=f.conflict_type,
+        )
+        for f in rows
+    ]
+
+
+@app.get("/memory/facts/{fact_id}/history", response_model=list[FactOut])
+def fact_history(fact_id: str, db: Session = Depends(get_db)) -> list[FactOut]:
+    """某条事实同一 (entity, attribute) 的完整历史（含被 supersede 的旧值）。"""
+    anchor = db.get(Fact, fact_id)
+    if anchor is None:
+        raise HTTPException(status_code=404, detail="fact not found")
+    rows = FactStore(db).history(anchor.entity_id, anchor.attribute)
+    return [
+        FactOut(
+            id=f.id,
+            entity_id=f.entity_id,
+            attribute=f.attribute,
+            value=f.value,
+            valid_from=f.valid_from,
+            valid_to=f.valid_to,
+            confidence=f.confidence,
+            supersedes_id=f.supersedes_id,
+            fact_type=f.fact_type,
+            conflict_type=f.conflict_type,
+        )
+        for f in rows
+    ]
 
 
 @app.get("/health")
@@ -140,6 +212,7 @@ def get_trace(trace_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
 
 
 def _run_agent(messages: list[dict], db: Session, max_steps: int):
+    """跑一轮 LangGraph agent，并把本轮召回/工具调用写入 traces（供前端 Trace 面板）。"""
     store = FactStore(db)
     reader = reader_client()
 
@@ -155,7 +228,21 @@ def _run_agent(messages: list[dict], db: Session, max_steps: int):
         initial_state(messages),
         {"configurable": {"thread_id": uuid.uuid4().hex}},
     )
+
+    query = next((m.get("content") or "" for m in reversed(messages) if m.get("role") == "user"), "")
+    tool_calls = _extract_tool_calls(out)
+    trace = Trace(
+        session_id=None,
+        query=str(query)[:2000],
+        budget_tokens=0,
+        used_tokens=sum(len(str(m.get("content") or "")) for m in out["messages"]) // 4,
+        layers="chat>tools" if tool_calls else "chat",
+        injected_fact_ids=json.dumps(tool_calls, ensure_ascii=False),
+        resolution=out.get("stop_reason", ""),
+    )
+    db.add(trace)
     db.commit()
+    out["trace_id"] = trace.id
     return out
 
 
@@ -176,7 +263,13 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
     out = _run_agent(req.messages, db, req.max_steps)
     finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
     answer = finals[-1]["content"] if finals else ""
-    return ChatResponse(answer=answer, stop_reason=out.get("stop_reason", ""), steps=out["steps"], tool_calls=_extract_tool_calls(out))
+    return ChatResponse(
+        answer=answer,
+        stop_reason=out.get("stop_reason", ""),
+        steps=out["steps"],
+        tool_calls=_extract_tool_calls(out),
+        trace_id=out.get("trace_id"),
+    )
 
 
 @app.post("/chat/stream")
