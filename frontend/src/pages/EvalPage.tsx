@@ -154,7 +154,7 @@ export default function EvalPage() {
                   ]}
                 />
                 <Paragraph type="secondary" style={{ marginTop: 12 }}>
-                  完整报告：<Text code>docs/lorekeeper_bridge.md</Text>；复现：<Text code>scripts/lorekeeper_bridge.py --mode page</Text>。
+                  完整报告：<Text code>reports/lorekeeper_bridge.md</Text>；复现：<Text code>scripts/lorekeeper_bridge.py --mode page</Text>。
                 </Paragraph>
               </>
             ) : (
