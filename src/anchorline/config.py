@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     # 每个实体最多保留多少条「当前值」；超出时自动把最旧/最低置信度的值标记失效（归档可追溯）
     memory_max_current_per_entity: int = 200
 
+    # --- reliability ---
+    llm_max_retries: int = 3
+    llm_retry_base_delay_s: float = 0.5
+    llm_timeout_s: float = 120.0
+
     @property
     def mysql_dsn(self) -> str:
         return (
