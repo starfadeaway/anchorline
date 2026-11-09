@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Card, Table, Tabs, Tag, Typography, message } from "antd";
-import { api, type EvalArm, type TraceRow } from "../api";
+import { api, type EvalArm, type LoreKeeperBridge, type TraceRow } from "../api";
 
 const { Paragraph, Text } = Typography;
 
-/** 评测页：臂对比（含说明）+ Trace 浏览（合并原 /traces 与 /compare 方案）。 */
+/** 评测页：臂对比（含说明）+ Trace 浏览 + LoreKeeper 桥接实验。 */
 export default function EvalPage() {
   const [rows, setRows] = useState<EvalArm[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
+  const [bridge, setBridge] = useState<LoreKeeperBridge | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function EvalPage() {
       .then((r) => (r.ok ? r.json() : []))
       .then((data: TraceRow[]) => setTraces(data))
       .catch(() => setTraces([]));
+    api.lorekeeperBridge().then(setBridge).catch(() => setBridge(null));
   }, []);
 
   const maxAcc = useMemo(() => Math.max(...rows.map((r) => r.accuracy), 0.01), [rows]);
@@ -94,6 +96,48 @@ export default function EvalPage() {
                 <Paragraph type="secondary">聊天/评测产生的最近 50 条 trace；按时间倒序。工具调用明细可在聊天页右侧 Trace 面板查看。</Paragraph>
                 <Table rowKey="id" size="small" dataSource={traces} columns={traceColumns} pagination={{ pageSize: 12 }} />
               </>
+            ),
+          },
+          {
+            key: "lorekeeper",
+            label: "LoreKeeper 桥接",
+            children: bridge ? (
+              <>
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 12 }}
+                  message={`LoreKeeper 数据集桥接（${bridge.n} 题，页面级 Recall@${bridge.k}）`}
+                  description={
+                    <div style={{ lineHeight: 1.8 }}>
+                      <div>· 数据：LoreKeeper 的 56 题评测集（48 题有 gold_pages）+ 三库 chunk 索引（bge-m3 1024 维，10,843 chunk）。</div>
+                      <div>· 查询向量与 LoreKeeper 原生一致（BAAI/bge-m3），只替换检索策略。</div>
+                      <div>· 结论：<b>融合检索与纯向量持平，rerank 在页面级 gold 口径下轻微有害</b>（负结果，不美化）。</div>
+                    </div>
+                  }
+                />
+                <Table
+                  rowKey="method"
+                  size="small"
+                  pagination={false}
+                  dataSource={Object.entries(bridge.summary).map(([method, m]) => ({
+                    method: method === "plain_pages" ? "纯向量（LoreKeeper 原生）" : method === "hybrid_pages" ? "Anchorline RRF + rerank" : method,
+                    ...m,
+                  }))}
+                  columns={[
+                    { title: "方法", dataIndex: "method" },
+                    { title: "Recall@1", dataIndex: "recall@1", render: (v: number) => v.toFixed(4) },
+                    { title: "Recall@3", dataIndex: "recall@3", render: (v: number) => v.toFixed(4) },
+                    { title: "Recall@5", dataIndex: "recall@5", render: (v: number) => v.toFixed(4) },
+                    { title: "MRR", dataIndex: "mrr", render: (v: number) => v.toFixed(4) },
+                  ]}
+                />
+                <Paragraph type="secondary" style={{ marginTop: 12 }}>
+                  完整报告：<Text code>docs/lorekeeper_bridge.md</Text>；复现：<Text code>scripts/lorekeeper_bridge.py</Text>。
+                </Paragraph>
+              </>
+            ) : (
+              <Paragraph type="secondary">暂无桥接结果（先跑 scripts/lorekeeper_bridge.py）。</Paragraph>
             ),
           },
         ]}

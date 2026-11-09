@@ -355,7 +355,17 @@ input,
   margin: 4px 0 0; white-space: pre-wrap; font-size: 12px;
   color: #c3d2e6; background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--line); border-radius: 6px; padding: 6px;
+  max-width: 100%; overflow-wrap: anywhere; word-break: break-word;
 }
+/* Trace 卡内的长文本不撑破卡片 */
+.chat-col .ant-descriptions-item-content,
+.chat-col .ant-table-cell {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.chat-col .ant-table-wrapper { max-width: 100%; }
+.trace-col { overflow: hidden; }
+.trace-col .ant-card-body { overflow-y: auto; overflow-x: hidden; }
 
 /* 表格科技感 + 可读性 */
 .ant-table { background: transparent !important; }

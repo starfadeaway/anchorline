@@ -8,40 +8,96 @@
 
 | 基准 | 角色 | 分母 |
 |---|---|---|
-| **LongMemEval-V2 web 子集** | 主评测（环境状态 / 动态跟踪 / 流程 / 陷阱 / 前提） | **168 − k**，k ≤ 15；168 目前 provisional |
-| **LongMemEval-S knowledge-update** | 冲突专项（过期事实 / 冲突裁决 / 回溯意图） | **72**（= 1a 49 + 1b 7 + 16 待判层），provisional |
+| **LongMemEval-V2 web 子集** | 主评测（环境状态 / 动态跟踪 / 流程 / 陷阱 / 前提） | **168**（G1 裁定 k=0，当前口径） |
+| **LongMemEval-S knowledge-update** | 冲突专项（过期事实 / 冲突裁决 / 回溯意图） | **72**（1a 63 / 1b 9 / 1c 6；标注完成，冻结口径见 `docs/ku72_build.md`） |
+
+> 168 与 72 都是「该阶段的冻结口径」，不是不可变的最终分母；改口径必须写进文档。
 
 ## 技术栈（已锁定）
 
 - Python **3.13** 单环境；FastAPI + Pydantic + SQLAlchemy 2 + Alembic
-- **MySQL 8**（事实 / 会话 / trace / eval_runs）+ **LanceDB**（向量）+ BM25；向量不进 MySQL
+- **MySQL 8**（事实 / 会话 / trace / eval_runs / 审核裁决）+ **LanceDB**（向量）+ BM25；向量不进 MySQL
 - **LangGraph StateGraph**（不是 LangChain 全家桶；不写 `AgentExecutor` 壳）
 - 原生 **function calling** + MCP（`memory_search` / `memory_write` / `memory_forget`）
-- React + TypeScript + Vite + SSE；Docker Compose；单 API 副本
+- React 19 + TypeScript + Vite + Ant Design 5 + SSE
 
 ## 目录
 
 ```text
-docs/                     # 要入库的文档（协议、许可、gate、ADR、启动提示词）
-dataset/                  # 数据与核验产物（大文件不入库，见 .gitignore）
-  v2/                     # LongMemEval-V2 web 子集：questions / 轨迹 / 题图 / 索引 / 核验脚本
-  docs/                   # 数据侧清单（_ku78_ids.txt 等）
-  archive/
+src/anchorline/            # 记忆层（L0/L1/L2/L3）、检索（hybrid/facts_index）、图（chat/workflows）、API、MCP
+frontend/                  # React 前端（聊天/记忆/评测/审核/报告/监控/会话管理/设置）
+migrations/                # Alembic（0001 初始、0002 session.topic、0003 trace.recalls、0004 review_decisions）
+scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
+tests/                     # pytest（54 项）
+docs/                      # 协议、许可、ADR、评测结果、桥接报告
+dataset/                   # 数据与核验产物（大文件不入库）
 ```
 
 ## 当前状态
 
-- M0a：已完成（许可 / 版本 / 结构 / 压缩比 / 15 张题图 / 官方 RAG 源码核验）
-- **M0b：已完成**
-  - **G1（15 道带图 `errors-gotchas` 参考答案自洽性）：15/15 自洽，k = 0，V2-web 主分母 = 168**（产物 `docs/gate_image15.md`）
-  - V1-KU：72 题骨架已建（49 current + 7 retrospective + 16 manual_needed），pilot 10 题材料就绪（`docs/ku72_build.md`）
-- **M1：in progress**
-  - 已落地：L0 行级去重（与 `measure_compression` 0.00% 差异）、L1 观测摘要、L3 预算组装、L2 事实存储（supersedes / 不物理删除）、LangGraph 聊天 bounded loop + 确定性摄入 workflow、thin MCP 三工具、FastAPI、Alembic 迁移
-  - 存储：MySQL 8.4.5（5 表）+ LanceDB（1,737 条官方 `raw_state_slice` 向量，4096 维）
-  - 数据：web 100 条轨迹已回放（traces 100 行，L1 事件 1,737，L0 中位 2.64×）
-  - 评测：官方判分函数已移植；B 臂（官方基线）4k 预算下 20 题对 2 题
-  - **A/A pilot（20 题 × N=10）进行中**
-- 168 与 72 的冻结口径：168 已由 G1 裁定为 168 − 0；72 仍 provisional（16 题待判层）
+- **M0a/M0b 完成**：G1 15/15 自洽（k=0）；V1-KU 72 题标注完成（63/9/6）
+- **M1 完成**：L0/L1/L2/L3、事实存储（supersedes + 容量归档）、LangGraph 聊天（真实 tool calling）、MCP 三工具、FastAPI、Alembic
+- **M2 前端完成**：聊天（会话主题分组/召回明细）、记忆（主题分组/环形图/删除）、评测（臂对比/Trace/LoreKeeper 桥接）、审核（冲突裁决金标）、报告、监控、会话管理、设置（主题色/日夜）
+- **M3 评测（同 reader/embedding/判分/4k 预算）**：B 53.9% / C2 57.1% / D 64.9%（154 题，D vs B p=0.0116）；168 题 B 53.3% vs D 63.6%（165 有效，p=0.0193）
+- **LoreKeeper 桥接实验**：48 题页面级召回，纯向量与 Anchorline 融合持平（0.8542 / 0.8750 / MRR 0.8646），rerank 轻微有害 → 见 `docs/lorekeeper_bridge.md`
+
+## 快速开始
+
+```powershell
+# 0) 依赖（Python 3.13）
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -e .
+
+# 1) 配置（模板，不含真实 key）
+Copy-Item .env.example .env   # 填 MySQL 与 provider key
+
+# 2) 数据库（MySQL 8 运行中）
+.venv\Scripts\python.exe -m alembic upgrade head
+
+# 3) 启动 API（127.0.0.1:8000）
+$env:PYTHONPATH='src'
+.venv\Scripts\python.exe -m uvicorn anchorline.api.main:app --host 127.0.0.1 --port 8000
+
+# 4) 启动前端（127.0.0.1:5173，/api 代理到 8000）
+cd frontend
+npm install
+npm run dev
+```
+
+## 核心能力
+
+| 能力 | 说明 | 命令/入口 |
+|---|---|---|
+| 记忆层 | L0 跨 state 行去重 → L1 观测摘要 → L2 事实（supersedes）→ L3 预算组装 | `src/anchorline/memory/` |
+| **混合检索** | jieba 分词 + BM25Plus + 向量（Qwen3-Embedding/LanceDB）+ RRF + BGE rerank；失败自动回退 | `memory_search` 工具 / `POST /memory/search` |
+| **容量保护** | 每实体当前值上限（默认 200，`MEMORY_MAX_CURRENT_PER_ENTITY`），超限自动归档最旧/低置信度（标记失效） | `GET /memory/capacity` |
+| **召回可解释** | 每条召回的 BM25/向量/RRF/rerank 分数写入 trace，前端 Trace 面板展示 | `trace.recalls` |
+| **冲突裁决** | 审核页：选一条保留、其余失效、记录原因 → `review_decisions` 金标 | `POST /review/decisions` |
+| 可追溯 | 事实不物理删除；历史、失效时间、裁决记录可查 | `GET /memory/facts/{id}/history` |
+| 会话主题 | 模型生成 topic（如“跑步/游泳/乒乓球”），前端按主题分组 | `sessions.topic` |
+| 报告导出 | 记忆 / 会话 / 评测 Markdown 导出 | 前端「报告」页 |
+
+## 实验与复现
+
+```powershell
+# 单元测试
+.venv\Scripts\python.exe -m pytest -q
+
+# 一键 demo：写入 → 更新（旧值自动失效）→ 混合检索 → 容量 → 清理
+.venv\Scripts\python.exe scripts\demo.py
+
+# 全量重建事实向量索引（写入时已同步，脚本用于初始化/修复）
+.venv\Scripts\python.exe scripts\rebuild_facts_index.py
+
+# V2 评测（B / C2 / D / 168）
+.venv\Scripts\python.exe scripts\aa_pilot.py --limit 154 --n 1 --out data\eval\b_arm_154_v2.json
+.venv\Scripts\python.exe scripts\eval_c2_arm.py --limit 154
+.venv\Scripts\python.exe scripts\eval_d_arm.py --limit 154 --n 1 --table v2_web_states_d --b-ref data\eval\b_arm_154_v2.json --out data\eval\d_arm_154_v2.json
+.venv\Scripts\python.exe scripts\eval_168_judge.py
+
+# LoreKeeper 数据集桥接（页面级 Recall/MRR）
+.venv\Scripts\python.exe scripts\lorekeeper_bridge.py --k 5
+```
 
 ## 数据与许可边界
 
@@ -49,7 +105,3 @@ dataset/                  # 数据与核验产物（大文件不入库，见 .gi
 - V1-S 的 MIT 只覆盖 benchmark 自身；**session 原文不入库**
 - PerLTQA / engram-eval / LoCoMo 等非商用数据不入库
 - **API Key 只经 `.env` 读取**，不入库、不进日志、不进对话；`.env.example` 只有占位符
-
-## 运行（尚未实现，M1 起）
-
-TBD —— M1 最小闭环落地后补复现命令。

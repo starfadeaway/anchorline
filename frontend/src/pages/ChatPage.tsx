@@ -271,7 +271,7 @@ export default function ChatPage() {
           </div>
         </Card>
 
-        <Card title="Trace" size="small" className="chat-col" extra={active ? <Text type="secondary" style={{ fontSize: 11 }}>按会话保存</Text> : null}>
+        <Card title="Trace" size="small" className="chat-col trace-col" extra={active ? <Text type="secondary" style={{ fontSize: 11 }}>按会话保存</Text> : null}>
           {!trace ? (
             <Empty description="发送消息后显示本轮 trace" image={Empty.PRESENTED_IMAGE_SIMPLE} />
           ) : (
@@ -299,6 +299,8 @@ export default function ChatPage() {
                     rowKey="fact_id"
                     pagination={false}
                     style={{ marginTop: 6 }}
+                    tableLayout="fixed"
+                    scroll={{ x: 360 }}
                     dataSource={trace.meta.recalls}
                     columns={[
                       { title: "属性", dataIndex: "attribute", ellipsis: true },

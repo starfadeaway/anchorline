@@ -106,6 +106,12 @@ export type ReviewDecision = {
   created_at: string;
 };
 
+export type LoreKeeperBridge = {
+  n: number;
+  k: number;
+  summary: Record<string, Record<string, number>>;
+};
+
 export type Msg = { role: "user" | "assistant"; content: string; created_at?: string };
 
 /** 统一的接口错误：status=0 表示网络/超时。 */
@@ -209,4 +215,5 @@ export const api = {
   sessionTraces: (id: string) => json<TraceRow[]>(`/api/sessions/${id}/traces`),
   deleteSession: (id: string) => json<{ deleted: string }>(`/api/sessions/${id}`, { method: "DELETE" }),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),
+  lorekeeperBridge: () => json<LoreKeeperBridge>("/api/eval/lorekeeper"),
 };

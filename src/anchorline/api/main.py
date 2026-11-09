@@ -828,6 +828,17 @@ def _load_eval(name: str) -> dict | None:
         return None
 
 
+@app.get("/eval/lorekeeper", response_model=dict)
+def eval_lorekeeper() -> dict:
+    """LoreKeeper 数据集桥接实验汇总（页面级 Recall/MRR）。"""
+    path = os.path.join(EVAL_DIR, "lorekeeper_bridge.json")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="lorekeeper bridge result not found")
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    return {"n": data.get("n"), "k": data.get("k"), "summary": data.get("summary")}
+
+
 @app.get("/eval/summary", response_model=list[EvalArmOut])
 def eval_summary() -> list[EvalArmOut]:
     """把 data/eval 下的结果汇总成臂级表；文件缺失/损坏只跳过，不抛 500。"""
