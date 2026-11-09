@@ -163,6 +163,10 @@ export const api = {
   sessionMessages: (id: string) => json<SessionMessage[]>(`/api/sessions/${id}/messages`),
   deleteFact: (id: string) => json<{ deleted: string }>(`/api/memory/facts/${id}`, { method: "DELETE" }),
   purgeStaleFacts: () => json<{ deleted: number }>("/api/memory/facts", { method: "DELETE" }),
+  reviewConflicts: () =>
+    json<{ entity_id: string; facts: { id: string; attribute: string; value: string; valid_from: string; confidence: number }[] }[]>(
+      "/api/review/conflicts",
+    ),
   sessionTraces: (id: string) => json<TraceRow[]>(`/api/sessions/${id}/traces`),
   deleteSession: (id: string) => json<{ deleted: string }>(`/api/sessions/${id}`, { method: "DELETE" }),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),

@@ -26,7 +26,7 @@ from anchorline.db import get_db
 from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
 from anchorline.llm import chat_client, reader_client
 from anchorline.memory.l3 import ContextItem, assemble
-from anchorline.memory.store import FactStore
+from anchorline.memory.store import FactStore, _attr_tokens
 from anchorline.models import Fact, Message, Session as ChatSession, Trace
 from anchorline.tools import TOOL_SCHEMAS
 
@@ -535,6 +535,53 @@ def purge_stale_facts(db: Session = Depends(get_db)) -> dict[str, int]:
         db.execute(delete(Fact).where(Fact.id.in_(ids)))
         db.commit()
     return {"deleted": len(ids)}
+
+
+class ConflictEntity(BaseModel):
+    entity_id: str
+    facts: list[dict[str, Any]]
+
+
+@app.get("/review/conflicts", response_model=list[ConflictEntity])
+def review_conflicts(db: Session = Depends(get_db)) -> list[ConflictEntity]:
+    """审核队列：同一实体下「属性关键词重叠」的多个当前值（疑似冲突），供人工裁决。"""
+    rows = list(
+        db.scalars(select(Fact).where(Fact.valid_to.is_(None)).order_by(Fact.entity_id, Fact.attribute))
+    )
+    by_entity: dict[str, list[Fact]] = {}
+    for f in rows:
+        by_entity.setdefault(f.entity_id, []).append(f)
+    out: list[ConflictEntity] = []
+    for entity, facts in by_entity.items():
+        clusters: list[list[Fact]] = []
+        for f in facts:
+            toks = _attr_tokens(f.attribute)
+            placed = False
+            for c in clusters:
+                if any(toks & _attr_tokens(x.attribute) for x in c):
+                    c.append(f)
+                    placed = True
+                    break
+            if not placed:
+                clusters.append([f])
+        for c in clusters:
+            if len(c) >= 2:
+                out.append(
+                    ConflictEntity(
+                        entity_id=entity,
+                        facts=[
+                            {
+                                "id": f.id,
+                                "attribute": f.attribute,
+                                "value": f.value,
+                                "valid_from": f.valid_from.isoformat(),
+                                "confidence": f.confidence,
+                            }
+                            for f in c
+                        ],
+                    )
+                )
+    return out
 
 
 class SettingsOut(BaseModel):

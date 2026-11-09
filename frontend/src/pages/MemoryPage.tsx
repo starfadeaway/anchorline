@@ -100,6 +100,7 @@ export default function MemoryPage() {
   const [error, setError] = useState("");
   const [form] = Form.useForm();
   const now = useNow();
+  const [hoverBar, setHoverBar] = useState<TraceRow | null>(null);
 
   const load = () =>
     api
@@ -122,9 +123,14 @@ export default function MemoryPage() {
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const base = [...facts];
+    const base = facts.filter((f) => topicOfFact(f) !== "测试数据");
     if (!s) return base;
-    return base.filter((f) => [f.entity_id, f.attribute, f.value].some((v) => String(v).toLowerCase().includes(s)));
+    // 同时匹配实体/属性/值/主题名（支持搜"跑步""球类"命中整组）
+    return base.filter((f) => {
+      const topic = topicOfFact(f);
+      const hay = `${f.entity_id} ${f.attribute} ${f.value} ${topic}`.toLowerCase();
+      return hay.includes(s);
+    });
   }, [facts, q]);
 
   const groups = useMemo(() => {
@@ -297,14 +303,30 @@ export default function MemoryPage() {
             <div className="overview-note">环形图 = 当前值占比；鼠标悬停可看明细</div>
           </div>
           <div className="overview-bars">
-            <Text type="secondary" style={{ fontSize: 12 }}>最近 12 轮 token 消耗</Text>
+            <div className="bars-head">
+              <Text type="secondary" style={{ fontSize: 12 }}>最近 12 轮对话的 token 消耗</Text>
+              <Text type="secondary" style={{ fontSize: 11 }}>峰值 {maxTokens} tokens</Text>
+            </div>
             <div className="token-bars">
               {traces.slice().reverse().map((t) => (
-                <div key={t.id} className="token-bar" title={`#${t.id} · ${t.used_tokens} tokens · ${t.query.slice(0, 40)}`}>
+                <div
+                  key={t.id}
+                  className="token-bar"
+                  onMouseEnter={() => setHoverBar(t)}
+                  onMouseLeave={() => setHoverBar(null)}
+                >
                   <div className="token-bar-fill" style={{ height: `${Math.max(8, (t.used_tokens / maxTokens) * 100)}%` }} />
                 </div>
               ))}
             </div>
+            {hoverBar ? (
+              <div className="bar-tip">
+                #{hoverBar.id} · {hoverBar.used_tokens} tokens · {new Date(hoverBar.created_at).toLocaleTimeString()}
+                <div className="bar-tip-query">{hoverBar.query.slice(0, 40)}</div>
+              </div>
+            ) : (
+              <div className="bar-tip muted">悬停柱子查看：run、token、时间、query（越高表示该轮占用的记忆/上下文越多）</div>
+            )}
           </div>
         </div>
       </Card>

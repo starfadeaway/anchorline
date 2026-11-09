@@ -1,10 +1,47 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, Empty, Progress, Space, Table, Tag, Typography, message } from "antd";
 import { api, type EvalArm } from "../api";
 
 const { Paragraph, Text } = Typography;
 
-/** 实验对比：臂准确率横向条形 + 表格 + 噪声底说明。 */
+/** 数字增长动画（ease-out）。 */
+function useCountUp(target: number, ms = 700): number {
+  const [value, setValue] = useState(0);
+  const raf = useRef(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    const step = (t: number) => {
+      const p = Math.min(1, (t - t0) / ms);
+      setValue(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) raf.current = requestAnimationFrame(step);
+    };
+    raf.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf.current);
+  }, [target, ms]);
+  return value;
+}
+
+function ArmRow({ arm }: { arm: EvalArm }) {
+  const pct = useCountUp(arm.accuracy * 100);
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <Space split="·" size={8} style={{ marginBottom: 4 }}>
+        <Text strong>{arm.arm}</Text>
+        <Tag>{(pct / 100).toFixed(1)}%</Tag>
+        <Text type="secondary" style={{ fontSize: 11 }}>{arm.n} 题</Text>
+      </Space>
+      <Progress
+        percent={pct}
+        showInfo={false}
+        strokeColor={{ "0%": "#00d4ff", "100%": "#7c5cff" }}
+        trailColor="rgba(255,255,255,0.06)"
+        strokeLinecap="round"
+      />
+    </div>
+  );
+}
+
+/** 实验对比：臂准确率横向条形（生长动画 + 数字增长）+ 表格。 */
 export default function ComparePage() {
   const [rows, setRows] = useState<EvalArm[]>([]);
 
@@ -25,27 +62,13 @@ export default function ComparePage() {
   return (
     <Card title="实验对比">
       <Paragraph type="secondary">
-        同 reader / embedding / 判分 / 预算下的相对结果；圆条长度按最高准确率归一。A/A 噪声底：配对 |Δ| 均值 6.3pp。
+        同 reader / embedding / 判分 / 预算下的相对结果；条长按最高准确率归一（{maxAcc.toFixed(4)} = 100%）。A/A 噪声底：配对 |Δ| 均值 6.3pp。
       </Paragraph>
       {rows.length === 0 ? (
         <Empty description="暂无评测结果" />
       ) : (
         <>
-          {rows.map((r) => (
-            <div key={`${r.arm}-${r.source}`} style={{ marginBottom: 10 }}>
-              <Space split="·" size={8} style={{ marginBottom: 4 }}>
-                <Text strong>{r.arm}</Text>
-                <Tag>{(r.accuracy * 100).toFixed(1)}%</Tag>
-                <Text type="secondary" style={{ fontSize: 11 }}>{r.n} 题</Text>
-              </Space>
-              <Progress
-                percent={(r.accuracy / maxAcc) * 100}
-                showInfo={false}
-                strokeColor={{ "0%": "#00d4ff", "100%": "#7c5cff" }}
-                trailColor="rgba(255,255,255,0.06)"
-              />
-            </div>
-          ))}
+          {rows.map((r) => <ArmRow key={`${r.arm}-${r.source}`} arm={r} />)}
           <Table rowKey={(r) => `${r.arm}-${r.source}`} size="small" dataSource={rows} columns={columns} pagination={false} style={{ marginTop: 12 }} />
         </>
       )}
