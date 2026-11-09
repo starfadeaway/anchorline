@@ -117,13 +117,13 @@ def main() -> int:
         json.dump(summary, f, ensure_ascii=False, indent=1, default=float)
 
     lines = [
-        "# D 臂 pilot（20 题）\n",
+        f"# D 臂评测（{len(results)} 题）\n",
         "> 配置：D = 完整轨迹 + 我方 L0（跨 state 去重）+ 单 state 检索 top-6 + 4k 预算；reader `deepseek-flash`，temperature 1.0。",
-        f"> 题集：与 A/A pilot 相同的 20 题（seed={args.seed}，确定性判分）；**D 每题 {args.n} 次**。\n",
+        f"> 题集：确定性 web 题（seed={args.seed}），**D 每题 {args.n} 次**；B 参考文件 `{os.path.basename(b_ref)}`。\n",
         "| 指标 | 值 |",
         "|---|---|",
         f"| D 准确率（{args.n} 次/题均值） | **{summary['d_accuracy']:.3f}** |",
-        f"| B 参考（A/A 10 次均值） | **{summary['b_accuracy_reference']:.3f}** |" if b_mean else "| B 参考 | 无 |",
+        f"| B 参考（`{os.path.basename(b_ref)}`） | **{summary['b_accuracy_reference']:.3f}** |" if b_mean else "| B 参考 | 无 |",
         f"| 配对差 D−B（均值） | **{summary['paired_diff_d_minus_b_mean']:+.3f}** |" if diffs.size else "",
         f"| 配对差中位数 | {summary['paired_diff_d_minus_b_median']:+.3f} |" if diffs.size else "",
         f"| 置换检验 p（双侧） | **{summary['paired_permutation_pvalue']:.4f}** |" if diffs.size else "",
