@@ -95,6 +95,17 @@ export type Capacity = {
   entities: { entity_id: string; current: number; stale: number }[];
 };
 
+export type ReviewDecision = {
+  id: string;
+  entity_id: string;
+  attribute: string | null;
+  kept_fact_id: string;
+  invalidated_fact_ids: string[];
+  reason: string | null;
+  operator: string;
+  created_at: string;
+};
+
 export type Msg = { role: "user" | "assistant"; content: string; created_at?: string };
 
 /** 统一的接口错误：status=0 表示网络/超时。 */
@@ -187,6 +198,14 @@ export const api = {
     json<{ entity_id: string; facts: { id: string; attribute: string; value: string; valid_from: string; confidence: number }[] }[]>(
       "/api/review/conflicts",
     ),
+  createReviewDecision: (body: {
+    entity_id: string;
+    attribute?: string | null;
+    kept_fact_id: string;
+    invalidated_fact_ids: string[];
+    reason?: string;
+  }) => json<ReviewDecision>("/api/review/decisions", post(body)),
+  reviewDecisions: () => json<ReviewDecision[]>("/api/review/decisions"),
   sessionTraces: (id: string) => json<TraceRow[]>(`/api/sessions/${id}/traces`),
   deleteSession: (id: string) => json<{ deleted: string }>(`/api/sessions/${id}`, { method: "DELETE" }),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),

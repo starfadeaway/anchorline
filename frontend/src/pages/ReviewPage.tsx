@@ -1,21 +1,25 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Card, Modal, Space, Table, Tag, Typography, message } from "antd";
-import { api } from "../api";
+import { Alert, Button, Card, Input, Radio, Space, Table, Tabs, Tag, Typography, message } from "antd";
+import { api, type ReviewDecision } from "../api";
 
 const { Paragraph, Text } = Typography;
 
 type ConflictFact = { id: string; attribute: string; value: string; valid_from: string; confidence: number };
 
-/** 审核页：同一实体下多个「当前值」的疑似冲突，人工裁决（失效/删除）。 */
+/** 审核页：冲突裁决（选一个保留、其余失效 + 原因），并展示裁决金标历史。 */
 export default function ReviewPage() {
   const [groups, setGroups] = useState<{ entity_id: string; facts: ConflictFact[] }[]>([]);
+  const [decisions, setDecisions] = useState<ReviewDecision[]>([]);
+  const [kept, setKept] = useState<Record<string, string>>({});
+  const [reason, setReason] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
 
   const load = () =>
-    api
-      .reviewConflicts()
-      .then((rows) => {
-        setGroups(rows);
+    Promise.all([api.reviewConflicts(), api.reviewDecisions()])
+      .then(([g, d]) => {
+        setGroups(g);
+        setDecisions(d);
         setError("");
       })
       .catch((e) => setError(String(e)));
@@ -24,65 +28,121 @@ export default function ReviewPage() {
     void load();
   }, []);
 
-  const invalidate = (id: string) =>
-    Modal.confirm({
-      title: "将这条标记为失效？",
-      content: "不删除，保留历史；适合「旧值仍未失效」的情况。",
-      okText: "标记失效",
-      cancelText: "取消",
-      onOk: async () => {
-        await api.invalidate(id);
-        message.success("已标记失效");
-        void load();
-      },
-    });
+  const decide = async (group: { entity_id: string; facts: ConflictFact[] }) => {
+    const keepId = kept[group.entity_id];
+    if (!keepId) {
+      message.warning("先选择要保留的那一条");
+      return;
+    }
+    setBusy(group.entity_id);
+    try {
+      await api.createReviewDecision({
+        entity_id: group.entity_id,
+        kept_fact_id: keepId,
+        invalidated_fact_ids: group.facts.filter((f) => f.id !== keepId).map((f) => f.id),
+        reason: reason[group.entity_id] ?? "",
+      });
+      message.success("裁决已记录：保留 1 条，其余标记失效");
+      setKept((s) => ({ ...s, [group.entity_id]: "" }));
+      setReason((s) => ({ ...s, [group.entity_id]: "" }));
+      void load();
+    } catch (e) {
+      message.error(String(e));
+    } finally {
+      setBusy(null);
+    }
+  };
 
-  const remove = (id: string) =>
-    Modal.confirm({
-      title: "彻底删除这条记忆？",
-      content: "物理删除，不可恢复。",
-      okText: "删除",
-      okButtonProps: { danger: true },
-      cancelText: "取消",
-      onOk: async () => {
-        await api.deleteFact(id);
-        message.success("已删除");
-        void load();
-      },
-    });
-
-  const columns = [
-    { title: "属性", dataIndex: "attribute", width: 220 },
-    { title: "值", dataIndex: "value" },
-    { title: "生效时间", dataIndex: "valid_from", width: 190, render: (v: string) => new Date(v).toLocaleString() },
-    { title: "置信度", dataIndex: "confidence", width: 80 },
+  const conflictColumns = (entity: string) => [
     {
-      title: "裁决",
-      width: 170,
+      title: "保留",
+      width: 70,
       render: (_: unknown, r: ConflictFact) => (
-        <Space>
-          <Button size="small" danger onClick={() => invalidate(r.id)}>失效</Button>
-          <Button size="small" type="text" danger onClick={() => remove(r.id)}>删除</Button>
-        </Space>
+        <Radio
+          checked={kept[entity] === r.id}
+          onChange={() => setKept((s) => ({ ...s, [entity]: r.id }))}
+        />
       ),
     },
+    { title: "属性", dataIndex: "attribute", width: 200 },
+    { title: "值", dataIndex: "value" },
+    { title: "生效时间", dataIndex: "valid_from", width: 180, render: (v: string) => new Date(v).toLocaleString() },
+  ];
+
+  const decisionColumns = [
+    { title: "实体", dataIndex: "entity_id", width: 120 },
+    { title: "属性", dataIndex: "attribute", width: 180 },
+    { title: "保留", dataIndex: "kept_fact_id", width: 110, render: (v: string) => <Text code>{v.slice(0, 8)}</Text> },
+    {
+      title: "失效",
+      dataIndex: "invalidated_fact_ids",
+      width: 160,
+      render: (v: string[]) => <Space>{v.map((x) => <Text key={x} code>{x.slice(0, 8)}</Text>)}</Space>,
+    },
+    { title: "原因", dataIndex: "reason", ellipsis: true, render: (v?: string) => v || "—" },
+    { title: "时间", dataIndex: "created_at", width: 180, render: (v: string) => new Date(v).toLocaleString() },
   ];
 
   return (
-    <Card title="审核（疑似冲突）" extra={<Button onClick={() => void load()}>刷新</Button>}>
+    <Card title="审核（冲突裁决）" extra={<Button onClick={() => void load()}>刷新</Button>}>
       <Paragraph type="secondary">
-        规则：同一实体下存在 ≥2 个「当前值」时进入审核队列（可能是属性名不同导致未自动失效，或确实并存）。裁决后自动刷新。
+        规则：同一实体下「属性关键词重叠」的多个当前值进入审核队列。裁决 = 选一条保留、其余标记失效（不删除），并记录原因与操作者，形成可追溯的金标。
       </Paragraph>
       {error && <Alert type="error" showIcon message="加载失败" description={error} style={{ marginBottom: 12 }} />}
-      {groups.length === 0 ? (
-        <Text type="secondary">没有待审核的冲突 🎉</Text>
-      ) : (
-        groups.map((g) => (
-          <Card key={g.entity_id} size="small" style={{ marginBottom: 10 }} title={<Space><Text strong>{g.entity_id}</Text><Tag>{g.facts.length} 个当前值</Tag></Space>}>
-            <Table rowKey="id" size="small" dataSource={g.facts} columns={columns} pagination={false} />
-          </Card>
-        ))
-      )}
+
+      <Tabs
+        items={[
+          {
+            key: "pending",
+            label: `待裁决（${groups.length}）`,
+            children:
+              groups.length === 0 ? (
+                <Text type="secondary">没有待裁决的冲突 🎉</Text>
+              ) : (
+                groups.map((g) => (
+                  <Card
+                    key={g.entity_id}
+                    size="small"
+                    style={{ marginBottom: 10 }}
+                    title={<Space><Text strong>{g.entity_id}</Text><Tag>{g.facts.length} 个当前值</Tag></Space>}
+                  >
+                    <Table
+                      rowKey="id"
+                      size="small"
+                      dataSource={g.facts}
+                      columns={conflictColumns(g.entity_id)}
+                      pagination={false}
+                    />
+                    <Space style={{ marginTop: 10 }} wrap>
+                      <Input
+                        placeholder="裁决原因（可选）"
+                        value={reason[g.entity_id] ?? ""}
+                        onChange={(e) => setReason((s) => ({ ...s, [g.entity_id]: e.target.value }))}
+                        style={{ width: 320 }}
+                      />
+                      <Button type="primary" loading={busy === g.entity_id} onClick={() => void decide(g)}>
+                        裁决：保留选中，其余失效
+                      </Button>
+                    </Space>
+                  </Card>
+                ))
+              ),
+          },
+          {
+            key: "decisions",
+            label: `裁决历史（${decisions.length}）`,
+            children: (
+              <Table
+                rowKey="id"
+                size="small"
+                dataSource={decisions}
+                columns={decisionColumns}
+                pagination={{ pageSize: 12 }}
+              />
+            ),
+          },
+        ]}
+      />
     </Card>
   );
 }

@@ -18,7 +18,7 @@ from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import delete, select, text
+from sqlalchemy import delete, select, text, update
 from sqlalchemy.orm import Session
 
 from anchorline import __version__
@@ -27,7 +27,7 @@ from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
 from anchorline.llm import chat_client, reader_client
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore, _attr_tokens
-from anchorline.models import Fact, Message, Session as ChatSession, Trace
+from anchorline.models import Fact, Message, ReviewDecision, Session as ChatSession, Trace
 from anchorline.tools import TOOL_SCHEMAS
 
 log = logging.getLogger("anchorline.api")
@@ -576,6 +576,8 @@ def delete_fact(fact_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
     fact = db.get(Fact, fact_id)
     if fact is None:
         raise HTTPException(status_code=404, detail="fact not found")
+    # 解除其它事实对它的 supersedes 引用，避免自引用外键阻止删除
+    db.execute(update(Fact).where(Fact.supersedes_id == fact_id).values(supersedes_id=None))
     db.delete(fact)
     db.commit()
     try:
@@ -593,6 +595,8 @@ def purge_stale_facts(db: Session = Depends(get_db)) -> dict[str, int]:
     rows = list(db.scalars(select(Fact).where(Fact.valid_to.isnot(None))))
     ids = [f.id for f in rows]
     if ids:
+        # 先解除自引用，再删除
+        db.execute(update(Fact).where(Fact.supersedes_id.in_(ids)).values(supersedes_id=None))
         db.execute(delete(Fact).where(Fact.id.in_(ids)))
         db.commit()
     return {"deleted": len(ids)}
@@ -601,6 +605,83 @@ def purge_stale_facts(db: Session = Depends(get_db)) -> dict[str, int]:
 class ConflictEntity(BaseModel):
     entity_id: str
     facts: list[dict[str, Any]]
+
+
+class ReviewDecisionIn(BaseModel):
+    entity_id: str
+    attribute: str | None = None
+    kept_fact_id: str
+    invalidated_fact_ids: list[str] = []
+    reason: str | None = None
+
+
+class ReviewDecisionOut(BaseModel):
+    id: str
+    entity_id: str
+    attribute: str | None
+    kept_fact_id: str
+    invalidated_fact_ids: list[str]
+    reason: str | None
+    operator: str
+    created_at: datetime
+
+
+def _decision_out(d: ReviewDecision) -> ReviewDecisionOut:
+    try:
+        invalidated = json.loads(d.invalidated_fact_ids or "[]")
+    except json.JSONDecodeError:
+        invalidated = []
+    return ReviewDecisionOut(
+        id=d.id,
+        entity_id=d.entity_id,
+        attribute=d.attribute,
+        kept_fact_id=d.kept_fact_id,
+        invalidated_fact_ids=invalidated,
+        reason=d.reason,
+        operator=d.operator,
+        created_at=d.created_at,
+    )
+
+
+@app.post("/review/decisions", response_model=ReviewDecisionOut)
+def create_review_decision(body: ReviewDecisionIn, db: Session = Depends(get_db)) -> ReviewDecisionOut:
+    """裁决：保留一条、其余标记失效，并记录金标（可追溯）。"""
+    kept = db.get(Fact, body.kept_fact_id)
+    if kept is None:
+        raise HTTPException(status_code=404, detail="kept fact not found")
+    now = datetime.now(timezone.utc)
+    invalidated: list[str] = []
+    for fid in body.invalidated_fact_ids:
+        if fid == kept.id:
+            continue
+        f = db.get(Fact, fid)
+        if f is not None and f.valid_to is None:
+            f.valid_to = now
+            invalidated.append(f.id)
+    decision = ReviewDecision(
+        entity_id=body.entity_id,
+        attribute=body.attribute or kept.attribute,
+        kept_fact_id=kept.id,
+        invalidated_fact_ids=json.dumps(invalidated, ensure_ascii=False),
+        reason=body.reason,
+        operator="human",
+    )
+    db.add(decision)
+    db.commit()
+    for fid in invalidated:
+        try:
+            from anchorline.retrieval import facts_index
+
+            facts_index.delete_fact(fid)
+        except Exception:
+            log.warning("fact index delete failed", exc_info=True)
+    return _decision_out(decision)
+
+
+@app.get("/review/decisions", response_model=list[ReviewDecisionOut])
+def list_review_decisions(limit: int = Query(default=50, ge=1, le=200), db: Session = Depends(get_db)) -> list[ReviewDecisionOut]:
+    rows = list(db.scalars(select(ReviewDecision).order_by(ReviewDecision.created_at.desc()).limit(limit)))
+    return [_decision_out(d) for d in rows]
 
 
 @app.get("/review/conflicts", response_model=list[ConflictEntity])

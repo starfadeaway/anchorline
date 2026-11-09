@@ -95,6 +95,21 @@ class Trace(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class ReviewDecision(Base):
+    """审核裁决金标：同一实体/属性冲突时保留哪条、失效哪些、原因。"""
+
+    __tablename__ = "review_decisions"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    entity_id: Mapped[str] = mapped_column(String(128), index=True)
+    attribute: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    kept_fact_id: Mapped[str] = mapped_column(String(32))
+    invalidated_fact_ids: Mapped[str] = mapped_column(Text)  # JSON 数组
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    operator: Mapped[str] = mapped_column(String(32), default="human")
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class EvalRun(Base):
     __tablename__ = "eval_runs"
 
