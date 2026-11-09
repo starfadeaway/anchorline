@@ -1,4 +1,4 @@
-﻿import { createRoot } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider, theme } from "antd";
 import zhCN from "antd/locale/zh_CN";
@@ -20,7 +20,14 @@ createRoot(document.getElementById("root")!).render(
           colorInfo: "#00d4ff",
           colorBgBase: "#070b12",
           colorBgContainer: "#0d1420",
+          colorBgElevated: "#111a28",
           colorBorder: "#1d2b3f",
+          colorBorderSecondary: "#26374d",
+          // 文字层级：保证在 #0d1420 背景上对比度 >= 4.5:1（WCAG AA）
+          colorText: "#e6edf7",
+          colorTextSecondary: "#a8b8d0",
+          colorTextTertiary: "#8195b0",
+          colorTextQuaternary: "#6f829e",
           borderRadius: 6,
           controlHeight: 32,
         },

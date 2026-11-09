@@ -6,8 +6,11 @@ html, body, #root { height: 100%; margin: 0; }
   --bg: #070b12;
   --panel: #0d1420;
   --line: #1d2b3f;
-  --text: #d7e3f4;
-  --muted: #7086a4;
+  /* 文字层级（在 #0d1420 上对比度均 >= 4.5:1） */
+  --text: #e6edf7;      /* 正文 ~15:1 */
+  --muted: #a8b8d0;     /* 次要 ~9:1 */
+  --weak: #8fa3bf;      /* 弱信息 ~6:1（小字也能看清） */
+  --accent-text: #6fd8ff;
 }
 
 /* 全局：深空底 + 细网格（不引入字体） */
@@ -20,6 +23,22 @@ body {
   background-size: 32px 32px, 32px 32px, 100% 100%;
   color: var(--text);
   font-variant-numeric: tabular-nums;
+}
+
+/* 输入框 / 占位符：不要用默认暗灰 */
+input::placeholder,
+textarea::placeholder,
+.ant-input::placeholder,
+.ant-input-affix-wrapper input::placeholder {
+  color: #8fa3bf !important; /* ~6:1，比默认可见 */
+  opacity: 1;
+}
+textarea,
+input,
+.ant-input,
+.ant-input-affix-wrapper {
+  color: var(--text) !important;
+  background: #10131a !important;
 }
 
 .app-layout { height: 100%; background: transparent; }
@@ -48,6 +67,26 @@ body {
   border-right: 1px solid var(--line);
   background: rgba(10, 16, 26, 0.85) !important;
 }
+/* 侧边菜单：hover/选中文字必须清晰 */
+.ant-menu {
+  color: var(--muted) !important;
+  background: transparent !important;
+}
+.ant-menu-item {
+  color: var(--muted) !important;
+}
+.ant-menu-item:hover {
+  color: var(--text) !important;
+}
+.ant-menu-item-selected {
+  color: var(--neon) !important;
+  background: rgba(0, 212, 255, 0.10) !important;
+}
+.ant-menu-item-selected .anticon,
+.ant-menu-item .anticon {
+  color: inherit !important;
+}
+
 .app-content { padding: 16px; overflow: auto; }
 
 /* 卡片：描边发光 */
@@ -84,9 +123,9 @@ body {
 .msg { margin-bottom: 12px; }
 .msg-role {
   font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
-  color: var(--neon); opacity: .75; margin-bottom: 2px;
+  color: var(--accent-text); opacity: 1; margin-bottom: 2px;
 }
-.msg-body { white-space: pre-wrap; line-height: 1.6; }
+.msg-body { white-space: pre-wrap; line-height: 1.6; color: var(--text); }
 .composer {
   display: flex; gap: 8px; padding-top: 10px;
   border-top: 1px solid var(--line);
@@ -94,24 +133,41 @@ body {
 
 .fact-item { cursor: pointer; border-radius: 6px; transition: background .15s; }
 .fact-item:hover { background: rgba(0, 212, 255, 0.06); }
-.fact-item.stale { opacity: .55; }
+.fact-item.stale { opacity: .72; } /* 失效项仍可读，不压到看不见 */
+.fact-attr { color: var(--weak); font-size: 12px; }
+.fact-value { color: var(--text); margin: 4px 0; }
+.fact-meta { color: var(--weak); font-size: 11px; }
 
 .tool-item { margin-bottom: 8px; }
 .tool-item pre {
   margin: 4px 0 0; white-space: pre-wrap; font-size: 12px;
-  color: #9fb6d4; background: rgba(0, 0, 0, 0.25);
+  color: #c3d2e6; background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--line); border-radius: 6px; padding: 6px;
 }
 
-/* 表格科技感 */
+/* 表格科技感 + 可读性 */
 .ant-table { background: transparent !important; }
 .ant-table-thead > tr > th {
   background: rgba(0, 212, 255, 0.05) !important;
   color: var(--muted) !important;
   letter-spacing: .5px;
   font-size: 12px;
+  border-bottom: 1px solid var(--line) !important;
 }
-.ant-table-tbody > tr:hover > td { background: rgba(0, 212, 255, 0.05) !important; }
+.ant-table-tbody > tr > td {
+  color: var(--text) !important;
+  border-bottom: 1px solid rgba(29, 43, 63, 0.6) !important;
+}
+.ant-table-tbody > tr:hover > td { background: rgba(0, 212, 255, 0.06) !important; }
+.ant-table-placeholder .ant-empty-description { color: var(--weak) !important; }
+
+/* antd 次要文字 / 空状态 / 表单标签 */
+.ant-typography.ant-typography-secondary,
+.ant-typography-secondary,
+.ant-form-item-label > label {
+  color: var(--muted) !important;
+}
+.ant-empty-description { color: var(--weak) !important; }
 
 /* 状态点 */
 .status-dot {
@@ -121,3 +177,6 @@ body {
   animation: pulse 2s ease-in-out infinite;
 }
 @keyframes pulse { 50% { opacity: .35; } }
+
+/* 弱化但可读的提示文字 */
+.muted { color: var(--muted) !important; }
