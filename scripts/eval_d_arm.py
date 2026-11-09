@@ -56,9 +56,11 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default=None, help="结果 JSON 路径")
     ap.add_argument("--md-out", default=None, help="报告 md 路径")
+    ap.add_argument("--b-ref", default=None, help="B 臂结果 JSON（默认 data/eval/aa_pilot.json）")
     args = ap.parse_args()
     out_json = args.out or OUT_JSON
     out_md = args.md_out or OUT_MD
+    b_ref = args.b_ref or B_PILOT
 
     # 与 B 臂共用同一抽样函数，保证同题
     sample = sample_deterministic(limit=args.limit, seed=args.seed)
@@ -85,7 +87,7 @@ def main() -> int:
         })
         print(f"  [{i}/{len(sample)}] {q['id']} scores={scores} {time.time()-t0:.0f}s")
 
-    b = json.load(open(B_PILOT, encoding="utf-8")) if os.path.exists(B_PILOT) else None
+    b = json.load(open(b_ref, encoding="utf-8")) if os.path.exists(b_ref) else None
     b_mean = {row["question_id"]: row["mean"] for row in (b or {}).get("per_question", [])}
 
     pairs = [(r["question_id"], r["mean"], b_mean[r["question_id"]])

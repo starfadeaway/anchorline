@@ -1,0 +1,1562 @@
+{
+ "config": {
+  "arm": "B_official_raw_state_slice",
+  "reader_model": "deepseek-flash",
+  "embedding_model": "Qwen/Qwen3-Embedding-8B",
+  "temperature": 1.0,
+  "n_per_question": 1,
+  "questions": 154,
+  "top_k": 6
+ },
+ "noise_floor": {
+  "pairwise_abs_diff_mean": 0.0,
+  "pairwise_abs_diff_max": 0.0,
+  "nonzero_pairs": 0,
+  "pairs_total": 0,
+  "question_span_mean": 0,
+  "question_span_max": 0
+ },
+ "per_question": [
+  {
+   "question_id": "2c45ecbb",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07b49858",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6a23675f",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "60f2b293",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5cb7289b",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "36fe48ef",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "289aea4a",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "eab07e81",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "1e011eb5",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "abadf765",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07fff330",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07d86be1",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "238c3621",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5a85ca0f",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5db4899c",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "d886b018",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "ff8f3a22",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "4f92aa38",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "a92dff92",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5c826b28",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "ba047686",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6a2e74de",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "05cce9b3",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "41bb40df",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "f13eb38d",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "8957a127",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "deb008ed",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "19c641bd",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "2b1a8fc6",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "c7e367e2",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "98b62f3d",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "4329b535",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "10003186",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "0c6b0c60",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "4ca9f7d7",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "0fe2c676",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "44c05e59",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "e9bb843a",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "436c58d5",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "70e79657",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "31f146ba",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "a42071db",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07ab3723",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "91d0775e",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5d6b993a",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "674a6972",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "11dac74b",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "c56e69ca",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "0c0fdcd7",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "fec652a9",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "3f366e15",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "762d34b8",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "744dbdad",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "48ab5c3d",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6a73e32b",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "23aecb38",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "8cb3280c",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "eef545a0",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "b5a25676",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "820d56e2",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "2ca2d443",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "b828a6b2",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "a62de1f1",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "b4dcf650",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "c39f6edf",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "a7da9ab3",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "f93031d2",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "b2595523",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "77db204d",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "99fa7c96",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "1b43f7df",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "499488a6",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "c36b0d68",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "f928c075",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "3269a3c5",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "0a4a47e6",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "e3a1d7f3",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "1defc293",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "be541aa6",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "2ee130d2",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "7c8efee5",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "f61a096f",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "896017e0",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "9cae869c",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "ffa4e57e",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "4252cc1c",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "ee68431d",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "c843c4ec",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "0738c1ac",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "dae9f7e9",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "521b124f",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "17d63ad8",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "63a1b94b",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "c738b934",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "8955b988",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "3c0c1b19",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "e4d36b58",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "86fa86eb",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "99b6e22f",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "609acb91",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6d975a08",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6cb662d7",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "26a038ce",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "597645be",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "65fbcbdf",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "73297783",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "15e5efa6",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "97d5309a",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "e71f7c92",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "d6da3938",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "a59d50f7",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "7bfbd5f1",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "90dc7e66",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "d1d8cf9f",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "e77d1287",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "626e401e",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "edea0219",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "10466872",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "92642fe7",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "30fab98c",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "5387d23d",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "96497069",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "06e965cf",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "631667c9",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "b8d56b89",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "60c7ca22",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "edb69441",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "d16a18fe",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "401566e6",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6f9cb5fc",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "597ca614",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "d3300354",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "06a5a25f",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "8c55d6bc",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "2e67d04f",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6a5bbcdb",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "4266cb67",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "bdf0e84b",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "00aa905a",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "8f70bc0e",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "c6124506",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "dea446d0",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "18f9d965",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "fe18a443",
+   "eval_function": "mc_choice_match",
+   "scores": [
+    1
+   ],
+   "span": 0,
+   "mean": 1,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "691cd1da",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "a12b7094",
+   "eval_function": "norm_phrase_set_match_ordered",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "f23807ed",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "99ae54d1",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "4d7dda89",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "6652c337",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "40758d8b",
+   "eval_function": "mc_choice_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "f9f9cd61",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "d5b9fda4",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "e83245c5",
+   "eval_function": "norm_phrase_set_match",
+   "scores": [
+    0
+   ],
+   "span": 0,
+   "mean": 0,
+   "context_tokens_mean": 4000
+  }
+ ],
+ "elapsed_s": 1050.9
+}
