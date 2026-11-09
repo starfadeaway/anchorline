@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import socket
 import sys
 
 import pytest
@@ -19,7 +20,20 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_FILE = os.path.join(ROOT, ".env")
 
-pytestmark = pytest.mark.skipif(not os.path.exists(ENV_FILE), reason="需要 .env（MySQL 连接）")
+
+def _mysql_available() -> bool:
+    """探测 MySQL 端口；服务停止时让集成测试 skip 而不是 fail。"""
+    try:
+        with socket.create_connection(("127.0.0.1", 3306), timeout=1):
+            return True
+    except OSError:
+        return False
+
+
+pytestmark = [
+    pytest.mark.skipif(not os.path.exists(ENV_FILE), reason="需要 .env（MySQL 连接）"),
+    pytest.mark.skipif(not _mysql_available(), reason="MySQL 未运行（3306 不可达）"),
+]
 
 
 def _params():
