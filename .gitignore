@@ -49,3 +49,7 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# e2e artifacts
+frontend/test-results/
+frontend/playwright-report/
