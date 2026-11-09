@@ -32,7 +32,11 @@ PROMPT = """请阅读下面的会话，判断三个字段，并只输出 JSON：
 
 规则：
 - query_form=current 表示问题问的是“当前值”；retrospective 表示问的是“过去/旧值”。
-- conflict_type：时效=新值覆盖旧值；数值=数值冲突；否定=是/否反转；无=无冲突。
+- conflict_type：
+  * 时效 = 问题关于“新值是否取代旧值”（旧值被更新的时间顺序取代，**即使值是数字**）；
+  * 数值 = 仅数值不同、但没有“新取代旧”的语义；
+  * 否定 = 是/否反转；
+  * 无 = 无冲突。
 - expected_resolution：覆盖=应取新值；并存=两者都成立；无法裁决=无法确定。
 - 判新旧只看 A/B 顺序，不要用日期。
 
@@ -68,6 +72,12 @@ def main() -> int:
                 temperature=0.0,
                 max_tokens=2048,
             )
+            if not extract_json(out):  # reasoning 模型可能把 token 花在思考上，空输出时放大重试
+                out = client.complete(
+                    [{"role": "system", "content": SYS}, {"role": "user", "content": PROMPT.format(context=context)}],
+                    temperature=0.0,
+                    max_tokens=4096,
+                )
         except Exception as e:
             print(f"  [{i}] {qid} call failed: {str(e)[:80]}")
             out = ""
@@ -89,11 +99,23 @@ def main() -> int:
         vals = [1.0 if x["pred"][key] == x["gold"][key] else 0.0 for x in results if x["gold"].get(key)]
         return round(sum(vals) / len(vals), 4) if vals else 0.0
 
+    def valid_acc(key: str) -> float:
+        vals = [
+            1.0 if x["pred"][key] == x["gold"][key] else 0.0
+            for x in results
+            if x["gold"].get(key) and x["pred"].get(key)
+        ]
+        return round(sum(vals) / len(vals), 4) if vals else 0.0
+
     summary = {
         "n": len(results),
+        "n_empty_pred": sum(1 for x in results if not x["pred"].get("query_form")),
         "query_form_acc": acc("query_form"),
         "conflict_type_acc": acc("conflict_type"),
         "expected_resolution_acc": acc("expected_resolution"),
+        "query_form_acc_valid": valid_acc("query_form"),
+        "conflict_type_acc_valid": valid_acc("conflict_type"),
+        "expected_resolution_acc_valid": valid_acc("expected_resolution"),
     }
     with open(OUT_JSON, "w", encoding="utf-8") as f:
         json.dump({"summary": summary, "rows": results}, f, ensure_ascii=False, indent=1)

@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-"""LoreKeeper 数据集桥接：用 LoreKeeper 的 chunk 索引 + 56 题评测集，跑 Anchorline 的检索策略。
+"""LoreKeeper 数据集桥接：用 LoreKeeper 的评测集 + chunk 索引，跑 Anchorline 的检索策略。
 
-- 数据源：`<lorekeeper>/backend/app/eval/cases.py`（EvalCase：question / gold_answer / gold_pages）
-- 索引：`<lorekeeper>/data/lance/kb_<game>_baai-bge-m3_base`（chunk: id/text/page_title/vector 1024）
-- 查询向量：BAAI/bge-m3（与 LoreKeeper 原生一致，保证公平）
+数据源：
+  - 评测集：`<lorekeeper>/backend/app/eval/cases.py`（EvalCase）
+  - chunk 索引（bge-m3）：`<lorekeeper>/data/lance/kb_<game>_baai-bge-m3_base`
+  - chunk 索引（Qwen3-8B，实验 2）：`data/lancedb/lk_<game>_qwen8b`（由 scripts/lorekeeper_reembed.py 生成）
 
 两种检索口径：
-  - `--mode chunk`（默认）：纯向量 / BM25+向量 RRF / RRF+rerank（chunk 级，去重成页面）
-  - `--mode page`：页面级重排——向量召回 chunk → 按 page 聚合（每页取最高分）→ 对页面文本 rerank
+  - `--mode chunk`：纯向量 / BM25+向量 RRF / RRF+rerank（chunk 级，去重成页面）
+  - `--mode page`：页面级重排——向量召回 chunk → 按 page 聚合 → 对页面文本 rerank
 
 指标：Recall@1/3/5、MRR（只算有 gold_pages 的题）。
 用法：
   .venv\\Scripts\\python.exe scripts\\lorekeeper_bridge.py --mode page --k 5
+  .venv\\Scripts\\python.exe scripts\\lorekeeper_bridge.py --mode chunk --embedder qwen8b --k 5
 """
 from __future__ import annotations
 
@@ -35,6 +37,7 @@ LK = r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper"
 LK_CASES = os.path.join(LK, "backend", "app", "eval", "cases.py")
 LK_LANCE = os.path.join(LK, "data", "lance")
 LK_EMBED = "BAAI/bge-m3"
+QWEN_EMBED = "Qwen/Qwen3-Embedding-8B"
 
 _cache: dict[str, dict] = {}
 
@@ -47,22 +50,31 @@ def load_cases() -> list:
     return mod.all_cases()
 
 
-def load_game(game: str) -> dict:
-    if game in _cache:
-        return _cache[game]
-    db = lancedb.connect(LK_LANCE)
-    tbl = db.open_table(f"kb_{game}_baai-bge-m3_base")
+def load_game(game: str, embedder_name: str = "bge-m3") -> dict:
+    key = f"{game}:{embedder_name}"
+    if key in _cache:
+        return _cache[key]
+    if embedder_name == "qwen8b":
+        from anchorline.retrieval.store import open_lancedb
+
+        db = open_lancedb()
+        table_name = f"lk_{game}_qwen8b"
+    else:
+        db = lancedb.connect(LK_LANCE)
+        table_name = f"kb_{game}_baai-bge-m3_base"
+    tbl = db.open_table(table_name)
     rows = tbl.to_arrow().select(["id", "page_title", "text"]).to_pylist()
     from rank_bm25 import BM25Plus
 
     tokens = [[t for t in jieba.lcut(r.get("text") or "") if t.strip()] for r in rows]
-    _cache[game] = {"tbl": tbl, "rows": rows, "bm25": BM25Plus(tokens)}
-    return _cache[game]
+    _cache[key] = {"tbl": tbl, "rows": rows, "bm25": BM25Plus(tokens)}
+    return _cache[key]
 
 
-def embedder() -> EmbeddingClient:
+def embedder(name: str = "bge-m3") -> EmbeddingClient:
     s = Settings()
-    return EmbeddingClient(ReaderConfig(s.siliconflow_base_url, s.siliconflow_api_key, LK_EMBED))
+    model = QWEN_EMBED if name == "qwen8b" else LK_EMBED
+    return EmbeddingClient(ReaderConfig(s.siliconflow_base_url, s.siliconflow_api_key, model))
 
 
 def vector_search(tbl, vec: list[float], k: int) -> list[dict]:
@@ -91,8 +103,10 @@ def dedupe_pages(rows: list[dict]) -> list[str]:
     return pages
 
 
-def chunk_hybrid_pages(game: str, question: str, vec: list[float], k: int, use_rerank: bool) -> list[str]:
-    data = load_game(game)
+def chunk_hybrid_pages(
+    game: str, question: str, vec: list[float], k: int, use_rerank: bool, embedder_name: str = "bge-m3"
+) -> list[str]:
+    data = load_game(game, embedder_name)
     tbl, rows, bm25 = data["tbl"], data["rows"], data["bm25"]
     tokens = [t for t in jieba.lcut(question) if t.strip()]
     scores = bm25.get_scores(tokens)
@@ -117,9 +131,11 @@ def chunk_hybrid_pages(game: str, question: str, vec: list[float], k: int, use_r
     return dedupe_pages(cand)[:k]
 
 
-def page_rank_pages(game: str, question: str, vec: list[float], k: int, use_rerank: bool) -> list[str]:
+def page_rank_pages(
+    game: str, question: str, vec: list[float], k: int, use_rerank: bool, embedder_name: str = "bge-m3"
+) -> list[str]:
     """页面级：chunk 向量召回 → 按 page 聚合（每页最高分）→ 对页面文本 rerank。"""
-    data = load_game(game)
+    data = load_game(game, embedder_name)
     vec_rows = vector_search(data["tbl"], vec, 80)
     pages: dict[str, dict] = {}
     for r in vec_rows:
@@ -148,6 +164,7 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0, help="只跑前 N 题（0=全部）")
     ap.add_argument("--k", type=int, default=5)
     ap.add_argument("--mode", choices=["chunk", "page"], default="chunk")
+    ap.add_argument("--embedder", choices=["bge-m3", "qwen8b"], default="bge-m3")
     ap.add_argument("--no-rerank", action="store_true")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
@@ -155,9 +172,9 @@ def main() -> int:
     cases = [c for c in load_cases() if c.gold_pages]
     if args.limit:
         cases = cases[: args.limit]
-    print(f"cases with gold_pages: {len(cases)} | mode={args.mode}")
+    print(f"cases with gold_pages: {len(cases)} | mode={args.mode} | embedder={args.embedder}")
 
-    emb = embedder()
+    emb = embedder(args.embedder)
     rows_out = []
     for i, case in enumerate(cases, 1):
         game = case.game
@@ -165,12 +182,14 @@ def main() -> int:
             continue
         vec = emb.embed([case.question])[0]
         if args.mode == "page":
-            plain = page_rank_pages(game, case.question, vec, args.k, use_rerank=False)
-            hyb = page_rank_pages(game, case.question, vec, args.k, use_rerank=not args.no_rerank)
+            plain = page_rank_pages(game, case.question, vec, args.k, use_rerank=False, embedder_name=args.embedder)
+            hyb = page_rank_pages(game, case.question, vec, args.k, use_rerank=not args.no_rerank, embedder_name=args.embedder)
         else:
-            data = load_game(game)
+            data = load_game(game, args.embedder)
             plain = dedupe_pages(vector_search(data["tbl"], vec, args.k))[: args.k]
-            hyb = chunk_hybrid_pages(game, case.question, vec, args.k, use_rerank=not args.no_rerank)
+            hyb = chunk_hybrid_pages(
+                game, case.question, vec, args.k, use_rerank=not args.no_rerank, embedder_name=args.embedder
+            )
         rows_out.append({
             "case_id": case.case_id,
             "game": game,
@@ -181,18 +200,26 @@ def main() -> int:
         })
         print(f"  [{i}/{len(cases)}] {case.case_id} gold={case.gold_pages[:2]} plain={plain[:2]} hybrid={hyb[:2]}")
 
-    def agg(key: str, k: int) -> dict:
+    def agg(key: str) -> dict:
         return {
             **{f"recall@{x}": round(statistics.mean(recall_at(r[key], r["gold_pages"], x) for r in rows_out), 4) for x in (1, 3, 5)},
             "mrr": round(statistics.mean(mrr(r[key], r["gold_pages"]) for r in rows_out), 4),
         }
 
-    summary = {"plain_pages": agg("plain_pages", 5), "hybrid_pages": agg("hybrid_pages", 5)}
+    summary = {"plain_pages": agg("plain_pages"), "hybrid_pages": agg("hybrid_pages")}
     out = args.out or os.path.join(
-        ROOT, "data", "eval", f"lorekeeper_bridge_{args.mode}{'_no_rerank' if args.no_rerank else ''}.json"
+        ROOT,
+        "data",
+        "eval",
+        f"lorekeeper_bridge_{args.embedder}_{args.mode}{'_no_rerank' if args.no_rerank else ''}.json",
     )
     with open(out, "w", encoding="utf-8") as f:
-        json.dump({"n": len(rows_out), "k": args.k, "mode": args.mode, "summary": summary, "rows": rows_out}, f, ensure_ascii=False, indent=1)
+        json.dump(
+            {"n": len(rows_out), "k": args.k, "mode": args.mode, "embedder": args.embedder, "summary": summary, "rows": rows_out},
+            f,
+            ensure_ascii=False,
+            indent=1,
+        )
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     print("written:", out)
     return 0

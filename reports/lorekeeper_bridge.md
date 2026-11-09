@@ -42,15 +42,39 @@
 
 > 诚实口径：只能说「页面级重排方向正确、有机制解释」，不能写「显著提升」；要显著性需要扩题或重跑多次。
 
-## 5. 复现
+## 5. 换向量口径（Qwen3-Embedding-8B vs bge-m3）
+
+用 Anchorline 的 `Qwen/Qwen3-Embedding-8B` 重新嵌入 LoreKeeper 的全部 10,843 个 chunk（`scripts/lorekeeper_reembed.py`），
+与 LoreKeeper 原生的 `BAAI/bge-m3` 在同一批 48 题上对照（查询向量与索引保持一致）：
+
+| 向量模型 | 检索口径 | Recall@1 | Recall@3 | Recall@5 | MRR |
+|---|---|---|---|---|---|
+| bge-m3 | 纯向量（chunk 去重） | 0.8542 | 0.8750 | 0.8750 | 0.8646 |
+| bge-m3 | RRF + rerank（chunk） | 0.8542 | 0.8542 | 0.8750 | 0.8583 |
+| bge-m3 | 页面聚合 + rerank | **0.9167** | 0.9583 | 0.9792 | 0.9427 |
+| Qwen3-8B | 纯向量（chunk 去重） | 0.7917 | 0.8542 | 0.8750 | 0.8201 |
+| Qwen3-8B | RRF + rerank（chunk） | 0.8750 | 0.8750 | 0.8750 | 0.8750 |
+| Qwen3-8B | 页面聚合 + rerank | **0.9167** | 0.9375 | 0.9375 | 0.9271 |
+
+结论：
+1. **在这个中文游戏 wiki 场景，bge-m3 的纯向量强于 Qwen3-8B**（0.8542 vs 0.7917）；换向量模型不是提升手段。
+2. **融合的收益取决于基线强弱**：Qwen3 弱基线上 RRF+rerank 有增益（0.7917 → 0.8750），bge-m3 强基线上无增益（0.8542 → 0.8542）。
+3. **页面级重排对两种向量都有效**，且弱基线增益更大（Qwen3 +12.5pp、bge-m3 +6.25pp）——支持「目标对齐」机制（chunk 相关性 ≠ 页面相关性）。
+
+## 6. 复现
 
 ```powershell
-# 三组对照（chunk 级）
+# chunk 级三组对照（bge-m3）
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --k 5
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --k 5 --no-rerank --out data\eval\lorekeeper_bridge_rrf.json
-# 页面级重排
+# 页面级重排（bge-m3）
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --mode page --k 5
+# 换向量口径（Qwen3-8B）
+.venv\Scripts\python.exe scripts\lorekeeper_reembed.py
+.venv\Scripts\python.exe scripts\lorekeeper_bridge.py --mode chunk --embedder qwen8b --k 5
+.venv\Scripts\python.exe scripts\lorekeeper_bridge.py --mode page --embedder qwen8b --k 5
 ```
+
 
 
 ## 4. 下一步（若要提升）
