@@ -275,6 +275,22 @@ input,
 .donut-hole b { font-size: 16px; color: var(--text); line-height: 1.1; }
 .donut-hole span { font-size: 10px; color: var(--weak); }
 @keyframes donutIn { from { transform: rotate(-90deg) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* SVG 分段环形图：转圈加载 + hover 突起 */
+.donut-wrap { position: relative; display: flex; align-items: center; justify-content: center; animation: fadeUp .35s ease-out; }
+.donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); animation: donutSpinIn .7s ease-out; }
+.arc { transition: stroke-width .18s ease, filter .18s ease; cursor: pointer; }
+.arc-hot { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.35)); }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.donut-center b { font-size: 15px; color: var(--text); line-height: 1.1; }
+.donut-center span { font-size: 10px; color: var(--weak); }
+@keyframes donutSpinIn { from { transform: rotate(-270deg) scale(.85); opacity: 0; } to { transform: rotate(-90deg) scale(1); opacity: 1; } }
+
+/* 柱状图：进入动画 + hover 高亮 */
+.token-bar-fill { animation: barGrow .7s ease-out; transform-origin: bottom; }
+@keyframes barGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.token-bar { cursor: default; transition: transform .15s ease; }
+.token-bar:hover { transform: translateY(-2px); }
 .group-body { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: start; animation: fadeUp .2s ease-out; }
 .group-chart { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .group-chart-legend { font-size: 11px; color: var(--weak); }

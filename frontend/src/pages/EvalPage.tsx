@@ -34,15 +34,6 @@ export default function EvalPage() {
       width: 120,
       render: (v: number) => <Text strong>{(v * 100).toFixed(1)}%</Text>,
     },
-    {
-      title: "对比",
-      width: 220,
-      render: (_: unknown, r: EvalArm) => (
-        <div className="acc-bar">
-          <div className="acc-bar-fill" style={{ width: `${(r.accuracy / maxAcc) * 100}%` }} />
-        </div>
-      ),
-    },
     { title: "题数", dataIndex: "n", width: 80 },
     { title: "来源", dataIndex: "source", width: 220 },
     { title: "备注", dataIndex: "note", render: (v?: string) => v ?? "—" },

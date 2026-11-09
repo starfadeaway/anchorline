@@ -32,6 +32,7 @@ export type ChatResp = {
 export type ChatSession = {
   id: string;
   title: string;
+  topic?: string | null;
   created_at: string;
   message_count: number;
 };
@@ -160,6 +161,8 @@ export const api = {
   listSessions: () => json<ChatSession[]>("/api/sessions"),
   createSession: () => json<{ id: string }>("/api/sessions", post({})),
   sessionMessages: (id: string) => json<SessionMessage[]>(`/api/sessions/${id}/messages`),
+  deleteFact: (id: string) => json<{ deleted: string }>(`/api/memory/facts/${id}`, { method: "DELETE" }),
+  purgeStaleFacts: () => json<{ deleted: number }>("/api/memory/facts", { method: "DELETE" }),
   sessionTraces: (id: string) => json<TraceRow[]>(`/api/sessions/${id}/traces`),
   deleteSession: (id: string) => json<{ deleted: string }>(`/api/sessions/${id}`, { method: "DELETE" }),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),

@@ -31,29 +31,60 @@ function topicOfFact(f: Fact): string {
   const s = `${f.entity_id} ${f.attribute} ${f.value}`.toLowerCase();
   if (/mcp|test|check/.test(s)) return "测试数据";
   if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(s)) return "游泳记录";
+  if (/乒乓球|羽毛球|网球|篮球|足球|排球|台球|球类/.test(s)) return "球类运动";
   if (/5k|跑步|配速|跑|pb|半马|全马/.test(s)) return "跑步记录";
   if (/体重|身高|体脂|睡眠|心率|health/.test(s)) return "身体数据";
   if (/模型|model/.test(s)) return "模型与配置";
   return "其他";
 }
 
-/** 当前/失效环形图（纯 CSS，hover 有反馈）。 */
+/** 分段环形图：当前/失效两段，hover 段加粗突起并显示数据；加载时有转圈动画。 */
 function Donut({ current, stale, size = 120, label }: { current: number; stale: number; size?: number; label: string }) {
   const total = current + stale;
-  const pct = total ? Math.round((current / total) * 100) : 0;
+  const curPct = total ? current / total : 0;
+  const [hover, setHover] = useState<"cur" | "stale" | null>(null);
+  const R = 40;
+  const C = 2 * Math.PI * R;
+  const gap = total ? Math.min(4, C * 0.02) : 0;
+  const curLen = Math.max(0, C * curPct - gap);
+  const staleLen = Math.max(0, C * (1 - curPct) - gap);
+  const baseWidth = size > 100 ? 11 : 10;
+
   return (
-    <div
-      className="donut"
-      title={`${label}：当前 ${current} 条 / 失效 ${stale} 条（${pct}% 当前）`}
-      style={{
-        width: size,
-        height: size,
-        background: `conic-gradient(#3ddc97 ${pct}%, #5b6b85 ${pct}% 100%)`,
-      }}
-    >
-      <div className="donut-hole" style={{ width: size * 0.62, height: size * 0.62 }}>
-        <b>{pct}%</b>
-        <span>当前</span>
+    <div className="donut-wrap" style={{ width: size, height: size }} title={`${label}：当前 ${current} 条 / 失效 ${stale} 条`}>
+      <svg viewBox="0 0 100 100" className="donut-svg">
+        <circle cx="50" cy="50" r={R} fill="none" stroke="transparent" strokeWidth={22} />
+        <circle
+          className={`arc arc-stale ${hover === "stale" ? "arc-hot" : ""}`}
+          cx="50" cy="50" r={R} fill="none"
+          stroke="#5b6b85"
+          strokeWidth={hover === "stale" ? baseWidth + 5 : baseWidth}
+          strokeDasharray={`${staleLen} ${C}`}
+          strokeDashoffset={-(curLen + gap * 2)}
+          strokeLinecap="round"
+          onMouseEnter={() => setHover("stale")}
+          onMouseLeave={() => setHover(null)}
+        />
+        <circle
+          className={`arc arc-cur ${hover === "cur" ? "arc-hot" : ""}`}
+          cx="50" cy="50" r={R} fill="none"
+          stroke="#3ddc97"
+          strokeWidth={hover === "cur" ? baseWidth + 5 : baseWidth}
+          strokeDasharray={`${curLen} ${C}`}
+          strokeDashoffset={0}
+          strokeLinecap="round"
+          onMouseEnter={() => setHover("cur")}
+          onMouseLeave={() => setHover(null)}
+        />
+      </svg>
+      <div className="donut-center">
+        {hover === "cur" ? (
+          <><b>{current}</b><span>当前</span></>
+        ) : hover === "stale" ? (
+          <><b>{stale}</b><span>失效</span></>
+        ) : (
+          <><b>{Math.round(curPct * 100)}%</b><span>当前</span></>
+        )}
       </div>
     </div>
   );
@@ -161,7 +192,7 @@ export default function MemoryPage() {
     },
     {
       title: "操作",
-      width: 170,
+      width: 240,
       render: (_: unknown, r: Fact) => (
         <Space>
           <Button size="small" onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}>历史</Button>
@@ -185,6 +216,27 @@ export default function MemoryPage() {
           >
             失效
           </Button>
+          <Button
+            size="small"
+            danger
+            type="text"
+            onClick={() =>
+              Modal.confirm({
+                title: "彻底删除这条记忆？",
+                content: "物理删除，不可恢复（用于控制存储量）。若只想停用请用「失效」。",
+                okText: "删除",
+                okButtonProps: { danger: true },
+                cancelText: "取消",
+                onOk: async () => {
+                  await api.deleteFact(r.id);
+                  message.success("已删除");
+                  void load();
+                },
+              })
+            }
+          >
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -197,6 +249,25 @@ export default function MemoryPage() {
         <Space>
           <Input.Search placeholder="按实体/属性/值过滤" allowClear onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
           <Button type="primary" onClick={() => setAddOpen(true)}>新增事实</Button>
+          <Button
+            danger
+            onClick={() =>
+              Modal.confirm({
+                title: "清空所有已失效记忆？",
+                content: "物理删除所有 valid_to 已设置的旧值（当前值保留）。用于控制存储量。",
+                okText: "清空",
+                okButtonProps: { danger: true },
+                cancelText: "取消",
+                onOk: async () => {
+                  const r = await api.purgeStaleFacts();
+                  message.success(`已清理 ${r.deleted} 条失效记忆`);
+                  void load();
+                },
+              })
+            }
+          >
+            清空失效
+          </Button>
           <Button icon={<DownloadOutlined />} onClick={exportMarkdown}>导出 Markdown</Button>
           <Button onClick={() => void load()}>刷新</Button>
         </Space>

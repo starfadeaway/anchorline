@@ -296,6 +296,7 @@ def _extract_tool_calls(out: dict) -> list[dict[str, Any]]:
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
     # 先确定会话（trace 需要 session_id，页面切换后 trace 也能按会话找回）
+    is_new = not req.session_id
     sid = req.session_id
     try:
         if not sid:
@@ -327,6 +328,12 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
         if last_user:
             db.add(Message(session_id=sid, role="user", content=str(last_user.get("content") or "")[:8000]))
         db.add(Message(session_id=sid, role="assistant", content=str(answer or "")[:8000]))
+        # 会话主题：新会话或 topic 为空的旧会话，都用模型生成（替代硬编码关键词分组）
+        session_row = db.get(ChatSession, sid)
+        if last_user and session_row is not None and not session_row.topic:
+            topic = _gen_topic(str(last_user.get("content") or ""), req.model)
+            if topic:
+                session_row.topic = topic
         db.commit()
     except Exception:
         log.exception("failed to persist chat session")
@@ -352,6 +359,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
 class SessionOut(BaseModel):
     id: str
     title: str
+    topic: str | None = None
     created_at: datetime
     message_count: int
 
@@ -376,7 +384,7 @@ def list_sessions(db: Session = Depends(get_db)) -> list[SessionOut]:
         msgs = list(db.scalars(select(Message).where(Message.session_id == s.id).order_by(Message.id)))
         first_user = next((m for m in msgs if m.role == "user"), None)
         title = (first_user.content.strip()[:60] if first_user else "（空会话）")
-        out.append(SessionOut(id=s.id, title=title, created_at=s.created_at, message_count=len(msgs)))
+        out.append(SessionOut(id=s.id, title=title, topic=s.topic, created_at=s.created_at, message_count=len(msgs)))
     return out
 
 
@@ -484,6 +492,49 @@ class ForgetRequest(BaseModel):
 class FactPatch(BaseModel):
     value: str | None = None
     confidence: float | None = None
+
+
+def _gen_topic(text: str, model: str) -> str:
+    """用模型给会话生成 2-4 字主题标签（替代硬编码关键词，新领域也能归类）。"""
+    try:
+        client = chat_client(model)
+        out = client.complete(
+            [
+                {
+                    "role": "system",
+                    "content": "你是会话主题分类器。用 2-4 个汉字概括用户这段话的主题（如：跑步、游泳、乒乓球、饮食、工作）。只输出主题词，不要标点、不要解释。",
+                },
+                {"role": "user", "content": str(text)[:400]},
+            ],
+            temperature=0.0,
+            max_tokens=16,
+        )
+        return (out or "").strip().replace("\n", "").strip("。.，,：:")[:16]
+    except Exception:
+        log.exception("topic generation failed")
+        return ""
+
+
+@app.delete("/memory/facts/{fact_id}")
+def delete_fact(fact_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
+    """物理删除一条记忆（用于控制存储量；其他事实不受影响）。"""
+    fact = db.get(Fact, fact_id)
+    if fact is None:
+        raise HTTPException(status_code=404, detail="fact not found")
+    db.delete(fact)
+    db.commit()
+    return {"deleted": fact_id}
+
+
+@app.delete("/memory/facts")
+def purge_stale_facts(db: Session = Depends(get_db)) -> dict[str, int]:
+    """批量清理已失效事实（控制存储量，保留当前值）。"""
+    rows = list(db.scalars(select(Fact).where(Fact.valid_to.isnot(None))))
+    ids = [f.id for f in rows]
+    if ids:
+        db.execute(delete(Fact).where(Fact.id.in_(ids)))
+        db.commit()
+    return {"deleted": len(ids)}
 
 
 class SettingsOut(BaseModel):

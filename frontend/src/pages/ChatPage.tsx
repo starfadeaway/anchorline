@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, Card, Descriptions, Empty, Input, List, message, Segmented, Space, Tooltip, Typography } from "antd";
+import { Alert, Button, Card, Collapse, Descriptions, Empty, Input, List, message, Segmented, Space, Tooltip, Typography } from "antd";
 import { DownloadOutlined, PlusOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type SettingsOut, type TraceRow } from "../api";
 
 const { Text } = Typography;
 
-/** 按对话内容（主题）分组，而不是按时间；游泳优先于跑步，避免"游泳成绩"被归到跑步。 */
+/** 按对话内容（主题）分组，而不是按时间；topic 由模型生成，这里只是兜底规则。 */
 function topicOf(title: string): string {
   const t = title.toLowerCase();
   if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(t)) return "游泳记录";
+  if (/乒乓球|羽毛球|网球|篮球|足球|排球|台球/.test(t)) return "球类运动";
   if (/5k|跑步|配速|跑|pb|半马|全马/.test(t)) return "跑步记录";
+  if (/健身|骑行|瑜伽|力量|增肌/.test(t)) return "健身记录";
   if (/模型|你是谁|介绍一下|deepseek|minimax/.test(t)) return "模型与身份";
   if (/记住|记忆|存下|保存/.test(t)) return "记忆写入";
   if (/你好|hi|hello|聊天/.test(t)) return "闲聊";
@@ -19,7 +21,8 @@ function topicOf(title: string): string {
 function groupByTopic(sessions: ChatSession[]): [string, ChatSession[]][] {
   const m = new Map<string, ChatSession[]>();
   for (const s of sessions) {
-    const k = topicOf(s.title);
+    // 优先用模型生成的主题（s.topic），回退关键词规则
+    const k = (s.topic && s.topic.trim()) || topicOf(s.title);
     m.set(k, [...(m.get(k) ?? []), s]);
   }
   return [...m.entries()];
@@ -161,25 +164,31 @@ export default function ChatPage() {
         >
           <div className="messages">
             {sessions.length === 0 && <Empty description="还没有会话，发第一条消息即可创建" image={Empty.PRESENTED_IMAGE_SIMPLE} />}
-            {grouped.map(([topic, rows]) => (
-              <div key={topic} className="session-group">
-                <div className="session-group-title">{topic} · {rows.length}</div>
-                <List
-                  size="small"
-                  dataSource={rows}
-                  renderItem={(s) => (
-                    <List.Item className={`session-item ${active === s.id ? "active" : ""}`} onClick={() => void loadSession(s.id)}>
-                      <div>
-                        <div className="session-title">{s.title}</div>
-                        <Text type="secondary" style={{ fontSize: 11 }}>
-                          {new Date(s.created_at).toLocaleString()} · {s.message_count} 条
-                        </Text>
-                      </div>
-                    </List.Item>
-                  )}
-                />
-              </div>
-            ))}
+            <Collapse
+              size="small"
+              ghost
+              defaultActiveKey={grouped.map(([t]) => t)}
+              items={grouped.map(([topic, rows]) => ({
+                key: topic,
+                label: <span className="session-group-title">{topic} · {rows.length}</span>,
+                children: (
+                  <List
+                    size="small"
+                    dataSource={rows}
+                    renderItem={(s) => (
+                      <List.Item className={`session-item ${active === s.id ? "active" : ""}`} onClick={() => void loadSession(s.id)}>
+                        <div>
+                          <div className="session-title">{s.title}</div>
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            {new Date(s.created_at).toLocaleString()} · {s.message_count} 条
+                          </Text>
+                        </div>
+                      </List.Item>
+                    )}
+                  />
+                ),
+              }))}
+            />
           </div>
         </Card>
 
