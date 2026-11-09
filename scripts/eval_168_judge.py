@@ -73,8 +73,18 @@ def main() -> int:
     for i, q in enumerate(gotchas, 1):
         rb = answer_baseline(reader, embedder, tbl_b, q["question"], temperature=1.0)
         rd = answer_d_arm(reader, embedder, tbl_d, q["question"], temperature=1.0)
-        jb = judge_gotchas(judge, q["question"], str(q.get("answer")), rb.answer)
-        jd = judge_gotchas(judge, q["question"], str(q.get("answer")), rd.answer)
+
+        def judged(answer: str) -> dict:
+            # judge 输出偶发无法解析：重试一次；仍失败则记 None（从分母排除，不当 0）
+            last = None
+            for _ in range(2):
+                last = judge_gotchas(judge, q["question"], str(q.get("answer")), answer)
+                if last["label"] is not None:
+                    return last
+            return last
+
+        jb = judged(rb.answer)
+        jd = judged(rd.answer)
         rows.append({
             "question_id": q["id"],
             "question": q["question"],
@@ -96,7 +106,11 @@ def main() -> int:
 
     b_scores = {qid: r["mean"] for qid, r in b154_rows.items()}
     d_scores = {qid: r["mean"] for qid, r in d154_rows.items()}
+    missing = []
     for r in rows:
+        if r["b_label"] is None or r["d_label"] is None:
+            missing.append(r["question_id"])
+            continue
         b_scores[r["question_id"]] = 1 if r["b_label"] == 1 else 0
         d_scores[r["question_id"]] = 1 if r["d_label"] == 1 else 0
 
@@ -106,6 +120,8 @@ def main() -> int:
         "n_common": len(common),
         "n_deterministic_154": len(b154_rows),
         "n_gotchas_14": len(rows),
+        "n_judge_missing": len(missing),
+        "judge_missing_ids": missing,
         "b_accuracy": statistics.mean([b_scores[q] for q in common]),
         "d_accuracy": statistics.mean([d_scores[q] for q in common]),
         "paired_diff_d_minus_b": float(np.mean(diffs)),

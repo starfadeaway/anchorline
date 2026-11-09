@@ -1,0 +1,173 @@
+{
+ "n_common": 165,
+ "n_deterministic_154": 154,
+ "n_gotchas_14": 14,
+ "n_judge_missing": 3,
+ "judge_missing_ids": [
+  "2cc1b9ca",
+  "910135bb",
+  "ea361b20"
+ ],
+ "b_accuracy": 0.5333333333333333,
+ "d_accuracy": 0.6363636363636364,
+ "paired_diff_d_minus_b": 0.10303030303030303,
+ "paired_permutation_pvalue": 0.0192980701929807,
+ "judge_prompt_sha256": "24682689c75f2290b8803c5dae1a6db0b4d0a2c7f402250952ba470dd8ac6640",
+ "judge_model": "deepseek-flash",
+ "gotchas_rows": [
+  {
+   "question_id": "0574c69a",
+   "question": "I am using our reddit-based custom forum website. I am trying to search for all submissions from an author in a specific forum. Is searching for `author:{author_name}` a good approach?",
+   "gold": "Correct answers must explicitly say no: this forum does not support Reddit-style searches like `author:{author_name}` for finding an author's submissions within a forum. Answers that only say the search is happening in the wrong scope or on the wrong page, without saying that the `author:` query itself is invalid here, are not acceptable. Answers that say this is a good approach or imply that the query style works are wrong.",
+   "b_answer": "`author:{author_name}` is a good **author filter**, but by itself it searches across the whole site—not just one forum. To get all submissions by that author in a specific forum, combine it with the forum filter, e.g.:\n\n`author:{author_name} forum:{forum_name}`\n\nIn this Postmill-based environment, `subreddit:{name}` does not appear to be the right forum operator; the observed query `author:PatientBuilder499 subreddit:videos` returned “No results.” Also, if there are many matches, you’ll need to paginate through the search results to get **all** submissions.",
+   "d_answer": "\\boxed{No. In this custom Postmill/Reddit-based forum, searching `author:{author_name}` was not reliable: `author:PatientBuilder499` and `author:PatientBuilder499 subreddit:videos` both returned “No results” even though that user had a visible submission in r/videos. So `author:{author_name}` is not a good approach here for finding all submissions from an author in a specific forum.}",
+   "b_label": 0,
+   "b_reason": "The response says `author:{author_name}` is a good filter and suggests it works with a forum filter, directly contradicting the reference point that this forum does not support Reddit-style `author:` searches.",
+   "d_label": 1,
+   "d_reason": "The response explicitly says no and explains that Reddit-style `author:{author_name}` search is not reliable/valid in this custom forum, matching the key insight."
+  },
+  {
+   "question_id": "07a0145f",
+   "question": "I am using our reddit-based custom forum website. After clicking downvote on the first five posts, what will be the sum of their points? Your answer should be wrapped in \\boxed{}.",
+   "gold": "Correct answers must explicitly give the total as -5, for example `-5` or `\\boxed{-5}`. Any other total is wrong.",
+   "b_answer": "\\boxed{UNKNOWN}",
+   "d_answer": "\\boxed{UNKNOWN}",
+   "b_label": 0,
+   "b_reason": "The model gives UNKNOWN instead of the required total -5, so it does not capture the reference insight.",
+   "d_label": 0,
+   "d_reason": "The model answer is UNKNOWN, not the required total of -5, so it does not capture the reference insight."
+  },
+  {
+   "question_id": "1d864942",
+   "question": "I am using our magento-based shopping admin dashboard. I am on this review editor and want to get back to the list of pending reviews. Should I click `Back`? Be concise please.",
+   "gold": "Correct answers must explicitly say that clicking `Back` will not return you to `Pending Reviews`; it takes you to `All Reviews`. Answers that tell the user to click `Back`, or that claim `Back` returns to `Pending Reviews`, are wrong.",
+   "b_answer": "No — use the browser’s Back button to preserve the pending-review filter. The admin `Back` button may return to the unfiltered Reviews grid.",
+   "d_answer": "If you opened this review from **Pending Reviews**, yes—click **Back**. Otherwise, use **Marketing → User Content → Pending Reviews**.",
+   "b_label": 1,
+   "b_reason": "It says not to use the admin Back button because it may return to the unfiltered Reviews grid, implying it will not preserve/return to Pending Reviews; this matches the key gotcha without contradiction.",
+   "d_label": 0,
+   "d_reason": "The response says clicking Back returns to Pending Reviews (if opened from there), contradicting the reference that Back takes you to All Reviews, not Pending Reviews."
+  },
+  {
+   "question_id": "1e77eb4b",
+   "question": "I am using our magento-based shopping admin dashboard. My boss asked me to enter the tracking number for this order, but I am confused. Where should I go? Be concise please.",
+   "gold": "Correct answers must explicitly say that you cannot enter a tracking number for this order because its Order Status is `Canceled`, and canceled orders cannot be shipped. Answers that send the user to `Shipments` or any shipment-entry flow are wrong.",
+   "b_answer": "Go to **Sales → Orders → open order #000000306 → click “Ship”**. On the New Shipment page, add the tracking number under **Shipping Information / Tracking Number**, choose **UPS**, enter **55591023930**, then **Submit Shipment**.",
+   "d_answer": "Go to **Sales → Orders**, open **Order #306**, click **Ship**, then in the **Shipping Information** section click **Add Tracking Number**. Choose **UPS**, enter the tracking number, and submit the shipment.",
+   "b_label": 0,
+   "b_reason": "The response directs the user to the shipment flow (click 'Ship', add tracking, submit), contradicting the key insight that the order is Canceled and cannot be shipped/tracked.",
+   "d_label": 0,
+   "d_reason": "Model sends user through the Ship/Add Tracking Number shipment flow, directly contradicting the reference insight that the order is Canceled and cannot be shipped."
+  },
+  {
+   "question_id": "2cc1b9ca",
+   "question": "I am using our magento-based custom shopping website. I am trying to find the price range of wireless earphones and I am stuck on the search-results page shown below. Is switching the `Sort By` control to `Price` and toggling the sort direction my best option here, or is there a better way to unblock myself if that turns out to be hopeless? Give the single most likely next action to unblock myself, and wrap your final answer in \\boxed{}.",
+   "gold": "Use the category selection on the left to narrow the results to the most relevant department first, rather than relying on the `Price` sort toggle alone.",
+   "b_answer": "\\boxed{Click the “Set Ascending Direction” link to sort the current “wireless earphone” results by price from low to high.}",
+   "d_answer": "\\boxed{Click the “Price” filter in the left-hand “Shopping Options” sidebar to expand and view the available price ranges.}",
+   "b_label": 0,
+   "b_reason": "The model recommends using the price sort direction control, but the reference insight says to narrow results via the left-hand category selection first rather than relying on the Price sort toggle alone.",
+   "d_label": null,
+   "d_reason": "unparsable judge output: "
+  },
+  {
+   "question_id": "42d13006",
+   "question": "I am using our magento-based custom shopping website and I am on the landing page. Based on the page shown below, which module should I interact with if I want to find the items on sale? If there is no such functionality, say so.",
+   "gold": "There is no such functionality or dedicated module for finding items on sale from this storefront.",
+   "b_answer": "\\boxed{The premise is incorrect: the shown page is the Magento Admin Dashboard, not the storefront landing page. There is no dedicated “items on sale” module on this page. In the admin, you would use **CATALOG > Products** (e.g., filter/manage by Special Price) to find or manage sale-priced products, but there is no separate “items on sale” functionality visible here.}",
+   "d_answer": "\\boxed{UNKNOWN}",
+   "b_label": 1,
+   "b_reason": "The model correctly identifies that there is no dedicated “items on sale” module/functionality on the shown page and that the page is not the storefront landing page, aligning with the reference insight.",
+   "d_label": 0,
+   "d_reason": "The model response is only \"UNKNOWN\" and does not state the key insight that there is no such functionality or dedicated module."
+  },
+  {
+   "question_id": "77258cda",
+   "question": "I am using our reddit-based custom forum website. I am on this biography editor and I am confused whether my save actually worked. After I click Save, a success banner appears but the preview block is still there. How do I know the update succeeded? Do I need to refresh or navigate to my profile?",
+   "gold": "Correct answers must explicitly say that the new biography text appears in the right side base, which confirms the save on the same page without refreshing or navigating away. Answers that rely only on the success banner, the text still being present in the edit box, or the preview block matching are wrong. If the answer says that the new biography sidebar updates and no refresh is needed, that is acceptable even if it does not explicitly mention the preview block.",
+   "b_answer": "Yes — your save worked. On this Postmill biography editor, after clicking **Save** you should see the success alert:\n\n> **The biography was updated.**\n\nand the right-hand profile card should update its biography text (for example, it will show “I am a robot” under the registered info). The **Preview** block remaining visible is normal: it is the live preview of the biography textbox, not a sign that the save failed.\n\nYou do **not** need to refresh or navigate away. If you want extra confirmation, you can optionally open your profile (`/u/MarvelsGrantMan136`) or reload the page, but the success banner plus the updated sidebar biography are enough to know the update succeeded.",
+   "d_answer": "Short answer: the success banner is your confirmation — no refresh or navigation is required.\n\nWhat you're seeing matches the normal behavior of the biography editor:\n\n1. **Click Save** → the page shows an assertive alert banner reading **\"The biography was updated.\"** with a **Dismiss** button. That alert is the authoritative success signal. If the save had failed or validation blocked it, you'd get an error instead, not that banner.\n2. **The Preview block staying put is expected.** That block is just a live Markdown preview of whatever is currently in the Biography textbox — it's part of the edit form itself, not a \"saved/unsaved\" indicator. It doesn't disappear after a successful save because the form (with the field set to your newly saved text) remains on screen.\n3. You can sanity-check without refreshing: the Biography textbox still holds the value you saved, and the sidebar still shows the \"Edit biography\" link as before. Neither of those tells you anything new — the banner is the thing to trust.\n\nIf you want extra peace of mind, you *can* navigate to your profile (`/u/MarvelsGrantMan136`) and confirm the bio renders there — but it's optional, not needed to verify the save. Likewise, refreshing the editor is unnecessary and won't reveal anything the banner hasn't already told you. Just click **Dismiss** on the banner and you're done.",
+   "b_label": 1,
+   "b_reason": "Model states the right-hand profile card updates its biography text and no refresh/navigation is needed, matching the key insight; it correctly explains the preview block as normal.",
+   "d_label": 0,
+   "d_reason": "The model relies on the success banner as the authoritative confirmation and explicitly says the sidebar shows nothing new ('the banner is the thing to trust'), directly contradicting the reference insight that the new biography text appearing in the right-side sidebar base is what confirms the save."
+  },
+  {
+   "question_id": "81180ae9",
+   "question": "I am using our magento-based custom shopping website and I am on my address book page. Does `Change Billing Address` always overwrite my default shipping address? Answer concisely.",
+   "gold": "Correct answers must explicitly say yes: changing the billing address from this page also overwrites the default shipping address. Answers that say no, that it depends, or that the behavior is optional are wrong.",
+   "b_answer": "No. In Magento’s address book, default billing and default shipping addresses are separate; changing the billing address does not automatically overwrite the default shipping address.",
+   "d_answer": "No. `Change Billing Address` updates only your default billing address; your default shipping address is changed separately via `Change Shipping Address`.",
+   "b_label": 0,
+   "b_reason": "The model says no and that changing billing does not overwrite default shipping, contradicting the required insight that it does.",
+   "d_label": 0,
+   "d_reason": "Reference requires 'yes' (changing billing also overwrites default shipping), but model answers 'No' and claims shipping is separate, directly contradicting the insight."
+  },
+  {
+   "question_id": "910135bb",
+   "question": "I am using our magento-based custom shopping website and I am on my account home page. Which module should I interact with if I want to change the shipping address of a past order? If there is no way to do that here, say so.",
+   "gold": "Correct answers must explicitly say that the shipping address of a past order cannot be changed on this site. Any answer that points to a module or workflow, including My Orders or Address Book, is wrong.",
+   "b_answer": "\\boxed{There is no way to do that from your account home page. On the Magento storefront, a customer's \"My Account\" area only lets you view past orders and reorder them—it does not provide any module or control to edit the shipping address on an order that has already been placed. Order addresses are fixed at checkout; once an order exists, changing its shipping address must be done by store staff through the Admin (Sales → Orders → open the order → Address Information → Edit), not by the customer. So if you need to change the shipping address on a past order, you cannot do it yourself on the front end—you'd have to contact the store's customer service.}",
+   "d_answer": "There is **no module on the account home page that can change the shipping address of an already-placed past order**. In Magento/custom account area, **My Orders** lets you view past orders, and **Address Book** only updates saved addresses for future use—it does not modify an existing order’s delivery address.\n\nTo change the delivery address for a past order, you would need to **contact support via the Contact Us module**.",
+   "b_label": null,
+   "b_reason": "unparsable judge output: {\"label\": 1, \"reason",
+   "d_label": null,
+   "d_reason": "unparsable judge output: "
+  },
+  {
+   "question_id": "914ab1d4",
+   "question": "I am using our magento-based custom shopping website and I am on the review page of a product. I want to leave a 4 star review but the stars seem flaky and when I click it does not display 4 stars (see screenshot). What should I do next? Give me the name of the most potentially helpful action below, wrapped in \\boxed{}.\n\nAction Space:\nscroll(delta_x: float, delta_y: float), keyboard_press(key: str), click(bid: str, button='left', modifiers=[]), fill(bid: str, value: str, enable_autocomplete_menu: bool = False), hover(bid: str), tab_focus(index: int), new_tab(), go_back(), go_forward(), tab_close(), select_option(bid: str, options: str | list[str])",
+   "gold": "Correct answers should identify `keyboard_press` as the most helpful next action, or explicitly say to press an arrow key such as Right Arrow / ArrowRight. Answers that continue recommending clicks on the star widget are wrong.",
+   "b_answer": "\\boxed{click}",
+   "d_answer": "\\boxed{keyboard_press}",
+   "b_label": 0,
+   "b_reason": "The model recommends 'click', which contradicts the reference answer that the most helpful action is keyboard_press (arrow key) rather than continuing to click the star widget.",
+   "d_label": 1,
+   "d_reason": "The model answer correctly identifies keyboard_press as the most helpful next action, matching the reference insight."
+  },
+  {
+   "question_id": "b339209c",
+   "question": "I am using our magento-based custom shopping website and I am on this form. Where should I proceed if I want to find their customer service number? Should I scroll down, or is that hopeless? If there is no way to find the number here, say so.",
+   "gold": "Correct answers must say that scrolling down will not make the customer service number visible. Acceptable answers may simply say that scrolling does not help, or may say that there is no customer service number available to find on this site.",
+   "b_answer": "\\boxed{Scrolling down on this Contact Us page is hopeless—there is no customer-service phone number listed. The page only shows the “Write Us” contact form (the “Phone Number” field is for your number) and footer links. Use the contact form to reach support; if you specifically need a phone number, you’ll have to look elsewhere on the site, because it is not available here.}",
+   "d_answer": "Scrolling down on that Contact Us page won’t help you find a customer service phone number. The page only has the **“Write Us”** form (Name, Email, Phone Number, “What’s on your mind?”, Submit), then the newsletter signup and footer links like Privacy and Cookie Policy, Search Terms, Advanced Search, Contact Us, and Report All Bugs. No customer service phone number is shown there.\n\nSo: **it’s hopeless to find the number on this form/page.** The available route is to submit the contact form—possibly asking them to provide a customer service number—or look for a phone number elsewhere on the site.",
+   "b_label": 1,
+   "b_reason": "The response explicitly states scrolling down is hopeless and no customer-service phone number is listed/available here, matching the reference insight.",
+   "d_label": 1,
+   "d_reason": "The model correctly states that scrolling down will not reveal a customer service phone number and that no such number is shown on the page, matching the reference insight."
+  },
+  {
+   "question_id": "ea361b20",
+   "question": "I am using our magento-based custom shopping website and I am on the detail page of my previous order. To reorder exactly the same items, can I just click the `Reorder` link and then press `Proceed to Checkout`, with the system automatically creating the normal order-confirmation flow using only the items from that previous order? Answer concisely please.",
+   "gold": "Correct answers should say yes: from this state, clicking `Reorder` and then `Proceed to Checkout` is enough to continue the normal checkout flow for the reordered items. Answers that say the cart must be cleaned up or edited first are wrong.",
+   "b_answer": "Yes—assuming your cart is empty. **Reorder** adds that order’s items to your cart, then **Proceed to Checkout** runs the normal checkout/order-confirmation flow. It does **not** auto-place the order. If your cart already has items, they may be merged, so clear the cart first if you want only that previous order’s items.",
+   "d_answer": "Not quite. Clicking **Reorder** adds that order’s items to your cart; pressing **Proceed to Checkout** only starts the normal checkout flow. You still need to review the cart, complete checkout, and **Place Order** to get the confirmation page. It will match the previous order only if your cart was empty—otherwise existing cart items may remain/merge.",
+   "b_label": null,
+   "b_reason": "unparsable judge output: ",
+   "d_label": 0,
+   "d_reason": "The reference answer requires saying yes: Reorder then Proceed to Checkout is enough to continue the normal checkout flow for the reordered items. The model says 'Not quite,' adds extra requirements, and implies the cart must be empty/cleaned to match the previous order, contradicting the reference insight."
+  },
+  {
+   "question_id": "f2b221fd",
+   "question": "I am using our magento-based custom shopping website and I started from the landing page. I ended up in the state shown below while trying to figure out which root category contains `nutrition bars and drinks`, and I currently seem to be under `Grocery & Gourmet Food`. Is that actually the right place to look? Tell me where to find the `nutrition bars and drinks` category. If you are not sure, say `I do not know` instead of guessing. Your final answer should be a single root category or `I do not know`, wrapped in \\boxed{}.",
+   "gold": "Correct answers must not identify `Grocery & Gourmet Food` as the root category. Any other root-category guess is acceptable, and explicitly answering `I do not know` is also acceptable.",
+   "b_answer": "\\boxed{Grocery & Gourmet Food}",
+   "d_answer": "\\boxed{Sports \\& Outdoors}",
+   "b_label": 0,
+   "b_reason": "The model identifies Grocery & Gourmet Food as the root category, which the reference explicitly says is incorrect.",
+   "d_label": 1,
+   "d_reason": "Model answered a root category (Sports & Outdoors) other than Grocery & Gourmet Food, which the reference explicitly accepts as correct."
+  },
+  {
+   "question_id": "fdeddf71",
+   "question": "I am using our reddit-based custom forum website. I submitted a post but saw an internal server error, and when I pressed Submit again I saw the error shown in the screenshot. What should I do to investigate?",
+   "gold": "Go to the target forum page to check whether the submission already went through.",
+   "b_answer": "\\boxed{\nThe two errors are separate: the first submit produced a server-side 500, and the retry was rejected by form/session protections.\n\nInvestigate as follows:\n1. Stop clicking “Create submission” on the stale form. “The CSRF token is invalid” means the token from the back-navigated/restored page is no longer valid. Reload /submit/funny fresh from the Submit link before trying again.\n2. Check whether the first submission actually succeeded despite the 500: open /f/funny or your user profile and look for the “We won first place in the costume contest!” post. The “You cannot post more. Wait a while before trying again.” message suggests the first attempt may already have been counted by the rate limiter.\n3. If the post does not exist, collect the server-side 500 trace. Check Postmill/Symfony logs (e.g. var/log/prod.log or dev.log), PHP-FPM/web-server error logs, and container logs if running under Docker, around the time of the failed POST.\n4. Reproduce from a freshly loaded form and inspect the POST response/status in browser devtools. Verify the CSRF token and session cookie are sent and that the rate limiter is not blocking.\n5. Also verify the image URL is valid/reachable and that the correct submission type is selected; the form had “URL” selected with a submission_images URL rather than “Image”.\n\nIf the post already exists, do not resubmit; treat the 500 as a post-persistence server error. If it does not exist, resolve/collect the 500 first, wait out the rate limit, then resubmit from a fresh form.\n}",
+   "d_answer": "Don’t keep clicking Submit on the same form. That form is stale, which explains the “CSRF token is invalid” message, and the rate-limit message suggests the first request may already have been counted or even created the post despite the 500.\n\nTo investigate:\n\n1. Go to the target forum, `http://localhost:9080/f/funny`, and check the new/recent submissions for your title, “We won first place in the costume contest!”. Also check your profile/activity if available.\n2. If the post already exists, stop—the 500 likely happened after the post was saved. Don’t create a duplicate.\n3. If it does not exist, wait for the rate limit to clear, then reload `http://localhost:9080/submit/funny` to get a fresh CSRF token, re-fill the form, and submit once.\n4. If the 500 recurs, investigate server-side: check the application/server logs for the `POST /submit/funny` request around that timestamp, including the stack trace, CSRF/session handling, and rate-limiter logic.",
+   "b_label": 1,
+   "b_reason": "The response explicitly advises checking whether the first submission already succeeded by opening the target forum page (/f/funny) or user profile, matching the reference insight.",
+   "d_label": 1,
+   "d_reason": "The response explicitly instructs going to the target forum page (http://localhost:9080/f/funny) to check whether the post already went through before resubmitting, matching the reference insight with no contradictions."
+  }
+ ]
+}
