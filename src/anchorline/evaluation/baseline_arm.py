@@ -54,7 +54,7 @@ def answer_baseline(
     *,
     top_k: int = DEFAULT_TOP_K,
     temperature: float = 1.0,
-    max_tokens: int = 4096,
+    max_tokens: int = 8192,
     context_budget_tokens: int = 4000,
 ) -> BaselineResult:
     hits = retrieve(tbl, embedder, question, top_k=top_k)

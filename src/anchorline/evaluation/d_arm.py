@@ -41,7 +41,7 @@ def answer_d_arm(
     *,
     top_k: int = DEFAULT_TOP_K,
     temperature: float = 1.0,
-    max_tokens: int = 4096,
+    max_tokens: int = 8192,
     context_budget_tokens: int = 4000,
 ) -> DArmResult:
     hits = retrieve_d(tbl, embedder, question, top_k=top_k)
