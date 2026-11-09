@@ -76,6 +76,12 @@ export type SettingsOut = {
   chat_models: string[];
 };
 
+export type Capacity = {
+  limit: number;
+  total_current: number;
+  entities: { entity_id: string; current: number; stale: number }[];
+};
+
 export type Msg = { role: "user" | "assistant"; content: string; created_at?: string };
 
 /** 统一的接口错误：status=0 表示网络/超时。 */
@@ -137,7 +143,8 @@ export const api = {
   facts: (limit = 200) => json<Fact[]>(`/api/memory/facts?limit=${limit}`),
   history: (id: string) => json<Fact[]>(`/api/memory/facts/${id}/history`),
   writeFact: (body: { entity_id: string; attribute: string; value: string; valid_from?: string }) =>
-    json<{ fact_id: string; supersedes: string | null }>("/api/memory/write", post(body)),
+    json<{ fact_id: string; supersedes: string | null; archived?: number }>("/api/memory/write", post(body)),
+  capacity: () => json<Capacity>("/api/memory/capacity"),
   forget: (body: { entity_id: string; attribute: string; at?: string }) =>
     json<{ fact_id: string }>("/api/memory/forget", post(body)),
   invalidate: (id: string) => json<{ fact_id: string }>(`/api/memory/facts/${id}/invalidate`, post({})),

@@ -23,8 +23,19 @@ def _attr_tokens(text: str) -> set[str]:
 
 
 class FactStore:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, max_current_per_entity: int | None = None):
         self.db = db
+        # 容量上限：每个实体最多保留的当前值条数（None/<=0 表示不限）
+        if max_current_per_entity is None:
+            try:
+                from anchorline.config import Settings
+
+                max_current_per_entity = Settings().memory_max_current_per_entity
+            except Exception:
+                max_current_per_entity = 200
+        self.max_current_per_entity = max_current_per_entity
+        # 最近一次写入触发的自动归档条数（供调用方提示用户）
+        self.last_archived = 0
 
     # --- 写 ---
     def write(
@@ -97,7 +108,28 @@ class FactStore:
         )
         self.db.add(fact)
         self.db.flush()
+        # 容量保护：超出每实体当前值上限时，自动把最旧/最低置信度的值标记失效（归档可追溯）
+        self.last_archived = self._enforce_capacity(entity_id, valid_from)
         return fact
+
+    def _enforce_capacity(self, entity_id: str, now: datetime) -> int:
+        """把超出上限的当前值标记失效；优先归档置信度低、其次最旧的。返回归档条数。"""
+        limit = self.max_current_per_entity
+        if not limit or limit <= 0:
+            return 0
+        current = list(
+            self.db.scalars(
+                select(Fact).where(Fact.entity_id == entity_id, Fact.valid_to.is_(None))
+            )
+        )
+        excess = len(current) - limit
+        if excess <= 0:
+            return 0
+        current.sort(key=lambda f: (f.confidence, f.valid_from))
+        for f in current[:excess]:
+            f.valid_to = now
+        self.db.flush()
+        return excess
 
     # --- 读 ---
     def current(self, entity_id: str, attribute: str) -> Fact | None:

@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     eval_budget_tokens: int = 4000
     eval_judge_prompt_sha256: str = ""
 
+    # --- memory lifecycle ---
+    # 每个实体最多保留多少条「当前值」；超出时自动把最旧/最低置信度的值标记失效（归档可追溯）
+    memory_max_current_per_entity: int = 200
+
     @property
     def mysql_dsn(self) -> str:
         return (

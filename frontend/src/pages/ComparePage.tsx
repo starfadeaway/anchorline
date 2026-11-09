@@ -22,12 +22,13 @@ function useCountUp(target: number, ms = 700): number {
 }
 
 function ArmRow({ arm }: { arm: EvalArm }) {
-  const pct = useCountUp(arm.accuracy * 100);
+  // arm.accuracy 是 0-1 的小数；pct 是 0-100 的百分数
+  const pct = useCountUp(arm.accuracy * 100, 1200);
   return (
     <div style={{ marginBottom: 14 }}>
       <Space split="·" size={8} style={{ marginBottom: 4 }}>
         <Text strong>{arm.arm}</Text>
-        <Tag>{(pct / 100).toFixed(1)}%</Tag>
+        <Tag>{pct.toFixed(1)}%</Tag>
         <Text type="secondary" style={{ fontSize: 11 }}>{arm.n} 题</Text>
       </Space>
       <Progress

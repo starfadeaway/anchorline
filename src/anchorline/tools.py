@@ -81,8 +81,11 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
         )
         return ToolResult(
             ok=True,
-            content=json.dumps({"fact_id": fact.id, "supersedes": fact.supersedes_id}, ensure_ascii=False),
-            meta={"fact_id": fact.id},
+            content=json.dumps(
+                {"fact_id": fact.id, "supersedes": fact.supersedes_id, "archived": store.last_archived},
+                ensure_ascii=False,
+            ),
+            meta={"fact_id": fact.id, "archived": store.last_archived},
         )
 
     def memory_forget(entity_id: str, attribute: str, at: str | None = None) -> ToolResult:

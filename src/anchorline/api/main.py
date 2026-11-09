@@ -70,6 +70,8 @@ class WriteRequest(BaseModel):
 class WriteResponse(BaseModel):
     fact_id: str
     supersedes: str | None = None
+    archived: int = 0
+    supersedes: str | None = None
 
 
 class ChatRequest(BaseModel):
@@ -213,7 +215,43 @@ def memory_write(req: WriteRequest, db: Session = Depends(get_db)) -> WriteRespo
         source_session_id=req.source_session_id,
     )
     db.commit()
-    return WriteResponse(fact_id=fact.id, supersedes=fact.supersedes_id)
+    return WriteResponse(fact_id=fact.id, supersedes=fact.supersedes_id, archived=store.last_archived)
+
+
+class CapacityEntity(BaseModel):
+    entity_id: str
+    current: int
+    stale: int
+
+
+class CapacityOut(BaseModel):
+    limit: int
+    total_current: int
+    entities: list[CapacityEntity]
+
+
+@app.get("/memory/capacity", response_model=CapacityOut)
+def memory_capacity(db: Session = Depends(get_db)) -> CapacityOut:
+    """容量视图：每个实体的当前值/失效数 + 上限（用于前端告警）。"""
+    from anchorline.config import Settings
+
+    limit = Settings().memory_max_current_per_entity
+    rows = list(db.scalars(select(Fact).order_by(Fact.entity_id)))
+    stats: dict[str, list[int]] = {}
+    for f in rows:
+        cur = stats.setdefault(f.entity_id, [0, 0])
+        if f.valid_to is None:
+            cur[0] += 1
+        else:
+            cur[1] += 1
+    return CapacityOut(
+        limit=limit,
+        total_current=sum(v[0] for v in stats.values()),
+        entities=[
+            CapacityEntity(entity_id=e, current=v[0], stale=v[1])
+            for e, v in sorted(stats.items(), key=lambda kv: -kv[1][0])
+        ],
+    )
 
 
 @app.get("/trace/{trace_id}")

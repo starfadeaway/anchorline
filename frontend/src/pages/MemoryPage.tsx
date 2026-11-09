@@ -101,6 +101,7 @@ export default function MemoryPage() {
   const [form] = Form.useForm();
   const now = useNow();
   const [hoverBar, setHoverBar] = useState<TraceRow | null>(null);
+  const [capacity, setCapacity] = useState<{ limit: number; total_current: number } | null>(null);
 
   const load = () =>
     api
@@ -109,6 +110,7 @@ export default function MemoryPage() {
         setFacts(rows);
         setError("");
       })
+      .then(() => api.capacity().then((c) => setCapacity({ limit: c.limit, total_current: c.total_current })))
       .catch((e) => setError(String(e)));
 
   useEffect(() => {
@@ -151,11 +153,15 @@ export default function MemoryPage() {
   const submitAdd = async () => {
     try {
       const v = await form.validateFields();
-      await api.writeFact(v);
+      const res = await api.writeFact(v);
       setAddOpen(false);
       form.resetFields();
+      if (res.archived && res.archived > 0) {
+        message.warning(`已写入；因超出每实体 ${capacity?.limit ?? 200} 条上限，自动归档 ${res.archived} 条旧记忆（已标记失效，可追溯）`);
+      } else {
+        message.success("已写入");
+      }
       void load();
-      message.success("已写入");
     } catch (e) {
       setError(String(e));
       message.error(`写入失败：${String(e)}`);
@@ -292,6 +298,16 @@ export default function MemoryPage() {
           </div>
         }
       />
+
+      {capacity && capacity.limit > 0 && (
+        <Alert
+          type={capacity.total_current >= capacity.limit * 0.9 ? "warning" : "success"}
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={capacity.total_current >= capacity.limit * 0.9 ? "记忆容量接近上限" : "记忆容量正常"}
+          description={`当前值 ${capacity.total_current} 条 / 每实体上限 ${capacity.limit} 条。超出上限时自动归档最旧或最低置信度的值（标记失效，不删除、可追溯）。`}
+        />
+      )}
 
       <Card size="small" style={{ marginBottom: 12 }} title="整体概览">
         <div className="overview">
