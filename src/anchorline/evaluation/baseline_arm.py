@@ -54,7 +54,7 @@ def answer_baseline(
     *,
     top_k: int = DEFAULT_TOP_K,
     temperature: float = 1.0,
-    max_tokens: int = 1024,
+    max_tokens: int = 4096,
     context_budget_tokens: int = 4000,
 ) -> BaselineResult:
     hits = retrieve(tbl, embedder, question, top_k=top_k)
@@ -78,6 +78,9 @@ def answer_baseline(
     context = context or "(empty)"
     messages = build_messages(question, context)
     answer = reader.complete(messages, temperature=temperature, max_tokens=max_tokens)
+    if not answer.strip():
+        # reasoning 模型可能把 token 全花在思考上；空答案时放大上限重试一次
+        answer = reader.complete(messages, temperature=temperature, max_tokens=max_tokens * 2)
     return BaselineResult(
         answer=answer,
         hits=hits,

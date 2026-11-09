@@ -1,0 +1,122 @@
+[
+ {
+  "question_id": "7bfbd5f1",
+  "type": "static-environment",
+  "question": "I am using our magento-based shopping admin dashboard. Is \"Braintree Transaction Source\" a standard column available in the Orders grid? Your final answer should be true or false, wrapped in \\boxed{}.",
+  "gold": "true",
+  "eval": "mc_choice_match",
+  "answer": "\\boxed{True}",
+  "score": 1,
+  "ctx_tokens": 4000,
+  "top_hit": "6279dd00",
+  "top_sim": 0.324
+ },
+ {
+  "question_id": "401566e6",
+  "type": "procedure",
+  "question": "I am using our magento-based custom shopping website and I am on the home page. Given the following action space, how many actions do I need to perform at least to display search results for some items sorted by lowest price first?\n\nAction Space:\nscroll(delta_x: float, delta_y: float), keyboard_press(key: str), click(bid: str, button='left', modifiers=[]), fill(bid: str, value: str, enable_autocomplete_menu: bool = False), hover(bid: str), tab_focus(index: int), new_tab(), go_back(), go_forward(), tab_close(), select_option(bid: str, options: str | list[str])\n\nYour final answer should be an English number (e.g., one, two, three, ...) wrapped in \\boxed{}.",
+  "gold": "four",
+  "eval": "norm_phrase_set_match",
+  "answer": "",
+  "score": 0,
+  "ctx_tokens": 4000,
+  "top_hit": "af969ebc",
+  "top_sim": 0.26
+ },
+ {
+  "question_id": "9cae869c",
+  "type": "procedure",
+  "question": "I am using our magento-based custom shopping website and I am on the home page. I want to find a few women's shoes satisfying some specific criteria. Given the following action space, how many hovers and clicks do I need to navigate to the right product list page? Hint: once the Shoes tab is visible, we can click it directly without hovering over it again.\n\nAction Space:\nscroll(delta_x: float, delta_y: float), keyboard_press(key: str), click(bid: str, button='left', modifiers=[]), fill(bid: str, value: str, enable_autocomplete_menu: bool = False), hover(bid: str), tab_focus(index: int), new_tab(), go_back(), go_forward(), tab_close(), select_option(bid: str, options: str | list[str])\n\nA. 0 hovers and 1 click\nB. 1 hover and 1 click\nC. 1 hover and 2 clicks\nD. 2 hovers and 1 click\nE. 2 hovers and 2 clicks\nF. 3 hovers and 1 click\nG. 3 hovers and 2 clicks\nH. 4 hovers and 1 click\n\nYour final answer should be wrapped in \\boxed{} like \\boxed{A}.",
+  "gold": "D",
+  "eval": "mc_choice_match",
+  "answer": "\\boxed{D}",
+  "score": 1,
+  "ctx_tokens": 4000,
+  "top_hit": "dddd8aa2",
+  "top_sim": 0.381
+ },
+ {
+  "question_id": "0fe2c676",
+  "type": "procedure",
+  "question": "I am using our reddit-based custom forum website and I am already on my account home page. Which statement is correct about the minimum actions needed to fully update my biography versus edit the body of my latest visible submission by adding one new line?\n\nA. Updating my biography needs fewer actions.\nB. Editing the latest visible submission needs fewer actions.\nC. They need the same minimum number of actions.\nD. At least one of the two tasks is impossible from this page.\n\nYour final answer should be wrapped in \\boxed{} like \\boxed{A}.",
+  "gold": "C",
+  "eval": "mc_choice_match",
+  "answer": "",
+  "score": 0,
+  "ctx_tokens": 4000,
+  "top_hit": "3331c568",
+  "top_sim": 0.532
+ },
+ {
+  "question_id": "18f9d965",
+  "type": "procedure",
+  "question": "I am using our reddit-based custom forum website. I am on a regular site page and want to open the generic post composer instead of first entering a specific forum. Which exact top-nav link do I click? Your final answer should be wrapped in \\boxed{}.",
+  "gold": "Submit",
+  "eval": "norm_phrase_set_match",
+  "answer": "\\boxed{Submit}",
+  "score": 1,
+  "ctx_tokens": 4000,
+  "top_hit": "1ad1af4b",
+  "top_sim": 0.387
+ },
+ {
+  "question_id": "e83245c5",
+  "type": "dynamic-environment",
+  "question": "I am using our reddit-based custom forum website. After I open a thread page, what collapsible label appears in the right sidebar directly above the Toolbox section? Your final answer should be wrapped in \\boxed{}.",
+  "gold": "Hide this forum",
+  "eval": "norm_phrase_set_match",
+  "answer": "",
+  "score": 0,
+  "ctx_tokens": 4000,
+  "top_hit": "1ad1af4b",
+  "top_sim": 0.362
+ },
+ {
+  "question_id": "23aecb38",
+  "type": "procedure",
+  "question": "I am using our magento-based custom shopping admin website. When doing an Order Count report, I want to open the date picker and jump the report end date to the present before refreshing. Which button label can accomplish that jump?\nA. Today\nB. Current Date\nC. Go Today\nD. This Day\nE. Use Today\n\nYour final answer should be wrapped in \\boxed{} like \\boxed{A}.",
+  "gold": "C",
+  "eval": "mc_choice_match",
+  "answer": "\\boxed{A}",
+  "score": 0,
+  "ctx_tokens": 4000,
+  "top_hit": "c605a94c",
+  "top_sim": 0.407
+ },
+ {
+  "question_id": "91d0775e",
+  "type": "dynamic-environment",
+  "question": "I am using our magento-based shopping admin dashboard. Which option correctly combines one dashboard fact and one orders-grid fact from this environment?\n\nA. The Most Viewed Products tab is placed between Customers and Bestsellers and the Orders grid includes a Braintree Transaction Source column.\nB. The Most Viewed Products tab is placed between Customers and Bestsellers and the Orders grid does not include a Braintree Transaction Source column.\nC. The New Customers tab is placed between Bestsellers and Most Viewed Products, and the Orders grid includes a Braintree Transaction Source column.\nD. The New Customers tab is placed between Bestsellers and Most Viewed Products, and the Orders grid does not include a Braintree Transaction Source column.\n\nPut your final answer into \\boxed{} format like \\boxed{A}.",
+  "gold": "A",
+  "eval": "mc_choice_match",
+  "answer": "\\boxed{\\text{The question is flawed: the dashboard tabs are ordered Bestsellers, Most Viewed Products, New Customers, Customers, so none of the tab-placement claims in A–D is correct.}}",
+  "score": 0,
+  "ctx_tokens": 4000,
+  "top_hit": "87d5dc7f",
+  "top_sim": 0.528
+ },
+ {
+  "question_id": "f9f9cd61",
+  "type": "dynamic-environment",
+  "question": "I am using our magento-based shopping admin dashboard. I am viewing the dashboard, which contains a row of tabs. What is the name of the tab that is second from the right? Your final answer should be wrapped in \\boxed{}.",
+  "gold": "New Customers",
+  "eval": "norm_phrase_set_match",
+  "answer": "\\boxed{New Customers}",
+  "score": 1,
+  "ctx_tokens": 4000,
+  "top_hit": "41e879fd",
+  "top_sim": 0.601
+ },
+ {
+  "question_id": "10466872",
+  "type": "static-environment",
+  "question": "I am using our reddit-based custom forum website. When I am viewing a single comment thread instead of the full discussion, what link appears in the blue notice bar to take me back to the full discussion? Mark your final answer (should be a short phrase) in \\boxed{}.",
+  "gold": "View all comments",
+  "eval": "norm_phrase_set_match",
+  "answer": "",
+  "score": 0,
+  "ctx_tokens": 4000,
+  "top_hit": "2e8f6477",
+  "top_sim": 0.337
+ }
+]

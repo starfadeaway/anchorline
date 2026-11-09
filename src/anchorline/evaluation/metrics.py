@@ -226,11 +226,21 @@ def parse_eval_function_spec(spec: str) -> tuple[str, dict[str, Any]]:
 
 
 def score_deterministic(prediction: str | None, answer: str | None, spec: str) -> bool | None:
-    """返回 True/False；若是 LLM judge 函数则返回 None（需要 judge 端点）。"""
+    """返回 True/False；若是 LLM judge 函数则返回 None（需要 judge 端点）。
+
+    判分前**先提取 `\\boxed{}` 内容**（与官方 harness 一致）。官方之所以能匹配
+    `\\boxed{New Customers}`，是因为 harness 在判分前调用了 `extract_boxed_answer`；
+    否则 normalize 会把 `\\boxed{` 与 `{` 删掉，变成 `boxednew customers`。
+    另外剥离 `\\text{...}` 包装（DeepSeek 等模型常输出 `\\boxed{\\text{Submit}}`）。
+    """
     name, kwargs = parse_eval_function_spec(spec)
     if name in LLM_JUDGE_FUNCS:
         return None
     func = DETERMINISTIC_FUNCS.get(name)
     if func is None:
         raise ValueError(f"unknown eval function: {name}")
+    if isinstance(prediction, str):
+        candidate = extract_boxed_answer(prediction)
+        candidate = re.sub(r"\\text\{([^}]*)\}", r"\1", candidate)
+        prediction = candidate
     return bool(func(prediction, answer, **kwargs))
