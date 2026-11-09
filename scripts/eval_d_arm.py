@@ -57,6 +57,7 @@ def main() -> int:
     ap.add_argument("--out", default=None, help="结果 JSON 路径")
     ap.add_argument("--md-out", default=None, help="报告 md 路径")
     ap.add_argument("--b-ref", default=None, help="B 臂结果 JSON（默认 data/eval/aa_pilot.json）")
+    ap.add_argument("--table", default=TABLE, help="LanceDB 表名（默认 v2_web_states_d）")
     args = ap.parse_args()
     out_json = args.out or OUT_JSON
     out_md = args.md_out or OUT_MD
@@ -64,7 +65,7 @@ def main() -> int:
 
     # 与 B 臂共用同一抽样函数，保证同题
     sample = sample_deterministic(limit=args.limit, seed=args.seed)
-    tbl = open_table(TABLE)
+    tbl = open_table(args.table)
     reader = reader_client(Settings())
     embedder = embedding_client(Settings())
 
