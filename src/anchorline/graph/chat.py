@@ -27,6 +27,8 @@ class ChatState(TypedDict):
     started_at: float
     last_signature: str
     repeat_count: int
+    # 召回明细（memory_search 的 BM25/向量/RRF/rerank 分数），供 trace 展示
+    recalls: list[dict]
 
 
 @dataclass
@@ -81,6 +83,7 @@ def build_chat_graph(
     def tool_node(state: ChatState) -> dict:
         last = state["messages"][-1]
         out = list(state["messages"])
+        recalls = list(state.get("recalls") or [])
         sig_parts = []
         for tc in last.get("tool_calls") or []:
             name = tc.get("name") or tc.get("function", {}).get("name", "")
@@ -99,6 +102,9 @@ def build_chat_graph(
                     result = fn(**args)
                 except Exception as exc:  # 工具异常不外抛，交给模型看错误
                     result = ToolResult(ok=False, content=f"tool error: {exc}", meta={})
+            # memory_search 会带回收召回明细（分数），累计进 state 供 trace
+            if isinstance(result.meta.get("recalls"), list):
+                recalls.extend(result.meta["recalls"])
             out.append({
                 "role": "tool",
                 "tool_call_id": tc.get("id") or "",
@@ -107,7 +113,13 @@ def build_chat_graph(
             })
         signature = "|".join(sig_parts)
         repeat = state["repeat_count"] + 1 if signature and signature == state["last_signature"] else 0
-        return {"messages": out, "last_signature": signature, "repeat_count": repeat, "tokens": _estimate_tokens(out)}
+        return {
+            "messages": out,
+            "last_signature": signature,
+            "repeat_count": repeat,
+            "tokens": _estimate_tokens(out),
+            "recalls": recalls,
+        }
 
     def route(state: ChatState) -> str:
         last = state["messages"][-1]
@@ -160,4 +172,5 @@ def initial_state(messages: list[dict]) -> ChatState:
         "started_at": time.monotonic(),
         "last_signature": "",
         "repeat_count": 0,
+        "recalls": [],
     }

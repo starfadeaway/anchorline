@@ -36,11 +36,12 @@ def _parse_valid_from(value: str | None) -> datetime:
 
 def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
     def memory_search(query: str = "", budget_tokens: int = 2000, limit: int = 20) -> ToolResult:
-        # 混合检索（BM25 + 向量 + RRF + rerank）；不可用时回退纯文本
+        # 混合检索（BM25 + 向量 + RRF + rerank）；不可用时回退纯文本。recalls 供 trace 展示。
+        recalls: list[dict] = []
         try:
-            from anchorline.retrieval.hybrid import hybrid_search
+            from anchorline.retrieval.hybrid import hybrid_search_with_recalls
 
-            facts = hybrid_search(store.db, query, top_k=limit) if query else []
+            facts, recalls = hybrid_search_with_recalls(store.db, query, top_k=limit) if query else ([], [])
         except Exception:
             facts = store.search_text(query, limit=limit) if query else []
         items = [
@@ -56,7 +57,12 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
         return ToolResult(
             ok=True,
             content=asm.text or "(no memory hit)",
-            meta={"used_tokens": asm.used_tokens, "hits": len(facts), "dropped": len(asm.dropped_items)},
+            meta={
+                "used_tokens": asm.used_tokens,
+                "hits": len(facts),
+                "dropped": len(asm.dropped_items),
+                "recalls": recalls,
+            },
         )
 
     def memory_write(

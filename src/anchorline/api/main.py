@@ -317,6 +317,7 @@ def _run_agent(
         # layers 同时编码步数，便于按会话恢复时显示 steps（避免新增列迁移）
         layers=f"chat>tools;steps={out.get('steps', 0)}",
         injected_fact_ids=json.dumps(tool_calls, ensure_ascii=False),
+        recalls=json.dumps(out.get("recalls") or [], ensure_ascii=False),
         resolution=out.get("stop_reason", ""),
     )
     db.add(trace)
@@ -403,6 +404,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
             "total_tokens": out.get("total_tokens"),
             "tool_errors": out.get("tool_errors", 0),
             "run_id": str(out.get("trace_id") or ""),
+            "recalls": out.get("recalls") or [],
         },
     )
 
@@ -462,6 +464,7 @@ class TraceOut(BaseModel):
     used_tokens: int
     resolution: str | None
     injected_fact_ids: str | None
+    recalls: str | None = None
     created_at: datetime
     steps: int = 0
 
@@ -481,6 +484,7 @@ def _trace_out(r: Trace) -> TraceOut:
         used_tokens=r.used_tokens,
         resolution=r.resolution,
         injected_fact_ids=r.injected_fact_ids,
+        recalls=r.recalls,
         created_at=r.created_at,
         steps=steps,
     )

@@ -13,6 +13,17 @@ export type Fact = {
 
 export type ToolCall = { name: string; arguments: string };
 
+export type Recall = {
+  fact_id: string;
+  entity_id: string;
+  attribute: string;
+  value: string;
+  bm25: number;
+  vector: number;
+  rrf: number;
+  rerank: number | null;
+};
+
 export type ChatResp = {
   answer: string;
   stop_reason: string;
@@ -26,6 +37,7 @@ export type ChatResp = {
     total_tokens?: number | null;
     tool_errors?: number;
     run_id?: string;
+    recalls?: Recall[];
   };
 };
 
@@ -51,6 +63,7 @@ export type TraceRow = {
   used_tokens: number;
   resolution: string | null;
   injected_fact_ids: string | null;
+  recalls?: string | null;
   created_at: string;
   steps?: number;
 };

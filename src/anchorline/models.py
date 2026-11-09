@@ -90,6 +90,7 @@ class Trace(Base):
     used_tokens: Mapped[int] = mapped_column(Integer)
     layers: Mapped[str] = mapped_column(String(64))  # 例如 "L0>L1>L2>L3"
     injected_fact_ids: Mapped[str | None] = mapped_column(Text)  # JSON 数组
+    recalls: Mapped[str | None] = mapped_column(Text)  # JSON：召回明细（bm25/vector/rrf/rerank 分数）
     resolution: Mapped[str | None] = mapped_column(String(32))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 

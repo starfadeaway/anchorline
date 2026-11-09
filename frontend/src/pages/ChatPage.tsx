@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, Card, Collapse, Descriptions, Empty, Input, List, message, Segmented, Space, Tooltip, Typography } from "antd";
+import { Alert, Button, Card, Collapse, Descriptions, Empty, Input, List, message, Segmented, Space, Table, Tooltip, Typography } from "antd";
 import { DownloadOutlined, PlusOutlined } from "@ant-design/icons";
-import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type SettingsOut, type TraceRow } from "../api";
+import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type Recall, type SettingsOut, type TraceRow } from "../api";
 
 const { Text } = Typography;
 
@@ -37,6 +37,16 @@ function parseToolCalls(raw: string | null): { name: string; arguments: string }
       name: String(x.name ?? ""),
       arguments: typeof x.arguments === "string" ? x.arguments : JSON.stringify(x.arguments ?? {}),
     }));
+  } catch {
+    return [];
+  }
+}
+
+function parseRecalls(raw: string | null | undefined): Recall[] {
+  if (!raw) return [];
+  try {
+    const arr = JSON.parse(raw) as Recall[];
+    return Array.isArray(arr) ? arr : [];
   } catch {
     return [];
   }
@@ -81,7 +91,13 @@ export default function ChatPage() {
     tool_calls: parseToolCalls(row.injected_fact_ids),
     trace_id: row.id,
     session_id: sessionId,
-    meta: { duration_ms: null, total_tokens: row.used_tokens, tool_errors: 0, run_id: String(row.id) },
+    meta: {
+      duration_ms: null,
+      total_tokens: row.used_tokens,
+      tool_errors: 0,
+      run_id: String(row.id),
+      recalls: parseRecalls(row.recalls),
+    },
   });
 
   const loadSession = async (id: string) => {
@@ -275,6 +291,26 @@ export default function ChatPage() {
                   </div>
                 ))}
               </div>
+              {trace.meta?.recalls && trace.meta.recalls.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>召回明细（BM25 / 向量 / RRF / rerank）</Text>
+                  <Table
+                    size="small"
+                    rowKey="fact_id"
+                    pagination={false}
+                    style={{ marginTop: 6 }}
+                    dataSource={trace.meta.recalls}
+                    columns={[
+                      { title: "属性", dataIndex: "attribute", ellipsis: true },
+                      { title: "值", dataIndex: "value", ellipsis: true },
+                      { title: "BM25", dataIndex: "bm25", width: 56 },
+                      { title: "向量", dataIndex: "vector", width: 56 },
+                      { title: "RRF", dataIndex: "rrf", width: 56 },
+                      { title: "rerank", dataIndex: "rerank", width: 64, render: (v: number | null) => (v === null ? "—" : v) },
+                    ]}
+                  />
+                </div>
+              )}
             </>
           )}
         </Card>
