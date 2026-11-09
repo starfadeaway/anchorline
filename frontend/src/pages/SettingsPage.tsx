@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Card, Descriptions, Space, Tag, Typography, message } from "antd";
+import { Alert, Button, Card, Descriptions, Space, Tag, Typography, message } from "antd";
 import { api, type SettingsOut } from "../api";
 
 const { Paragraph, Text } = Typography;
@@ -28,7 +28,7 @@ export default function SettingsPage() {
       <Paragraph type="secondary">
         密钥只在本地 <Text code>.env</Text>，前端与接口都不返回 key；这里只展示模型名与预算。
       </Paragraph>
-      {err && <Paragraph type="danger">{err}</Paragraph>}
+      {err && <Alert type="error" showIcon message="配置加载失败" description={err} style={{ marginBottom: 12 }} />}
       {s && (
         <Descriptions bordered size="small" column={1}>
           <Descriptions.Item label="版本">{s.version}</Descriptions.Item>

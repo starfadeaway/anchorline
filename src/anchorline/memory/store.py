@@ -8,7 +8,7 @@
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -97,6 +97,19 @@ class FactStore:
                 .order_by(Fact.valid_from.asc())
             )
         )
+
+    def forget(self, entity_id: str, attribute: str, at: datetime | None = None) -> Fact | None:
+        """标记当前值为失效（不物理删除，保留历史）。
+
+        与 tools.py 的 memory_forget 同语义；这里补 commit，供 API 直接调用。
+        返回被失效的事实；不存在当前值时返回 None。
+        """
+        cur = self.current(entity_id, attribute)
+        if cur is None:
+            return None
+        cur.valid_to = at or datetime.now(timezone.utc)
+        self.db.commit()
+        return cur
 
     def search_text(self, query: str, limit: int = 20) -> list[Fact]:
         like = f"%{query}%"

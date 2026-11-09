@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
+import { Alert, Button, Card, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
 import { api, type Fact } from "../api";
 
 const { Text } = Typography;
@@ -10,9 +10,17 @@ export default function MemoryPage() {
   const [q, setQ] = useState("");
   const [history, setHistory] = useState<Fact[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [error, setError] = useState("");
   const [form] = Form.useForm();
 
-  const load = () => api.facts().then(setFacts).catch((e) => message.error(String(e)));
+  const load = () =>
+    api
+      .facts()
+      .then((rows) => {
+        setFacts(rows);
+        setError("");
+      })
+      .catch((e) => setError(String(e)));
   useEffect(() => {
     void load();
   }, []);
@@ -26,12 +34,17 @@ export default function MemoryPage() {
   }, [facts, q]);
 
   const submitAdd = async () => {
-    const v = await form.validateFields();
-    await api.writeFact(v);
-    setAddOpen(false);
-    form.resetFields();
-    void load();
-    message.success("已写入");
+    try {
+      const v = await form.validateFields();
+      await api.writeFact(v);
+      setAddOpen(false);
+      form.resetFields();
+      void load();
+      message.success("已写入");
+    } catch (e) {
+      setError(String(e));
+      message.error(`写入失败：${String(e)}`);
+    }
   };
 
   const columns = [
@@ -86,6 +99,17 @@ export default function MemoryPage() {
       }
     >
       <Table rowKey="id" size="small" dataSource={filtered} columns={columns} pagination={{ pageSize: 12 }} />
+      {error && (
+        <Alert
+          type="error"
+          showIcon
+          closable
+          onClose={() => setError("")}
+          message="记忆加载失败"
+          description={error}
+          style={{ marginTop: 12 }}
+        />
+      )}
 
       <Drawer open={!!history} onClose={() => setHistory(null)} title="同一属性的完整历史" width={480}>
         <Timeline

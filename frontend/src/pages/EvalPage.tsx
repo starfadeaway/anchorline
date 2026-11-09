@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Table, Tag, Typography, message } from "antd";
+import { Alert, Card, Table, Tag, Typography, message } from "antd";
 import { api, type EvalArm } from "../api";
 
 const { Paragraph, Text } = Typography;
@@ -7,9 +7,19 @@ const { Paragraph, Text } = Typography;
 /** 评测页：展示已跑出的臂级结果（读后端 /eval/summary）。 */
 export default function EvalPage() {
   const [rows, setRows] = useState<EvalArm[]>([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.evalSummary().then(setRows).catch((e) => message.error(String(e)));
+    api
+      .evalSummary()
+      .then((r) => {
+        setRows(r);
+        setError("");
+      })
+      .catch((e) => {
+        setError(String(e));
+        message.error(String(e));
+      });
   }, []);
 
   const columns = [
@@ -32,6 +42,9 @@ export default function EvalPage() {
         154 题为确定性判分；168 题为 154 + 14 道 LLM judge（judge prompt 已冻结）。
       </Paragraph>
       <Table rowKey={(r) => `${r.arm}-${r.source}`} size="small" dataSource={rows} columns={columns} pagination={false} />
+      {error && (
+        <Alert type="error" showIcon message="评测数据加载失败" description={error} style={{ marginTop: 12 }} />
+      )}
       <div style={{ marginTop: 12 }}>
         <Tag color="blue">A/A 噪声底</Tag>
         <Text type="secondary">配对 |Δ| 均值 6.3pp（20 题 × 10 次），差异需超过噪声底才可称提升。</Text>

@@ -41,10 +41,40 @@ export type SettingsOut = {
 
 export type Msg = { role: "user" | "assistant"; content: string };
 
-async function json<T>(url: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(url, init);
-  if (!r.ok) throw new Error(`${r.status}: ${await r.text()}`);
-  return (await r.json()) as T;
+/** 统一的接口错误：status=0 表示网络/超时。 */
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+async function json<T>(url: string, init?: RequestInit, timeoutMs = 120_000): Promise<T> {
+  const ctrl = new AbortController();
+  const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...init, signal: ctrl.signal });
+    if (!r.ok) {
+      const text = await r.text().catch(() => "");
+      let detail = text;
+      try {
+        const parsed = JSON.parse(text) as { detail?: string };
+        if (parsed.detail) detail = parsed.detail;
+      } catch {
+        /* 非 JSON 错误体，保留原文 */
+      }
+      throw new ApiError(r.status, detail || `HTTP ${r.status}`);
+    }
+    return (await r.json()) as T;
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    if ((e as Error).name === "AbortError") throw new ApiError(0, "请求超时，请重试");
+    throw new ApiError(0, (e as Error).message || "网络错误");
+  } finally {
+    window.clearTimeout(timer);
+  }
 }
 
 const post = (body: unknown): RequestInit => ({
@@ -54,8 +84,8 @@ const post = (body: unknown): RequestInit => ({
 });
 
 export const api = {
-  health: () => json<{ status: string; db: boolean }>("/api/health"),
-  settings: () => json<SettingsOut>("/api/settings"),
+  health: () => json<{ status: string; db: boolean }>("/api/health", undefined, 10_000),
+  settings: () => json<SettingsOut>("/api/settings", undefined, 10_000),
   facts: (limit = 100) => json<Fact[]>(`/api/memory/facts?limit=${limit}`),
   history: (id: string) => json<Fact[]>(`/api/memory/facts/${id}/history`),
   writeFact: (body: { entity_id: string; attribute: string; value: string; valid_from?: string }) =>
@@ -70,6 +100,6 @@ export const api = {
       body: JSON.stringify(body),
     }),
   chat: (messages: Msg[], maxSteps = 6) =>
-    json<ChatResp>("/api/chat", post({ messages, max_steps: maxSteps })),
+    json<ChatResp>("/api/chat", post({ messages, max_steps: maxSteps }), 240_000),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),
 };

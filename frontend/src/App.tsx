@@ -1,4 +1,5 @@
-import { Layout, Menu, Typography } from "antd";
+import { useEffect } from "react";
+import { Layout, Menu, Typography, message } from "antd";
 import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, SettingOutlined } from "@ant-design/icons";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import ChatPage from "./pages/ChatPage";
@@ -19,6 +20,26 @@ const items = [
 export default function App() {
   const loc = useLocation();
   const selected = items.find((i) => loc.pathname.startsWith(i.key))?.key ?? "/chat";
+
+  // 全局兜底：未捕获错误 / 未处理的 Promise 拒绝都弹窗提示，不让页面静默崩
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => {
+      console.error("[anchorline] window error:", e.error ?? e.message);
+      message.error(e.message || "发生未捕获错误");
+    };
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const reason = e.reason as { message?: string } | string | undefined;
+      const text = typeof reason === "string" ? reason : reason?.message ?? "异步操作失败";
+      console.error("[anchorline] unhandled rejection:", e.reason);
+      message.error(text);
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
 
   return (
     <Layout className="app-layout">

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Card, Descriptions, Empty, Input, List, Modal, Typography, message } from "antd";
+import { Alert, Button, Card, Descriptions, Empty, Input, List, Modal, Typography, message } from "antd";
 import { api, type ChatResp, type Fact, type Msg } from "../api";
 
 const { Text } = Typography;
@@ -12,9 +12,17 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [trace, setTrace] = useState<ChatResp | null>(null);
+  const [error, setError] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
 
-  const loadFacts = () => api.facts().then(setFacts).catch((e) => message.error(String(e)));
+  const loadFacts = () =>
+    api
+      .facts()
+      .then((rows) => {
+        setFacts(rows);
+        setError("");
+      })
+      .catch((e) => setError(String(e)));
   useEffect(() => {
     void loadFacts();
   }, []);
@@ -27,13 +35,15 @@ export default function ChatPage() {
     setMessages(next);
     setInput("");
     setBusy(true);
+    setError("");
     try {
       const resp = await api.chat(next);
       setMessages([...next, { role: "assistant", content: resp.answer || "(空回答)" }]);
       setTrace(resp);
       void loadFacts();
     } catch (e) {
-      message.error(String(e));
+      setError(String(e));
+      message.error(`发送失败：${String(e)}`);
     } finally {
       setBusy(false);
     }
@@ -66,6 +76,17 @@ export default function ChatPage() {
       </Card>
 
       <Card title="聊天" size="small" className="chat-col" extra={<Text type="secondary">记忆工具：search / write / forget</Text>}>
+        {error && (
+          <Alert
+            type="error"
+            showIcon
+            closable
+            onClose={() => setError("")}
+            message="发生错误"
+            description={error}
+            style={{ marginBottom: 8 }}
+          />
+        )}
         <div className="messages">
           {messages.length === 0 && <Empty description="发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）" />}
           {messages.map((m, i) => (

@@ -8,12 +8,14 @@
 from __future__ import annotations
 
 import json
+import logging
+import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Query
-from fastapi.responses import StreamingResponse
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -27,7 +29,20 @@ from anchorline.memory.store import FactStore
 from anchorline.models import Fact, Trace
 from anchorline.tools import TOOL_SCHEMAS
 
+log = logging.getLogger("anchorline.api")
+
+# src/anchorline/api/main.py -> api -> anchorline -> src -> 仓库根
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+EVAL_DIR = os.path.join(ROOT, "data", "eval")
+
 app = FastAPI(title="Anchorline", version=__version__)
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
+    """兜底：未处理异常返回 JSON，不把堆栈/DSN 暴露给前端；前端有错误提示。"""
+    log.exception("unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "内部错误，请稍后重试（详情已记录日志）"})
 
 
 class SearchRequest(BaseModel):
@@ -260,7 +275,13 @@ def _extract_tool_calls(out: dict) -> list[dict[str, Any]]:
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
-    out = _run_agent(req.messages, db, req.max_steps)
+    try:
+        out = _run_agent(req.messages, db, req.max_steps)
+    except HTTPException:
+        raise
+    except Exception as exc:  # 模型/DB 抖动：转成 502，前端弹窗提示而不是整页崩
+        log.exception("chat failed")
+        raise HTTPException(status_code=502, detail=f"聊天服务暂时不可用（{type(exc).__name__}），请重试") from exc
     finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
     answer = finals[-1]["content"] if finals else ""
     return ChatResponse(
@@ -274,14 +295,158 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
 
 @app.post("/chat/stream")
 def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingResponse:
-    """SSE：先逐条推 tool 事件，最后推 answer。"""
+    """SSE：先逐条推 tool 事件，最后推 answer；出错推 error 事件而不是断开无声。"""
 
     def _gen():
-        out = _run_agent(req.messages, db, req.max_steps)
-        for tc in _extract_tool_calls(out):
-            yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
-        finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
-        answer = finals[-1]["content"] if finals else ""
-        yield "event: final\ndata: " + json.dumps({"answer": answer, "stop_reason": out.get("stop_reason", ""), "steps": out["steps"]}, ensure_ascii=False) + "\n\n"
+        try:
+            out = _run_agent(req.messages, db, req.max_steps)
+            for tc in _extract_tool_calls(out):
+                yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
+            finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
+            answer = finals[-1]["content"] if finals else ""
+            yield "event: final\ndata: " + json.dumps({"answer": answer, "stop_reason": out.get("stop_reason", ""), "steps": out["steps"]}, ensure_ascii=False) + "\n\n"
+        except Exception as exc:
+            log.exception("chat stream failed")
+            yield "event: error\ndata: " + json.dumps({"detail": f"{type(exc).__name__}: 生成失败"}, ensure_ascii=False) + "\n\n"
 
     return StreamingResponse(_gen(), media_type="text/event-stream")
+
+
+# ---------------------------------------------------------------- 写接口（前端记忆页）
+
+class ForgetRequest(BaseModel):
+    entity_id: str
+    attribute: str
+    at: datetime | None = None
+
+
+class FactPatch(BaseModel):
+    value: str | None = None
+    confidence: float | None = None
+
+
+class SettingsOut(BaseModel):
+    version: str
+    db_ok: bool
+    reader_model: str
+    judge_model: str
+    embedding_model: str
+    rerank_model: str
+    budgets: list[int]
+
+
+class EvalArmOut(BaseModel):
+    arm: str
+    accuracy: float
+    n: int
+    source: str
+    note: str | None = None
+
+
+@app.post("/memory/forget")
+def forget(req: ForgetRequest, db: Session = Depends(get_db)) -> dict[str, str]:
+    """按 entity+attribute 标记失效（不物理删除，保留历史）。"""
+    try:
+        fact = FactStore(db).forget(req.entity_id, req.attribute, at=req.at)
+    except Exception as exc:
+        log.exception("forget failed")
+        raise HTTPException(status_code=500, detail="标记失效失败") from exc
+    if fact is None:
+        raise HTTPException(status_code=404, detail="未找到该事实")
+    return {"fact_id": fact.id}
+
+
+@app.post("/memory/facts/{fact_id}/invalidate")
+def invalidate_fact(fact_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
+    fact = db.get(Fact, fact_id)
+    if fact is None:
+        raise HTTPException(status_code=404, detail="fact not found")
+    if fact.valid_to is None:  # 幂等：已失效的不重复写
+        fact.valid_to = datetime.now(timezone.utc)
+        db.commit()
+    return {"fact_id": fact.id}
+
+
+@app.patch("/memory/facts/{fact_id}")
+def patch_fact(fact_id: str, body: FactPatch, db: Session = Depends(get_db)) -> dict[str, str]:
+    fact = db.get(Fact, fact_id)
+    if fact is None:
+        raise HTTPException(status_code=404, detail="fact not found")
+    if body.value is not None:
+        fact.value = body.value
+    if body.confidence is not None:
+        fact.confidence = body.confidence
+    db.commit()
+    return {"fact_id": fact.id}
+
+
+@app.get("/settings", response_model=SettingsOut)
+def settings_view(db: Session = Depends(get_db)) -> SettingsOut:
+    """只读配置（脱敏）：模型名与预算，不含任何 key。"""
+    from anchorline.config import Settings
+
+    s = Settings()
+    try:
+        db.execute(text("SELECT 1"))
+        db_ok = True
+    except Exception:
+        db_ok = False
+    return SettingsOut(
+        version=__version__,
+        db_ok=db_ok,
+        reader_model=s.deepseek_reader_model,
+        judge_model=s.deepseek_judge_model,
+        embedding_model=s.siliconflow_embedding_model,
+        rerank_model=s.siliconflow_rerank_model,
+        budgets=[4000, 8000, 16000],
+    )
+
+
+def _load_eval(name: str) -> dict | None:
+    path = os.path.join(EVAL_DIR, name)
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        log.exception("failed to read eval file %s", path)
+        return None
+
+
+@app.get("/eval/summary", response_model=list[EvalArmOut])
+def eval_summary() -> list[EvalArmOut]:
+    """把 data/eval 下的结果汇总成臂级表；文件缺失/损坏只跳过，不抛 500。"""
+    out: list[EvalArmOut] = []
+    b154 = _load_eval("b_arm_154_v2.json")
+    if b154:
+        rows = b154.get("per_question", [])
+        out.append(EvalArmOut(
+            arm="B（官方基线）", n=len(rows),
+            accuracy=sum(r["mean"] for r in rows) / max(1, len(rows)),
+            source="b_arm_154_v2.json", note="154 题确定性判分，1 次/题",
+        ))
+    for fname, arm, key, note in [
+        ("d_arm_154_v2.json", "D（完整轨迹+L0，单 state）", "d_accuracy", "154 题，1 次/题"),
+        ("d_arm_154_neighbor.json", "D（state+邻居）", "d_accuracy", "154 题，检验检索粒度"),
+        ("c2_arm_154.json", "C2（a11y-only+L0）", "c2_accuracy", "154 题，压缩层单变量"),
+    ]:
+        d = _load_eval(fname)
+        if d and key in d:
+            n = int(
+                d.get("n_questions")
+                or (d.get("config") or {}).get("n_questions")
+                or len(d.get("per_question", []))
+            )
+            out.append(EvalArmOut(
+                arm=arm, accuracy=float(d[key]), n=n,
+                source=fname, note=note,
+            ))
+    a168 = _load_eval("arm_168.json")
+    if a168:
+        n = int(a168.get("n_common", 0))
+        out.append(EvalArmOut(arm="B（168）", accuracy=float(a168["b_accuracy"]), n=n,
+                              source="arm_168.json", note="154 + 14 judge（3 题 judge 缺失已排除）"))
+        out.append(EvalArmOut(arm="D（168）", accuracy=float(a168["d_accuracy"]), n=n,
+                              source="arm_168.json", note="同上；judge prompt 已冻结"))
+    return out
