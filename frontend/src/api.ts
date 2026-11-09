@@ -36,6 +36,16 @@ export type SessionMessage = {
   created_at: string;
 };
 
+export type TraceRow = {
+  id: number;
+  query: string;
+  layers: string;
+  used_tokens: number;
+  resolution: string | null;
+  injected_fact_ids: string | null;
+  created_at: string;
+};
+
 export type EvalArm = {
   arm: string;
   accuracy: number;
@@ -57,7 +67,7 @@ export type SettingsOut = {
   chat_models: string[];
 };
 
-export type Msg = { role: "user" | "assistant"; content: string };
+export type Msg = { role: "user" | "assistant"; content: string; created_at?: string };
 
 /** 统一的接口错误：status=0 表示网络/超时。 */
 export class ApiError extends Error {
@@ -101,10 +111,21 @@ const post = (body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
+/** 前端导出 Markdown（浏览器下载）。 */
+export function downloadMarkdown(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export const api = {
   health: () => json<{ status: string; db: boolean }>("/api/health", undefined, 10_000),
   settings: () => json<SettingsOut>("/api/settings", undefined, 10_000),
-  facts: (limit = 100) => json<Fact[]>(`/api/memory/facts?limit=${limit}`),
+  facts: (limit = 200) => json<Fact[]>(`/api/memory/facts?limit=${limit}`),
   history: (id: string) => json<Fact[]>(`/api/memory/facts/${id}/history`),
   writeFact: (body: { entity_id: string; attribute: string; value: string; valid_from?: string }) =>
     json<{ fact_id: string; supersedes: string | null }>("/api/memory/write", post(body)),
@@ -131,5 +152,6 @@ export const api = {
   listSessions: () => json<ChatSession[]>("/api/sessions"),
   createSession: () => json<{ id: string }>("/api/sessions", post({})),
   sessionMessages: (id: string) => json<SessionMessage[]>(`/api/sessions/${id}/messages`),
+  sessionTraces: (id: string) => json<TraceRow[]>(`/api/sessions/${id}/traces`),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),
 };

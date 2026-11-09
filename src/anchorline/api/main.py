@@ -229,7 +229,13 @@ def get_trace(trace_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
     }
 
 
-def _run_agent(messages: list[dict], db: Session, max_steps: int, model: str = "deepseek"):
+def _run_agent(
+    messages: list[dict],
+    db: Session,
+    max_steps: int,
+    model: str = "deepseek",
+    session_id: str | None = None,
+):
     """跑一轮 LangGraph agent，并把本轮召回/工具调用写入 traces（供前端 Trace 面板）。"""
     store = FactStore(db)
     reader = chat_client(model)
@@ -250,7 +256,7 @@ def _run_agent(messages: list[dict], db: Session, max_steps: int, model: str = "
     query = next((m.get("content") or "" for m in reversed(messages) if m.get("role") == "user"), "")
     tool_calls = _extract_tool_calls(out)
     trace = Trace(
-        session_id=None,
+        session_id=session_id,
         query=str(query)[:2000],
         budget_tokens=0,
         used_tokens=sum(len(str(m.get("content") or "")) for m in out["messages"]) // 4,
@@ -278,17 +284,7 @@ def _extract_tool_calls(out: dict) -> list[dict[str, Any]]:
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
-    try:
-        out = _run_agent(req.messages, db, req.max_steps, model=req.model)
-    except HTTPException:
-        raise
-    except Exception as exc:  # 模型/DB 抖动：转成 502，前端弹窗提示而不是整页崩
-        log.exception("chat failed")
-        raise HTTPException(status_code=502, detail=f"聊天服务暂时不可用（{type(exc).__name__}），请重试") from exc
-    finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
-    answer = finals[-1]["content"] if finals else ""
-
-    # 会话落库（失败不影响本轮回答）
+    # 先确定会话（trace 需要 session_id，页面切换后 trace 也能按会话找回）
     sid = req.session_id
     try:
         if not sid:
@@ -299,6 +295,23 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
         elif db.get(ChatSession, sid) is None:
             db.add(ChatSession(id=sid, domain="chat"))
             db.flush()
+    except Exception:
+        log.exception("failed to create chat session")
+        db.rollback()
+        sid = req.session_id
+
+    try:
+        out = _run_agent(req.messages, db, req.max_steps, model=req.model, session_id=sid)
+    except HTTPException:
+        raise
+    except Exception as exc:  # 模型/DB 抖动：转成 502，前端弹窗提示而不是整页崩
+        log.exception("chat failed")
+        raise HTTPException(status_code=502, detail=f"聊天服务暂时不可用（{type(exc).__name__}），请重试") from exc
+    finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
+    answer = finals[-1]["content"] if finals else ""
+
+    # 会话消息落库（失败不影响本轮回答）
+    try:
         last_user = next((m for m in reversed(req.messages) if m.get("role") == "user"), None)
         if last_user:
             db.add(Message(session_id=sid, role="user", content=str(last_user.get("content") or "")[:8000]))
@@ -365,13 +378,61 @@ def create_session(db: Session = Depends(get_db)) -> dict[str, str]:
     return {"id": s.id}
 
 
+class TraceOut(BaseModel):
+    id: int
+    query: str
+    layers: str
+    used_tokens: int
+    resolution: str | None
+    injected_fact_ids: str | None
+    created_at: datetime
+
+
+@app.get("/sessions/{session_id}/traces", response_model=list[TraceOut])
+def session_traces(session_id: str, db: Session = Depends(get_db)) -> list[TraceOut]:
+    """按会话取最近的 trace（切换页面/会话后仍能找回）。"""
+    rows = list(
+        db.scalars(select(Trace).where(Trace.session_id == session_id).order_by(Trace.id.desc()).limit(20))
+    )
+    return [
+        TraceOut(
+            id=r.id,
+            query=r.query,
+            layers=r.layers,
+            used_tokens=r.used_tokens,
+            resolution=r.resolution,
+            injected_fact_ids=r.injected_fact_ids,
+            created_at=r.created_at,
+        )
+        for r in rows
+    ]
+
+
+@app.get("/traces", response_model=list[TraceOut])
+def list_traces(limit: int = Query(default=20, ge=1, le=200), db: Session = Depends(get_db)) -> list[TraceOut]:
+    """全局最近 trace（记忆页画资源消耗图表用）。"""
+    rows = list(db.scalars(select(Trace).order_by(Trace.id.desc()).limit(limit)))
+    return [
+        TraceOut(
+            id=r.id,
+            query=r.query,
+            layers=r.layers,
+            used_tokens=r.used_tokens,
+            resolution=r.resolution,
+            injected_fact_ids=r.injected_fact_ids,
+            created_at=r.created_at,
+        )
+        for r in rows
+    ]
+
+
 @app.post("/chat/stream")
 def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingResponse:
     """SSE：先逐条推 tool 事件，最后推 answer；出错推 error 事件而不是断开无声。"""
 
     def _gen():
         try:
-            out = _run_agent(req.messages, db, req.max_steps, model=req.model)
+            out = _run_agent(req.messages, db, req.max_steps, model=req.model, session_id=req.session_id)
             for tc in _extract_tool_calls(out):
                 yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
             finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]

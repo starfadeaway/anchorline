@@ -13,6 +13,7 @@ from typing import Any, Callable
 
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore
+from anchorline.models import Fact
 
 
 @dataclass(frozen=True)
@@ -59,7 +60,14 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
         valid_from: str | None = None,
         confidence: float = 1.0,
         source_session_id: str | None = None,
+        supersedes_id: str | None = None,
     ) -> ToolResult:
+        # 可选：显式指定要覆盖的旧事实（agent 先 search 拿到旧 id，再 write）
+        if supersedes_id:
+            old = store.db.get(Fact, supersedes_id)
+            if old is not None and old.valid_to is None:
+                old.valid_to = _parse_valid_from(valid_from) or datetime.now()
+                store.db.flush()
         fact = store.write(
             entity_id=entity_id,
             attribute=attribute,
@@ -108,7 +116,7 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "memory_write",
-            "description": "Write a fact (entity / attribute / value / valid_from).",
+            "description": "Write a fact (entity / attribute / value / valid_from). Updating an existing memory: first memory_search, then pass the old fact's supersedes_id so it is invalidated (not deleted).",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -116,6 +124,10 @@ TOOL_SCHEMAS = [
                     "attribute": {"type": "string"},
                     "value": {"type": "string"},
                     "valid_from": {"type": "string"},
+                    "supersedes_id": {
+                        "type": "string",
+                        "description": "旧事实 id（先 memory_search 取得）；更新已有记忆时传入，旧值会标记失效",
+                    },
                 },
                 "required": ["entity_id", "attribute", "value"],
             },

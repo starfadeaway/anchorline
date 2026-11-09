@@ -109,13 +109,57 @@ input,
   color: var(--neon);
 }
 
-/* 布局 */
+/* 布局：聊天区加宽（左会话 280 / 中聊天自适应 / 右 trace 300） */
 .chat-grid {
   display: grid;
-  grid-template-columns: 300px minmax(360px, 1fr) 320px;
+  grid-template-columns: 280px minmax(520px, 1fr) 300px;
   gap: 12px;
   height: calc(100vh - 96px);
 }
+
+/* 页面切换 / 元素出现动画 */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.app-content > * { animation: fadeUp .22s ease-out; }
+.msg-enter { animation: fadeUp .18s ease-out; }
+.session-group { animation: fadeUp .2s ease-out; }
+
+/* 会话分组 */
+.session-group { margin-bottom: 10px; }
+.session-group-title {
+  font-size: 11px; letter-spacing: 1px; color: var(--weak);
+  text-transform: uppercase; margin: 6px 0 4px;
+}
+.session-item {
+  cursor: pointer; border-radius: 6px; padding: 6px 8px !important;
+  transition: background .15s, transform .15s;
+}
+.session-item:hover { background: rgba(0, 212, 255, 0.06); transform: translateX(2px); }
+.session-item.active {
+  background: rgba(0, 212, 255, 0.10);
+  box-shadow: inset 2px 0 0 var(--neon);
+}
+.session-title { color: var(--text); font-size: 13px; line-height: 1.4; margin-bottom: 2px; }
+
+/* 消息时间 */
+.msg-time { margin-left: 8px; font-size: 10px; color: var(--weak); letter-spacing: 0; }
+
+/* 资源消耗柱状图 */
+.token-bars {
+  display: flex; align-items: flex-end; gap: 4px;
+  height: 56px; margin-top: 6px; padding: 4px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.token-bar { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.token-bar-fill {
+  width: 100%; border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, var(--neon), rgba(0, 212, 255, 0.15));
+  transition: height .4s ease;
+}
+.group-table .ant-table { font-size: 12px; }
 .chat-col { display: flex; flex-direction: column; min-height: 0; }
 .chat-col .ant-card-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
