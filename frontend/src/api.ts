@@ -51,6 +51,7 @@ export type TraceRow = {
   resolution: string | null;
   injected_fact_ids: string | null;
   created_at: string;
+  steps?: number;
 };
 
 export type EvalArm = {
@@ -160,5 +161,6 @@ export const api = {
   createSession: () => json<{ id: string }>("/api/sessions", post({})),
   sessionMessages: (id: string) => json<SessionMessage[]>(`/api/sessions/${id}/messages`),
   sessionTraces: (id: string) => json<TraceRow[]>(`/api/sessions/${id}/traces`),
+  deleteSession: (id: string) => json<{ deleted: string }>(`/api/sessions/${id}`, { method: "DELETE" }),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),
 };

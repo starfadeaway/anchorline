@@ -18,7 +18,7 @@ from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import select, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
 from anchorline import __version__
@@ -263,7 +263,8 @@ def _run_agent(
         query=str(query)[:2000],
         budget_tokens=0,
         used_tokens=sum(len(str(m.get("content") or "")) for m in out["messages"]) // 4,
-        layers="chat>tools" if tool_calls else "chat",
+        # layers 同时编码步数，便于按会话恢复时显示 steps（避免新增列迁移）
+        layers=f"chat>tools;steps={out.get('steps', 0)}",
         injected_fact_ids=json.dumps(tool_calls, ensure_ascii=False),
         resolution=out.get("stop_reason", ""),
     )
@@ -403,6 +404,27 @@ class TraceOut(BaseModel):
     resolution: str | None
     injected_fact_ids: str | None
     created_at: datetime
+    steps: int = 0
+
+
+def _trace_out(r: Trace) -> TraceOut:
+    steps = 0
+    for part in (r.layers or "").split(";"):
+        if part.startswith("steps="):
+            try:
+                steps = int(part.split("=", 1)[1] or 0)
+            except ValueError:
+                steps = 0
+    return TraceOut(
+        id=r.id,
+        query=r.query,
+        layers=r.layers,
+        used_tokens=r.used_tokens,
+        resolution=r.resolution,
+        injected_fact_ids=r.injected_fact_ids,
+        created_at=r.created_at,
+        steps=steps,
+    )
 
 
 @app.get("/sessions/{session_id}/traces", response_model=list[TraceOut])
@@ -411,36 +433,25 @@ def session_traces(session_id: str, db: Session = Depends(get_db)) -> list[Trace
     rows = list(
         db.scalars(select(Trace).where(Trace.session_id == session_id).order_by(Trace.id.desc()).limit(20))
     )
-    return [
-        TraceOut(
-            id=r.id,
-            query=r.query,
-            layers=r.layers,
-            used_tokens=r.used_tokens,
-            resolution=r.resolution,
-            injected_fact_ids=r.injected_fact_ids,
-            created_at=r.created_at,
-        )
-        for r in rows
-    ]
+    return [_trace_out(r) for r in rows]
 
 
 @app.get("/traces", response_model=list[TraceOut])
 def list_traces(limit: int = Query(default=20, ge=1, le=200), db: Session = Depends(get_db)) -> list[TraceOut]:
     """全局最近 trace（记忆页画资源消耗图表用）。"""
     rows = list(db.scalars(select(Trace).order_by(Trace.id.desc()).limit(limit)))
-    return [
-        TraceOut(
-            id=r.id,
-            query=r.query,
-            layers=r.layers,
-            used_tokens=r.used_tokens,
-            resolution=r.resolution,
-            injected_fact_ids=r.injected_fact_ids,
-            created_at=r.created_at,
-        )
-        for r in rows
-    ]
+    return [_trace_out(r) for r in rows]
+
+
+@app.delete("/sessions/{session_id}")
+def delete_session(session_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
+    """删除会话及其消息（记忆事实不受影响）。"""
+    if db.get(ChatSession, session_id) is None:
+        raise HTTPException(status_code=404, detail="session not found")
+    db.execute(delete(Message).where(Message.session_id == session_id))
+    db.execute(delete(ChatSession).where(ChatSession.id == session_id))
+    db.commit()
+    return {"deleted": session_id}
 
 
 @app.post("/chat/stream")

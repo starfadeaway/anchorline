@@ -74,7 +74,7 @@ export default function ChatPage() {
   const fromTraceRow = (row: TraceRow, sessionId: string): ChatResp => ({
     answer: "",
     stop_reason: row.resolution ?? "",
-    steps: 0,
+    steps: row.steps ?? 0,
     tool_calls: parseToolCalls(row.injected_fact_ids),
     trace_id: row.id,
     session_id: sessionId,
@@ -202,7 +202,7 @@ export default function ChatPage() {
           {error && (
             <Alert type="error" showIcon closable onClose={() => setError("")} message="发生错误" description={error} style={{ marginBottom: 8 }} />
           )}
-          <div className="messages">
+          <div className="messages" key={active ?? "new"}>
             {messages.length === 0 && (
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）" />
             )}
@@ -218,7 +218,7 @@ export default function ChatPage() {
             {trace && (
               <div className="metrics-bar">
                 <span>模型 <b>{trace.meta?.model ?? model}</b></span>
-                <span>步数 <b>{trace.steps || "—"}</b></span>
+                <span>步数 <b>{trace.steps > 0 ? trace.steps : "—"}</b></span>
                 <span>工具 <b>{trace.tool_calls.length}</b></span>
                 <span>失败 <b>{trace.meta?.tool_errors ?? 0}</b></span>
                 <span>耗时 <b>{trace.meta?.duration_ms ?? "—"} ms</b></span>
@@ -272,13 +272,13 @@ export default function ChatPage() {
       </div>
 
       <div className="env-bar">
-        <span><em>索引</em> <b>{env?.db_ok ? "就绪" : "—"}</b></span>
-        <span><em>Embedding</em> <b>{env?.embedding_model ?? "—"}</b></span>
-        <span><em>Rerank</em> <b>{env?.rerank_model ?? "—"}</b></span>
-        <span><em>MySQL</em> <b>{env?.db_ok ? "已连接" : "未连接"}</b></span>
-        <span><em>Reader</em> <b>{env?.reader_model ?? "—"}</b></span>
-        <span><em>Judge</em> <b>{env?.judge_model ?? "—"}</b></span>
-        <span><em>预算</em> <b>{env?.budgets?.join(" / ") ?? "—"}</b></span>
+        <span><span className={`dot ${env?.db_ok ? "ok" : "bad"}`} /><em>索引</em> <b>{env?.db_ok ? "就绪" : "—"}</b></span>
+        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Embedding</em> <b>{env?.embedding_model ?? "—"}</b></span>
+        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Rerank</em> <b>{env?.rerank_model ?? "—"}</b></span>
+        <span><span className={`dot ${env?.db_ok ? "ok" : "bad"}`} /><em>MySQL</em> <b>{env?.db_ok ? "已连接" : "未连接"}</b></span>
+        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Reader</em> <b>{env?.reader_model ?? "—"}</b></span>
+        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Judge</em> <b>{env?.judge_model ?? "—"}</b></span>
+        <span><span className="dot ok" /><em>预算</em> <b>{env?.budgets?.join(" / ") ?? "—"}</b></span>
       </div>
     </div>
   );

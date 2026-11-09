@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Collapse, Drawer, Form, Input, Modal, Progress, Space, Table, Tag, Timeline, Typography, message } from "antd";
+import { Alert, Button, Card, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
 
 const { Text } = Typography;
 
-/** 每 30s 刷新一次“现在”，让相对时间活起来。 */
 function useNow(intervalMs = 30_000): Date {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -28,7 +27,39 @@ function formatRelative(iso: string, now: Date): string {
   return `${(abs / (365 * 86_400_000)).toFixed(1)} 年${suffix}`;
 }
 
-/** 记忆浏览器：按实体分组 + 相对时间 + 资源消耗图表。 */
+function topicOfFact(f: Fact): string {
+  const s = `${f.entity_id} ${f.attribute} ${f.value}`.toLowerCase();
+  if (/mcp|test|check/.test(s)) return "测试数据";
+  if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(s)) return "游泳记录";
+  if (/5k|跑步|配速|跑|pb|半马|全马/.test(s)) return "跑步记录";
+  if (/体重|身高|体脂|睡眠|心率|health/.test(s)) return "身体数据";
+  if (/模型|model/.test(s)) return "模型与配置";
+  return "其他";
+}
+
+/** 当前/失效环形图（纯 CSS，hover 有反馈）。 */
+function Donut({ current, stale, size = 120, label }: { current: number; stale: number; size?: number; label: string }) {
+  const total = current + stale;
+  const pct = total ? Math.round((current / total) * 100) : 0;
+  return (
+    <div
+      className="donut"
+      title={`${label}：当前 ${current} 条 / 失效 ${stale} 条（${pct}% 当前）`}
+      style={{
+        width: size,
+        height: size,
+        background: `conic-gradient(#3ddc97 ${pct}%, #5b6b85 ${pct}% 100%)`,
+      }}
+    >
+      <div className="donut-hole" style={{ width: size * 0.62, height: size * 0.62 }}>
+        <b>{pct}%</b>
+        <span>当前</span>
+      </div>
+    </div>
+  );
+}
+
+/** 记忆浏览器：下拉分组 + 组内图表 + 顶部整体图表。 */
 export default function MemoryPage() {
   const [facts, setFacts] = useState<Fact[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
@@ -51,8 +82,6 @@ export default function MemoryPage() {
   useEffect(() => {
     void load();
   }, []);
-
-  // 单独加载 trace（资源消耗图）
   useEffect(() => {
     fetch("/api/traces?limit=12")
       .then((r) => (r.ok ? r.json() : []))
@@ -62,30 +91,24 @@ export default function MemoryPage() {
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return facts;
-    return facts.filter((f) => [f.entity_id, f.attribute, f.value].some((v) => String(v).toLowerCase().includes(s)));
+    const base = [...facts];
+    if (!s) return base;
+    return base.filter((f) => [f.entity_id, f.attribute, f.value].some((v) => String(v).toLowerCase().includes(s)));
   }, [facts, q]);
 
   const groups = useMemo(() => {
-    // 按“记录内容主题”分组：更符合使用者理解（跑步 / 游泳 / 身体数据 / 模型 / 其他）
     const m = new Map<string, Fact[]>();
     for (const f of filtered) {
-      const s = `${f.entity_id} ${f.attribute} ${f.value}`.toLowerCase();
-      let topic = "其他";
-      if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(s)) topic = "游泳记录";
-      else if (/5k|跑步|配速|跑|pb|半马|全马/.test(s)) topic = "跑步记录";
-      else if (/体重|身高|体脂|睡眠|心率|health/.test(s)) topic = "身体数据";
-      else if (/模型|model/.test(s)) topic = "模型与配置";
-      else if (/mcp|test|check/.test(s)) topic = "测试数据";
-      const arr = m.get(topic) ?? [];
-      arr.push(f);
-      m.set(topic, arr);
+      const topic = topicOfFact(f);
+      if (topic === "测试数据") continue; // 不展示测试数据
+      m.set(topic, [...(m.get(topic) ?? []), f]);
     }
     return [...m.entries()];
   }, [filtered]);
 
-  const current = facts.filter((f) => !f.valid_to).length;
-  const stale = facts.length - current;
+  const visible = groups.reduce((n, [, rows]) => n + rows.length, 0);
+  const current = groups.reduce((n, [, rows]) => n + rows.filter((f) => !f.valid_to).length, 0);
+  const stale = visible - current;
   const maxTokens = Math.max(1, ...traces.map((t) => t.used_tokens));
 
   const submitAdd = async () => {
@@ -103,11 +126,13 @@ export default function MemoryPage() {
   };
 
   const exportMarkdown = () => {
-    const lines = [`# Anchorline 记忆导出`, "", `- 导出时间：${new Date().toLocaleString()}`, `- 事实总数：${facts.length}（当前 ${current} / 失效 ${stale}）`, ""];
-    for (const [entity, rows] of groups) {
-      lines.push(`## ${entity}`, "");
+    const lines = [`# Anchorline 记忆导出`, "", `- 导出时间：${new Date().toLocaleString()}`, `- 事实：${visible}（当前 ${current} / 失效 ${stale}）`, ""];
+    for (const [topic, rows] of groups) {
+      lines.push(`## ${topic}`, "");
       for (const f of rows) {
-        lines.push(`- **${f.attribute}** = ${f.value} ｜ ${f.valid_to ? "已失效" : "当前"} ｜ 生效 ${new Date(f.valid_from).toLocaleString()}${f.valid_to ? ` ｜ 失效 ${new Date(f.valid_to).toLocaleString()}` : ""}`);
+        lines.push(
+          `- **${f.entity_id}.${f.attribute}** = ${f.value} ｜ ${f.valid_to ? "已失效" : "当前"} ｜ 生效 ${new Date(f.valid_from).toLocaleString()}${f.valid_to ? ` ｜ 失效 ${new Date(f.valid_to).toLocaleString()}` : ""}`,
+        );
       }
       lines.push("");
     }
@@ -116,7 +141,8 @@ export default function MemoryPage() {
   };
 
   const columns = [
-    { title: "属性", dataIndex: "attribute", width: 200 },
+    { title: "实体", dataIndex: "entity_id", width: 130 },
+    { title: "属性", dataIndex: "attribute", width: 190 },
     { title: "值", dataIndex: "value" },
     {
       title: "状态",
@@ -133,10 +159,9 @@ export default function MemoryPage() {
         </span>
       ),
     },
-    { title: "置信度", dataIndex: "confidence", width: 80 },
     {
       title: "操作",
-      width: 190,
+      width: 170,
       render: (_: unknown, r: Fact) => (
         <Space>
           <Button size="small" onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}>历史</Button>
@@ -185,71 +210,69 @@ export default function MemoryPage() {
         description={
           <div style={{ lineHeight: 1.7 }}>
             <div>· <b>事实</b> = （实体, 属性, 值, 生效时间）。同一实体+属性可以有多条历史值。</div>
-            <div>· <b>当前</b> = 这条值仍有效；<b>已失效</b> = 被更新的值替代，或手动标记失效（<b>不删除</b>）。</div>
-            <div>· 点<b>历史</b>看同一属性的完整时间线；点<b>失效</b>把当前值标记为失效（会弹确认框）。</div>
-            <div>· 聊天时 agent 只会召回「当前」值；被替代的旧值仍可追溯。</div>
+            <div>· <b>当前</b> = 仍有效；<b>已失效</b> = 被新值替代或手动标记（不删除）。</div>
+            <div>· 点<b>历史</b>看时间线；点<b>失效</b>标记当前值（会弹确认框）；展开分组看每组明细。</div>
           </div>
         }
       />
 
-      <Card size="small" style={{ marginBottom: 12 }} title="概览">
-        <Space size={24} wrap>
-          <span>事实总数：<Text strong>{facts.length}</Text></span>
-          <span>当前：<Text strong style={{ color: "#6abe39" }}>{current}</Text></span>
-          <span>失效：<Text strong>{stale}</Text></span>
-          <span>实体数：<Text strong>{groups.length}</Text></span>
-        </Space>
-        <div style={{ marginTop: 10 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>最近 12 轮资源消耗（token）</Text>
-          <div className="token-bars">
-            {traces.slice().reverse().map((t) => (
-              <div key={t.id} className="token-bar" title={`#${t.id} ${t.used_tokens} tokens · ${t.query.slice(0, 40)}`}>
-                <div className="token-bar-fill" style={{ height: `${Math.max(6, (t.used_tokens / maxTokens) * 100)}%` }} />
-              </div>
-            ))}
+      <Card size="small" style={{ marginBottom: 12 }} title="整体概览">
+        <div className="overview">
+          <Donut current={current} stale={stale} size={132} label="全部" />
+          <div className="overview-legend">
+            <div><span className="legend-dot green" /> 当前值 <b>{current}</b> 条</div>
+            <div><span className="legend-dot gray" /> 已失效 <b>{stale}</b> 条</div>
+            <div>事实总数 <b>{visible}</b> 条 · 分组 <b>{groups.length}</b> 个</div>
+            <div className="overview-note">环形图 = 当前值占比；鼠标悬停可看明细</div>
           </div>
-        </div>
-        <div className="pie-row">
-          <div
-            className="pie"
-            title={`当前 ${current} / 失效 ${stale}`}
-            style={{
-              background: `conic-gradient(#6abe39 ${facts.length ? (current / facts.length) * 100 : 0}%, #4a5568 0)`,
-            }}
-          />
-          <div className="pie-legend">
-            当前值 <b>{current}</b> 条 · 已失效 <b>{stale}</b> 条<br />
-            实体 <b>{groups.length}</b> 个 · 事实总数 <b>{facts.length}</b> 条<br />
-            <Text type="secondary" style={{ fontSize: 11 }}>饼图 = 当前值占比（绿色）/ 失效占比（灰）</Text>
+          <div className="overview-bars">
+            <Text type="secondary" style={{ fontSize: 12 }}>最近 12 轮 token 消耗</Text>
+            <div className="token-bars">
+              {traces.slice().reverse().map((t) => (
+                <div key={t.id} className="token-bar" title={`#${t.id} · ${t.used_tokens} tokens · ${t.query.slice(0, 40)}`}>
+                  <div className="token-bar-fill" style={{ height: `${Math.max(8, (t.used_tokens / maxTokens) * 100)}%` }} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </Card>
 
       {error && <Alert type="error" showIcon message="记忆加载失败" description={error} style={{ marginBottom: 12 }} />}
 
-      {groups.map(([topic, rows]) => {
-        const cur = rows.filter((f) => !f.valid_to).length;
-        return (
-          <Card
-            key={topic}
-            size="small"
-            style={{ marginBottom: 10 }}
-            title={
-              <Space>
-                <Text strong>{topic}</Text>
-                <Tag>{rows.length} 条</Tag>
-                <Tag color="green">{cur} 当前</Tag>
-                {rows.length - cur > 0 && <Tag>{rows.length - cur} 失效</Tag>}
-              </Space>
-            }
-          >
-            <Progress percent={Math.round((cur / rows.length) * 100)} size="small" strokeColor="#6abe39" showInfo={false} />
-            <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" />
-          </Card>
-        );
-      })}
-
-      {groups.length === 0 && <Text type="secondary">暂无记忆</Text>}
+      {groups.length === 0 ? (
+        <Text type="secondary">暂无记忆</Text>
+      ) : (
+        <Collapse
+          defaultActiveKey={groups.map(([t]) => t)}
+          items={groups.map(([topic, rows]) => {
+            const cur = rows.filter((f) => !f.valid_to).length;
+            const st = rows.length - cur;
+            return {
+              key: topic,
+              label: (
+                <Space size={10}>
+                  <Text strong>{topic}</Text>
+                  <Tag>{rows.length} 条</Tag>
+                  <Tag color="green">{cur} 当前</Tag>
+                  {st > 0 && <Tag>{st} 失效</Tag>}
+                </Space>
+              ),
+              children: (
+                <div className="group-body">
+                  <div className="group-chart">
+                    <Donut current={cur} stale={st} size={84} label={topic} />
+                    <div className="group-chart-legend">
+                      当前占比 <b>{rows.length ? Math.round((cur / rows.length) * 100) : 0}%</b>
+                    </div>
+                  </div>
+                  <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" />
+                </div>
+              ),
+            };
+          })}
+        />
+      )}
 
       <Drawer open={!!history} onClose={() => setHistory(null)} title="同一属性的完整历史" width={480}>
         <Timeline
@@ -277,7 +300,7 @@ export default function MemoryPage() {
           <Form.Item name="value" label="值" rules={[{ required: true }]}>
             <Input placeholder="如 25:50" />
           </Form.Item>
-          <Form.Item name="valid_from" label="生效时间（可选，ISO）">
+          <Form.Item name="valid_from" label="事件日期（可选；生效时间仍按记录时间）">
             <Input placeholder="2023-05-30T00:00:00" />
           </Form.Item>
         </Form>
