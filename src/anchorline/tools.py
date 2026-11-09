@@ -36,7 +36,13 @@ def _parse_valid_from(value: str | None) -> datetime:
 
 def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
     def memory_search(query: str = "", budget_tokens: int = 2000, limit: int = 20) -> ToolResult:
-        facts = store.search_text(query, limit=limit) if query else []
+        # 混合检索（BM25 + 向量 + RRF + rerank）；不可用时回退纯文本
+        try:
+            from anchorline.retrieval.hybrid import hybrid_search
+
+            facts = hybrid_search(store.db, query, top_k=limit) if query else []
+        except Exception:
+            facts = store.search_text(query, limit=limit) if query else []
         items = [
             ContextItem(
                 text=f"[{f.id[:8]}] {f.entity_id}.{f.attribute} = {f.value} (valid_from={f.valid_from:%Y-%m-%d %H:%M})",
@@ -79,6 +85,13 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
             confidence=confidence,
             source_session_id=source_session_id,
         )
+        # 同步向量索引（失败不影响写入）
+        try:
+            from anchorline.retrieval import facts_index
+
+            facts_index.upsert_fact(fact)
+        except Exception:
+            pass
         return ToolResult(
             ok=True,
             content=json.dumps(

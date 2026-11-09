@@ -181,7 +181,13 @@ def health(db: Session = Depends(get_db)) -> dict[str, Any]:
 @app.post("/memory/search", response_model=SearchResponse)
 def memory_search(req: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse:
     store = FactStore(db)
-    facts = store.search_text(req.query, limit=req.limit) if req.query else []
+    # 混合检索（BM25 + 向量 + RRF + rerank）；不可用时回退纯文本
+    try:
+        from anchorline.retrieval.hybrid import hybrid_search
+
+        facts = hybrid_search(db, req.query, top_k=req.limit) if req.query else []
+    except Exception:
+        facts = store.search_text(req.query, limit=req.limit) if req.query else []
     items = [
         ContextItem(
             text=f"[{f.id[:8]}] {f.entity_id}.{f.attribute} = {f.value}",
@@ -215,6 +221,13 @@ def memory_write(req: WriteRequest, db: Session = Depends(get_db)) -> WriteRespo
         source_session_id=req.source_session_id,
     )
     db.commit()
+    # 同步向量索引（失败不影响写入）
+    try:
+        from anchorline.retrieval import facts_index
+
+        facts_index.upsert_fact(fact)
+    except Exception:
+        log.warning("fact index upsert failed", exc_info=True)
     return WriteResponse(fact_id=fact.id, supersedes=fact.supersedes_id, archived=store.last_archived)
 
 
@@ -561,6 +574,12 @@ def delete_fact(fact_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
         raise HTTPException(status_code=404, detail="fact not found")
     db.delete(fact)
     db.commit()
+    try:
+        from anchorline.retrieval import facts_index
+
+        facts_index.delete_fact(fact_id)
+    except Exception:
+        log.warning("fact index delete failed", exc_info=True)
     return {"deleted": fact_id}
 
 
@@ -665,6 +684,12 @@ def invalidate_fact(fact_id: str, db: Session = Depends(get_db)) -> dict[str, st
     if fact.valid_to is None:  # 幂等：已失效的不重复写
         fact.valid_to = datetime.now(timezone.utc)
         db.commit()
+        try:
+            from anchorline.retrieval import facts_index
+
+            facts_index.delete_fact(fact.id)
+        except Exception:
+            log.warning("fact index delete failed", exc_info=True)
     return {"fact_id": fact.id}
 
 

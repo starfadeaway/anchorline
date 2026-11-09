@@ -105,6 +105,33 @@ def embedding_client(settings: Settings | None = None) -> EmbeddingClient:
     return EmbeddingClient(ReaderConfig(s.siliconflow_base_url, s.siliconflow_api_key, s.siliconflow_embedding_model))
 
 
+class RerankClient:
+    """SiliconFlow /rerank 客户端（BGE reranker）。"""
+
+    def __init__(self, cfg: ReaderConfig):
+        self.cfg = cfg
+
+    def rerank(self, query: str, documents: list[str], top_n: int = 5) -> list[tuple[int, float]]:
+        """返回 [(doc_index, relevance_score)]，按分数降序。"""
+        import httpx
+
+        url = self.cfg.base_url.rstrip("/") + "/rerank"
+        resp = httpx.post(
+            url,
+            headers={"Authorization": f"Bearer {self.cfg.api_key}"},
+            json={"model": self.cfg.model, "query": query, "documents": documents, "top_n": top_n},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return [(int(x["index"]), float(x["relevance_score"])) for x in data.get("results", [])]
+
+
+def rerank_client(settings: Settings | None = None) -> RerankClient:
+    s = settings or Settings()
+    return RerankClient(ReaderConfig(s.siliconflow_base_url, s.siliconflow_api_key, s.siliconflow_rerank_model))
+
+
 def chat_client(provider: str = "deepseek", settings: Settings | None = None) -> ChatClient:
     """聊天模式（非评测）可选 provider；评测模式固定用 reader_client/judge_client。
 
