@@ -26,13 +26,32 @@
 - 未对 chunk 级 gold 评测（LoreKeeper 只标页面），因此不能断言"rerank 对 chunk 级无用"。
 - LoreKeeper 原生的 A3（打开 rerank）实验口径是 chunk 级 cut20/k3，与本桥接的页面级 k5 不可直接比。
 
-## 3. 复现
+## 4. 页面级重排（方向修正后的实验）
+
+桥接的负结果说明「chunk 相关性 ≠ 页面相关性」。把重排目标改成**页面级**：
+向量召回 chunk（top 80）→ 按 `page_title` 聚合（每页取最高分、取前 3 个 chunk 拼接成页面文本）→ 对页面文本做 BGE rerank → 取 top-k 页面。
+
+| 方法 | Recall@1 | Recall@3 | Recall@5 | MRR |
+|---|---|---|---|---|
+| 页面聚合（无 rerank） | 0.8542 | 0.8750 | 0.8750 | 0.8646 |
+| **页面聚合 + 页面级 rerank** | **0.9167** | **0.9583** | **0.9792** | **0.9427** |
+
+- 逐题配对（hit@1）：**+3 题命中、0 题反向**，mean diff **+6.25pp**；
+- sign-flip 置换检验 **p = 0.252**（48 题、只有 3 个非零配对）→ **方向正确但不显著**；
+- 与 chunk 级 rerank 对比（-1 题）相比，页面级重排把方向**反转**为正向，说明机制解释成立（目标对齐）。
+
+> 诚实口径：只能说「页面级重排方向正确、有机制解释」，不能写「显著提升」；要显著性需要扩题或重跑多次。
+
+## 5. 复现
 
 ```powershell
-# 三组对照（写入 data/eval/lorekeeper_bridge*.json）
+# 三组对照（chunk 级）
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --k 5
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --k 5 --no-rerank --out data\eval\lorekeeper_bridge_rrf.json
+# 页面级重排
+.venv\Scripts\python.exe scripts\lorekeeper_bridge.py --mode page --k 5
 ```
+
 
 ## 4. 下一步（若要提升）
 
