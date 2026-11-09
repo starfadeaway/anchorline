@@ -67,11 +67,19 @@ export default function MemoryPage() {
   }, [facts, q]);
 
   const groups = useMemo(() => {
+    // 按“记录内容主题”分组：更符合使用者理解（跑步 / 游泳 / 身体数据 / 模型 / 其他）
     const m = new Map<string, Fact[]>();
     for (const f of filtered) {
-      const arr = m.get(f.entity_id) ?? [];
+      const s = `${f.entity_id} ${f.attribute} ${f.value}`.toLowerCase();
+      let topic = "其他";
+      if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(s)) topic = "游泳记录";
+      else if (/5k|跑步|配速|跑|pb|半马|全马/.test(s)) topic = "跑步记录";
+      else if (/体重|身高|体脂|睡眠|心率|health/.test(s)) topic = "身体数据";
+      else if (/模型|model/.test(s)) topic = "模型与配置";
+      else if (/mcp|test|check/.test(s)) topic = "测试数据";
+      const arr = m.get(topic) ?? [];
       arr.push(f);
-      m.set(f.entity_id, arr);
+      m.set(topic, arr);
     }
     return [...m.entries()];
   }, [filtered]);
@@ -219,16 +227,16 @@ export default function MemoryPage() {
 
       {error && <Alert type="error" showIcon message="记忆加载失败" description={error} style={{ marginBottom: 12 }} />}
 
-      {groups.map(([entity, rows]) => {
+      {groups.map(([topic, rows]) => {
         const cur = rows.filter((f) => !f.valid_to).length;
         return (
           <Card
-            key={entity}
+            key={topic}
             size="small"
             style={{ marginBottom: 10 }}
             title={
               <Space>
-                <Text strong>{entity}</Text>
+                <Text strong>{topic}</Text>
                 <Tag>{rows.length} 条</Tag>
                 <Tag color="green">{cur} 当前</Tag>
                 {rows.length - cur > 0 && <Tag>{rows.length - cur} 失效</Tag>}

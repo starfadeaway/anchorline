@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { Layout, Menu, Typography, message } from "antd";
-import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, SettingOutlined } from "@ant-design/icons";
+import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileSearchOutlined, BarChartOutlined, SettingOutlined } from "@ant-design/icons";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import ChatPage from "./pages/ChatPage";
 import MemoryPage from "./pages/MemoryPage";
 import EvalPage from "./pages/EvalPage";
+import TracesPage from "./pages/TracesPage";
+import ComparePage from "./pages/ComparePage";
 import SettingsPage from "./pages/SettingsPage";
 
 const { Sider, Content, Header } = Layout;
@@ -14,6 +16,8 @@ const items = [
   { key: "/chat", icon: <CommentOutlined />, label: <Link to="/chat">聊天</Link> },
   { key: "/memory", icon: <DatabaseOutlined />, label: <Link to="/memory">记忆</Link> },
   { key: "/eval", icon: <ExperimentOutlined />, label: <Link to="/eval">评测</Link> },
+  { key: "/traces", icon: <FileSearchOutlined />, label: <Link to="/traces">Trace</Link> },
+  { key: "/compare", icon: <BarChartOutlined />, label: <Link to="/compare">对比</Link> },
   { key: "/settings", icon: <SettingOutlined />, label: <Link to="/settings">设置</Link> },
 ];
 
@@ -65,6 +69,8 @@ export default function App() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/memory" element={<MemoryPage />} />
             <Route path="/eval" element={<EvalPage />} />
+            <Route path="/traces" element={<TracesPage />} />
+            <Route path="/compare" element={<ComparePage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </Content>

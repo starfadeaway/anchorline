@@ -208,6 +208,52 @@ input,
 [data-theme="light"] .msg-body, [data-theme="light"] .session-title { color: var(--text); }
 [data-theme="light"] .ant-table-tbody > tr > td { color: var(--text) !important; }
 
+/* 浅色模式：头部 / 侧栏 / 输入框 / 指标条都要跟着变 */
+[data-theme="light"] .app-header {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(11, 143, 214, 0.12), 0 6px 18px rgba(20, 40, 80, 0.06);
+}
+[data-theme="light"] .app-sider {
+  background: #ffffff !important;
+}
+[data-theme="light"] .ant-menu {
+  color: var(--text) !important;
+}
+[data-theme="light"] .ant-menu-item {
+  color: var(--muted) !important;
+}
+[data-theme="light"] .ant-menu-item-selected {
+  color: #0b8fd6 !important;
+  background: rgba(11, 143, 214, 0.10) !important;
+}
+[data-theme="light"] .ant-card-head-title { color: #0b7fab; }
+[data-theme="light"] .ant-card {
+  box-shadow: 0 1px 2px rgba(20, 40, 80, 0.06), 0 8px 24px rgba(20, 40, 80, 0.06);
+}
+[data-theme="light"] .metrics-bar,
+[data-theme="light"] .token-bars { background: rgba(20, 40, 80, 0.04); }
+[data-theme="light"] .token-bar-fill { background: linear-gradient(180deg, #0b8fd6, rgba(11, 143, 214, 0.25)); }
+[data-theme="light"] .pie { box-shadow: inset 0 0 0 1px rgba(20, 40, 80, 0.08); }
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] .ant-input,
+[data-theme="light"] .ant-input-affix-wrapper {
+  background: #ffffff !important;
+  color: var(--text) !important;
+}
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder,
+[data-theme="light"] .ant-input::placeholder {
+  color: #7b8ba3 !important;
+}
+[data-theme="light"] .ant-table-thead > tr > th {
+  background: rgba(11, 143, 214, 0.06) !important;
+  color: #46556d !important;
+}
+[data-theme="light"] .ant-descriptions-bordered .ant-descriptions-item-label { background: #f6f9fd !important; }
+[data-theme="light"] .ant-empty-description { color: #5c6e88 !important; }
+
 /* 臂对比条形 */
 .acc-bar { height: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.25); overflow: hidden; }
 .acc-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--neon), var(--neon-2)); transition: width .4s ease; }

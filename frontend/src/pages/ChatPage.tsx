@@ -5,10 +5,11 @@ import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type 
 
 const { Text } = Typography;
 
-/** 按对话内容（主题）分组，而不是按时间。 */
+/** 按对话内容（主题）分组，而不是按时间；游泳优先于跑步，避免"游泳成绩"被归到跑步。 */
 function topicOf(title: string): string {
   const t = title.toLowerCase();
-  if (/5k|跑步|成绩|配速|pb|跑/.test(t)) return "跑步记录";
+  if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(t)) return "游泳记录";
+  if (/5k|跑步|配速|跑|pb|半马|全马/.test(t)) return "跑步记录";
   if (/模型|你是谁|介绍一下|deepseek|minimax/.test(t)) return "模型与身份";
   if (/记住|记忆|存下|保存/.test(t)) return "记忆写入";
   if (/你好|hi|hello|聊天/.test(t)) return "闲聊";
