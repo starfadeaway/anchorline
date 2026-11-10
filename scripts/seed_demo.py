@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-from sqlalchemy import delete, select  # noqa: E402
+from sqlalchemy import delete, select, update  # noqa: E402
 
 from anchorline.db import session_factory  # noqa: E402
 from anchorline.memory.store import FactStore  # noqa: E402
@@ -29,8 +29,12 @@ def main() -> int:
     db = session_factory()()
     now = datetime.now()
     try:
-        # 清旧种子
-        db.execute(delete(Fact).where(Fact.entity_id == ENTITY))
+        # 清旧种子（先解除自引用外键，再删）
+        demo_ids = [f.id for f in db.scalars(select(Fact).where(Fact.entity_id == ENTITY)).all()]
+        if demo_ids:
+            db.execute(update(Fact).where(Fact.supersedes_id.in_(demo_ids)).values(supersedes_id=None))
+            db.execute(delete(Fact).where(Fact.id.in_(demo_ids)))
+            db.commit()
         old_sessions = list(db.scalars(select(ChatSession).where(ChatSession.topic.in_(TOPICS))).all())
         # 只删 topic 在演示集合且无真实消息的会话（避免误删用户真实数据）
         demo_sessions = []
@@ -107,8 +111,37 @@ def main() -> int:
                     operator="seed",
                 )
             )
+        # 演示冲突（3 组）：直接用 ORM 造 current 事实（绕过 write 的自动失效），
+        # 2 组自动裁决（进“裁决历史”），1 组留作待裁决（审核页可操作）
+        def make_pair(attr_a: str, value_a: str, attr_b: str, value_b: str, days: int):
+            a = Fact(entity_id=ENTITY, attribute=attr_a, value=value_a, valid_from=now - timedelta(days=days))
+            b = Fact(entity_id=ENTITY, attribute=attr_b, value=value_b, valid_from=now - timedelta(days=max(0, days - 2)))
+            db.add_all([a, b])
+            db.flush()
+            return a, b
+
+        def decide(kept_fact, invalidated, reason: str) -> None:
+            for f in invalidated:
+                f.valid_to = now
+            db.add(
+                ReviewDecision(
+                    entity_id=ENTITY,
+                    attribute=kept_fact.attribute,
+                    kept_fact_id=kept_fact.id,
+                    invalidated_fact_ids=json.dumps([f.id for f in invalidated], ensure_ascii=False),
+                    reason=reason,
+                    operator="seed",
+                )
+            )
+
+        a1, b1 = make_pair("跑步 配速", "5:30/km", "跑步 目标配速", "5:00/km", 20)
+        decide(a1, [b1], "demo: 保留实测配速，目标配速作废")
+        a2, b2 = make_pair("饮食 偏好", "清淡少油", "饮食 禁忌", "不吃辣", 15)
+        decide(b2, [a2], "demo: 保留禁忌（更严格）")
+        make_pair("工作 项目", "Anchorline 记忆层", "工作 目标", "写完 M3 主实验", 5)  # 留待裁决
+
         db.commit()
-        print(f"seeded: facts(user:demo) + {len(session_ids)} sessions + traces + 1 decision")
+        print(f"seeded: facts(user:demo) + {len(session_ids)} sessions + traces + 3 conflicts (2 decided, 1 pending)")
     finally:
         db.close()
     return 0
