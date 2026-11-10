@@ -22,6 +22,7 @@ def write_eval_runs(
     budget: int = 4000,
     judge_model: str | None = None,
     judge_prompt_sha256: str | None = None,
+    scoring_mode: str = "deterministic",
 ) -> int:
     if not rows:
         return 0
@@ -56,6 +57,7 @@ def write_eval_runs(
                         judge_model=judge_model,
                         judge_prompt_sha256=judge_prompt_sha256,
                         config_hash=cfg,
+                        scoring_mode=scoring_mode,
                     )
                 )
             db.commit()

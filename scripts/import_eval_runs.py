@@ -54,6 +54,7 @@ def main() -> int:
             "budget": 4000,
             "judge_model": d.get("judge_model") or s.deepseek_judge_model,
             "judge_prompt_sha256": d.get("judge_prompt_sha256"),
+            "scoring_mode": "judge",
         }
         total += write_eval_runs("B", b_rows, s.deepseek_reader_model, **kw)
         total += write_eval_runs("D", d_rows, s.deepseek_reader_model, **kw)

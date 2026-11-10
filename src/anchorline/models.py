@@ -118,6 +118,8 @@ class EvalRun(Base):
     budget_tokens: Mapped[int] = mapped_column(Integer)
     question_id: Mapped[str] = mapped_column(String(64), index=True)
     score: Mapped[float] = mapped_column(Float)
+    # deterministic = 官方确定性判分（不调 LLM，judge 列留空）；judge = LLM 判分
+    scoring_mode: Mapped[str] = mapped_column(String(16), default="deterministic")
     reader_model: Mapped[str] = mapped_column(String(128))
     judge_model: Mapped[str | None] = mapped_column(String(128))
     judge_prompt_sha256: Mapped[str | None] = mapped_column(String(64))
