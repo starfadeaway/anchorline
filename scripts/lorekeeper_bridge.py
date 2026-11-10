@@ -110,7 +110,7 @@ def chunk_hybrid_pages(
     tbl, rows, bm25 = data["tbl"], data["rows"], data["bm25"]
     tokens = [t for t in jieba.lcut(question) if t.strip()]
     scores = bm25.get_scores(tokens)
-    bm_ids = [i for i in sorted(range(len(rows)), key=lambda i: -float(scores[i])) if scores[i] > 0][:30]
+    bm_ids = [rows[i]["id"] for i in sorted(range(len(rows)), key=lambda i: -float(scores[i])) if scores[i] > 0][:30]
     vec_rows = vector_search(tbl, vec, 20)
     vec_ids = [r["id"] for r in vec_rows]
 

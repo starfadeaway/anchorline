@@ -1,0 +1,581 @@
+{
+ "note": "auto-generated: per gold page, the most similar chunk to the question",
+ "rows": [
+  {
+   "case_id": "sr-001",
+   "game": "sr",
+   "question": "光锥「我」的诞生是几星？属于什么命途？",
+   "gold_chunks": [
+    {
+     "page": "「我」的诞生",
+     "chunk_id": "sr-647-0001",
+     "score": 0.5853
+    }
+   ]
+  },
+  {
+   "case_id": "sr-002",
+   "game": "sr",
+   "question": "位面饰品太空封印站的两件套效果是什么？",
+   "gold_chunks": [
+    {
+     "page": "太空封印站",
+     "chunk_id": "sr-1494-0000",
+     "score": 0.733
+    }
+   ]
+  },
+  {
+   "case_id": "sr-003",
+   "game": "sr",
+   "question": "凝滞虚影「巽风之形」在哪个地图，需要多少开拓力？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 巽风之形",
+     "chunk_id": "sr-10261-0000",
+     "score": 0.7084
+    }
+   ]
+  },
+  {
+   "case_id": "sr-004",
+   "game": "sr",
+   "question": "NPC 阿然的称号是什么？",
+   "gold_chunks": [
+    {
+     "page": "阿然",
+     "chunk_id": "sr-10913-0000",
+     "score": 0.6011
+    }
+   ]
+  },
+  {
+   "case_id": "sr-005",
+   "game": "sr",
+   "question": "不老者的仙舟两件套对速度有什么要求？满足后加什么？",
+   "gold_chunks": [
+    {
+     "page": "不老者的仙舟",
+     "chunk_id": "sr-1498-0000",
+     "score": 0.7203
+    }
+   ]
+  },
+  {
+   "case_id": "sr-006",
+   "game": "sr",
+   "question": "凝滞虚影「空海之形」的实现版本和可能获取的物品是什么？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 空海之形",
+     "chunk_id": "sr-10230-0000",
+     "score": 0.7371
+    }
+   ]
+  },
+  {
+   "case_id": "sr-008",
+   "game": "sr",
+   "question": "太空封印站给攻击力 1000 的角色能加多少攻击力？",
+   "gold_chunks": [
+    {
+     "page": "太空封印站",
+     "chunk_id": "sr-1494-0004",
+     "score": 0.6805
+    }
+   ]
+  },
+  {
+   "case_id": "sr-007",
+   "game": "sr",
+   "question": "我攻击力不够还想更快，用哪个位面饰品比较合适？",
+   "gold_chunks": [
+    {
+     "page": "太空封印站",
+     "chunk_id": "sr-1494-0000",
+     "score": 0.6487
+    }
+   ]
+  },
+  {
+   "case_id": "sr-011",
+   "game": "sr",
+   "question": "我暴击率总是差一点到线，想让普攻和战技伤害更高，选哪个位面饰品？",
+   "gold_chunks": [
+    {
+     "page": "繁星竞技场",
+     "chunk_id": "sr-4303-0000",
+     "score": 0.6709
+    }
+   ]
+  },
+  {
+   "case_id": "sr-012",
+   "game": "sr",
+   "question": "队伍里效果抵抗不够高，想让全队的暴击伤害更高，有什么套装？",
+   "gold_chunks": [
+    {
+     "page": "折断的龙骨",
+     "chunk_id": "sr-4304-0004",
+     "score": 0.5964
+    }
+   ]
+  },
+  {
+   "case_id": "sr-013",
+   "game": "sr",
+   "question": "我想让开战斗就抢先手，有没有什么位面饰品能帮忙？",
+   "gold_chunks": [
+    {
+     "page": "生命的翁瓦克",
+     "chunk_id": "sr-1506-0000",
+     "score": 0.5947
+    }
+   ]
+  },
+  {
+   "case_id": "sr-014",
+   "game": "sr",
+   "question": "带召唤物一起打本的时候，怎么进一步提升暴击伤害？",
+   "gold_chunks": [
+    {
+     "page": "奇想蕉乐园",
+     "chunk_id": "sr-13607-0000",
+     "score": 0.5982
+    }
+   ]
+  },
+  {
+   "case_id": "sr-015",
+   "game": "sr",
+   "question": "火属性的首领打不动，wiki 上说应该用什么属性配队比较好？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 炎华之形",
+     "chunk_id": "sr-10263-0000",
+     "score": 0.4786
+    }
+   ]
+  },
+  {
+   "case_id": "sr-016",
+   "game": "sr",
+   "question": "位面饰品繁星竞技场的暴击率门槛是多少？达到后提升什么伤害？",
+   "gold_chunks": [
+    {
+     "page": "繁星竞技场",
+     "chunk_id": "sr-4303-0000",
+     "score": 0.7443
+    }
+   ]
+  },
+  {
+   "case_id": "sr-017",
+   "game": "sr",
+   "question": "凝滞虚影「职司之形」是哪个版本实装的？在什么位置？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 职司之形",
+     "chunk_id": "sr-11747-0000",
+     "score": 0.6766
+    }
+   ]
+  },
+  {
+   "case_id": "sr-018",
+   "game": "sr",
+   "question": "凝滞虚影「凛月之形」的属性是什么？可能掉什么？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 凛月之形",
+     "chunk_id": "sr-17772-0000",
+     "score": 0.7235
+    }
+   ]
+  },
+  {
+   "case_id": "sr-019",
+   "game": "sr",
+   "question": "凝滞虚影「天人之形」在哪个地图？什么版本实装？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 天人之形",
+     "chunk_id": "sr-10292-0000",
+     "score": 0.7141
+    }
+   ]
+  },
+  {
+   "case_id": "sr-020",
+   "game": "sr",
+   "question": "NPC 阿来的称号和职业分别是什么？",
+   "gold_chunks": [
+    {
+     "page": "阿来",
+     "chunk_id": "sr-13122-0000",
+     "score": 0.595
+    }
+   ]
+  },
+  {
+   "case_id": "sr-021",
+   "game": "sr",
+   "question": "位面饰品生命的翁瓦克两件套提升多少能量恢复效率？",
+   "gold_chunks": [
+    {
+     "page": "生命的翁瓦克",
+     "chunk_id": "sr-1506-0000",
+     "score": 0.795
+    }
+   ]
+  },
+  {
+   "case_id": "sr-022",
+   "game": "sr",
+   "question": "位面饰品奇想蕉乐园是什么时候实装的？只能从哪里获取？",
+   "gold_chunks": [
+    {
+     "page": "奇想蕉乐园",
+     "chunk_id": "sr-13607-0000",
+     "score": 0.6891
+    }
+   ]
+  },
+  {
+   "case_id": "sr-023",
+   "game": "sr",
+   "question": "光锥「我」的诞生的基础生命值是多少？技能名称是什么？",
+   "gold_chunks": [
+    {
+     "page": "「我」的诞生",
+     "chunk_id": "sr-647-0001",
+     "score": 0.6848
+    }
+   ]
+  },
+  {
+   "case_id": "sr-024",
+   "game": "sr",
+   "question": "凝滞虚影「炎华之形」可能遭遇哪些敌人？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 炎华之形",
+     "chunk_id": "sr-10263-0000",
+     "score": 0.7022
+    }
+   ]
+  },
+  {
+   "case_id": "sr-025",
+   "game": "sr",
+   "question": "位面饰品折断的龙骨对效果抵抗的门槛是多少？达到后提升的是谁的暴击伤害？",
+   "gold_chunks": [
+    {
+     "page": "折断的龙骨",
+     "chunk_id": "sr-4304-0000",
+     "score": 0.7446
+    }
+   ]
+  },
+  {
+   "case_id": "sr-026",
+   "game": "sr",
+   "question": "凝滞虚影「空海之形」的关卡属性标的是什么？它建议的配队属性有哪些？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 空海之形",
+     "chunk_id": "sr-10230-0000",
+     "score": 0.75
+    }
+   ]
+  },
+  {
+   "case_id": "sr-027",
+   "game": "sr",
+   "question": "凝滞虚影「凛月之形」在什么位置？需要多少开拓力？",
+   "gold_chunks": [
+    {
+     "page": "凝滞虚影 • 凛月之形",
+     "chunk_id": "sr-17772-0000",
+     "score": 0.722
+    }
+   ]
+  },
+  {
+   "case_id": "sr-028",
+   "game": "sr",
+   "question": "位面饰品奇想蕉乐园的基础暴击伤害提升是多少？有召唤目标时总共提升多少？",
+   "gold_chunks": [
+    {
+     "page": "奇想蕉乐园",
+     "chunk_id": "sr-13607-0000",
+     "score": 0.742
+    }
+   ]
+  },
+  {
+   "case_id": "sr-029",
+   "game": "sr",
+   "question": "位面饰品繁星竞技场给暴击率 50% 的角色能加多少暴击率？",
+   "gold_chunks": [
+    {
+     "page": "繁星竞技场",
+     "chunk_id": "sr-4303-0000",
+     "score": 0.7137
+    }
+   ]
+  },
+  {
+   "case_id": "sr-030",
+   "game": "sr",
+   "question": "位面饰品折断的龙骨给效果抵抗 25% 的角色，暴击伤害能提高多少？",
+   "gold_chunks": [
+    {
+     "page": "折断的龙骨",
+     "chunk_id": "sr-4304-0000",
+     "score": 0.7567
+    }
+   ]
+  },
+  {
+   "case_id": "sr-032",
+   "game": "sr",
+   "question": "位面饰品太空封印站的三件套效果是什么？",
+   "gold_chunks": [
+    {
+     "page": "太空封印站",
+     "chunk_id": "sr-1494-0000",
+     "score": 0.7336
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-002",
+   "game": "zzz",
+   "question": "艾莲属于哪个阵营？是什么属性的代理人？",
+   "gold_chunks": [
+    {
+     "page": "艾莲",
+     "chunk_id": "zzz-718-0000",
+     "score": 0.6554
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-003",
+   "game": "zzz",
+   "question": "艾莲是限定代理人吗？稀有度几星？",
+   "gold_chunks": [
+    {
+     "page": "艾莲",
+     "chunk_id": "zzz-718-0000",
+     "score": 0.6375
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-004",
+   "game": "zzz",
+   "question": "安比是什么属性、什么特性？属于哪个阵营？",
+   "gold_chunks": [
+    {
+     "page": "安比",
+     "chunk_id": "zzz-187-0011",
+     "score": 0.593
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-005",
+   "game": "zzz",
+   "question": "爱丽丝属于哪个阵营？稀有度和限定情况如何？",
+   "gold_chunks": [
+    {
+     "page": "爱丽丝",
+     "chunk_id": "zzz-2997-0000",
+     "score": 0.5921
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-006",
+   "game": "zzz",
+   "question": "音擎「电磁暴」-壹式是几星音擎？攻击力词条是多少？",
+   "gold_chunks": [
+    {
+     "page": "「电磁暴」-壹式",
+     "chunk_id": "zzz-960-0000",
+     "score": 0.7502
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-007",
+   "game": "zzz",
+   "question": "「电磁暴」-壹式可以通过什么途径获得？",
+   "gold_chunks": [
+    {
+     "page": "「电磁暴」-壹式",
+     "chunk_id": "zzz-960-0000",
+     "score": 0.7579
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-008",
+   "game": "zzz",
+   "question": "安比的空洞鸣徽是什么？",
+   "gold_chunks": [
+    {
+     "page": "安比",
+     "chunk_id": "zzz-187-0000",
+     "score": 0.6327
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-009",
+   "game": "zzz",
+   "question": "艾莲的战斗定位是什么？怎么造成伤害？",
+   "gold_chunks": [
+    {
+     "page": "艾莲",
+     "chunk_id": "zzz-718-0016",
+     "score": 0.6618
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-010",
+   "game": "zzz",
+   "question": "哪个绝区零代理人属于怪啖屋、是靠属性异常打输出的？",
+   "gold_chunks": [
+    {
+     "page": "爱丽丝",
+     "chunk_id": "zzz-2997-0000",
+     "score": 0.5027
+    }
+   ]
+  },
+  {
+   "case_id": "zzz-011",
+   "game": "zzz",
+   "question": "艾莲的生命值、攻击力、防御力分别是多少？",
+   "gold_chunks": [
+    {
+     "page": "艾莲",
+     "chunk_id": "zzz-718-0001",
+     "score": 0.6847
+    }
+   ]
+  },
+  {
+   "case_id": "ys-001",
+   "game": "ys",
+   "question": "散失的草神瞳是什么类型的道具？用来做什么？",
+   "gold_chunks": [
+    {
+     "page": "散失的草神瞳",
+     "chunk_id": "ys-65654-0000",
+     "score": 0.7329
+    }
+   ]
+  },
+  {
+   "case_id": "ys-002",
+   "game": "ys",
+   "question": "散失的草神瞳是怎么获得的？",
+   "gold_chunks": [
+    {
+     "page": "散失的草神瞳",
+     "chunk_id": "ys-65654-0000",
+     "score": 0.7089
+    }
+   ]
+  },
+  {
+   "case_id": "ys-003",
+   "game": "ys",
+   "question": "岩之印是几星的什么东西？",
+   "gold_chunks": [
+    {
+     "page": "岩之印",
+     "chunk_id": "ys-4363-0000",
+     "score": 0.6926
+    }
+   ]
+  },
+  {
+   "case_id": "ys-004",
+   "game": "ys",
+   "question": "岩之印能用来干什么？",
+   "gold_chunks": [
+    {
+     "page": "岩之印",
+     "chunk_id": "ys-4363-0000",
+     "score": 0.7088
+    }
+   ]
+  },
+  {
+   "case_id": "ys-005",
+   "game": "ys",
+   "question": "冒险家的稀有度范围是多少？",
+   "gold_chunks": [
+    {
+     "page": "冒险家",
+     "chunk_id": "ys-838-0000",
+     "score": 0.717
+    }
+   ]
+  },
+  {
+   "case_id": "ys-006",
+   "game": "ys",
+   "question": "冒险家的两件套效果是什么？",
+   "gold_chunks": [
+    {
+     "page": "冒险家",
+     "chunk_id": "ys-838-0000",
+     "score": 0.6502
+    }
+   ]
+  },
+  {
+   "case_id": "ys-007",
+   "game": "ys",
+   "question": "冒险家的四件套效果是什么？",
+   "gold_chunks": [
+    {
+     "page": "冒险家",
+     "chunk_id": "ys-838-0000",
+     "score": 0.664
+    }
+   ]
+  },
+  {
+   "case_id": "ys-008",
+   "game": "ys",
+   "question": "冒险家可以通过哪些途径获得？",
+   "gold_chunks": [
+    {
+     "page": "冒险家",
+     "chunk_id": "ys-838-0000",
+     "score": 0.7272
+    }
+   ]
+  },
+  {
+   "case_id": "ys-009",
+   "game": "ys",
+   "question": "哪个道具是浓烈的草元素能量积聚成的？有什么用？",
+   "gold_chunks": [
+    {
+     "page": "散失的草神瞳",
+     "chunk_id": "ys-65654-0000",
+     "score": 0.6241
+    }
+   ]
+  }
+ ]
+}

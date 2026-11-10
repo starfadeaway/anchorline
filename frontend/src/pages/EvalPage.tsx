@@ -112,7 +112,7 @@ export default function EvalPage() {
                     <div style={{ lineHeight: 1.8 }}>
                       <div>· 数据：LoreKeeper 的 56 题评测集（48 题有 gold_pages）+ 三库 chunk 索引（bge-m3 1024 维，10,843 chunk）。</div>
                       <div>· 查询向量与 LoreKeeper 原生一致（BAAI/bge-m3），只替换检索策略。</div>
-                      <div>· <b>chunk 级</b>：融合与纯向量持平，rerank 轻微有害；</div>
+                      <div>· <b>chunk 级</b>：纯向量 R@1 0.8542；RRF 单用有害（0.7917）；<b>RRF + rerank 0.8958</b>（+4.17pp）；</div>
                       <div>· <b>页面级重排</b>：按页面聚合后再 rerank，Recall@1 <b>0.854 → 0.917</b>（+3 题、0 反向，+6.25pp；置换检验 p=0.25 → <b>方向正确、样本不足不称显著</b>）。</div>
                     </div>
                   }

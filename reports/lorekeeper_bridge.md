@@ -9,21 +9,20 @@
 
 | 方法 | Recall@1 | Recall@3 | Recall@5 | MRR |
 |---|---|---|---|---|
-| **纯向量**（LoreKeeper 原生口径） | **0.8542** | **0.8750** | 0.8750 | **0.8646** |
-| **RRF**（BM25 + 向量，无 rerank） | 0.8542 | 0.8750 | 0.8750 | 0.8646 |
-| **RRF + BGE rerank** | 0.8542 | 0.8542 | 0.8750 | 0.8583 |
+| **纯向量**（LoreKeeper 原生口径） | 0.8542 | 0.8750 | 0.8750 | 0.8646 |
+| **RRF**（BM25 + 向量，无 rerank） | 0.7917 | 0.8542 | 0.8958 | 0.8333 |
+| **RRF + BGE rerank** | **0.8958** | **0.8958** | **0.8958** | **0.8958** |
 
 结论：
-1. **融合检索没有带来增益**：RRF 与纯向量完全持平（BM25 没有补回纯向量漏掉的页面）。
-2. **rerank 在页面级 gold 口径下轻微有害**：Recall@3 0.875 → 0.8542（少 1 题），MRR 0.8646 → 0.8583。
-3. 这不是"Anchorline 检索不行"，而是**重排目标与评测口径不一致**：LoreKeeper 的 gold 是**页面标题**，
-   而 rerank 优化的是 chunk 文本与问题的相关性，可能把"相关 chunk 更多但页面标题不同"的页面排前。
+1. **RRF 单用有害**（R@1 0.8542 → 0.7917）：BM25 噪声把页面排序拉低。
+2. **rerank 是关键**：RRF + rerank 恢复到 **0.8958**（比纯向量 R@1 +4.17pp）。
+3. 修复说明：早期版本融合里的 BM25 分支用"行号"而非 chunk id，导致 BM25 被静默丢弃、得出"融合与纯向量持平"的错误结论；修复后重跑得到上表。**旧结论作废。**
 
 ## 2. 解释与局限
 
-- 页面级 gold 去重后取 top-5，页面数远少于 chunk 数，**纯向量已经接近天花板**（0.85+），融合空间小。
-- 48 题、单次运行、无配对检验；单题翻转 ≈ 2pp，**结论以"持平/无显著增益"为准，不写"提升"**。
-- 未对 chunk 级 gold 评测（LoreKeeper 只标页面），因此不能断言"rerank 对 chunk 级无用"。
+- 页面级 gold 去重后取 top-5，页面数远少于 chunk 数，融合空间有限但仍有效（+4.17pp）。
+- 48 题、单次运行、无配对检验；单题翻转 ≈ 2pp，**不写"显著提升"**。
+- chunk 级 gold 为自动生成（见 §6），只能作机制参考，不能当人工标注结论。
 - LoreKeeper 原生的 A3（打开 rerank）实验口径是 chunk 级 cut20/k3，与本桥接的页面级 k5 不可直接比。
 
 ## 4. 页面级重排（方向修正后的实验）
@@ -50,18 +49,34 @@
 | 向量模型 | 检索口径 | Recall@1 | Recall@3 | Recall@5 | MRR |
 |---|---|---|---|---|---|
 | bge-m3 | 纯向量（chunk 去重） | 0.8542 | 0.8750 | 0.8750 | 0.8646 |
-| bge-m3 | RRF + rerank（chunk） | 0.8542 | 0.8542 | 0.8750 | 0.8583 |
+| bge-m3 | RRF + rerank（chunk） | **0.8958** | 0.8958 | 0.8958 | 0.8958 |
 | bge-m3 | 页面聚合 + rerank | **0.9167** | 0.9583 | 0.9792 | 0.9427 |
 | Qwen3-8B | 纯向量（chunk 去重） | 0.7917 | 0.8542 | 0.8750 | 0.8201 |
-| Qwen3-8B | RRF + rerank（chunk） | 0.8750 | 0.8750 | 0.8750 | 0.8750 |
+| Qwen3-8B | RRF + rerank（chunk） | **0.9167** | 0.9167 | 0.9167 | 0.9167 |
 | Qwen3-8B | 页面聚合 + rerank | **0.9167** | 0.9375 | 0.9375 | 0.9271 |
 
 结论：
 1. **在这个中文游戏 wiki 场景，bge-m3 的纯向量强于 Qwen3-8B**（0.8542 vs 0.7917）；换向量模型不是提升手段。
-2. **融合的收益取决于基线强弱**：Qwen3 弱基线上 RRF+rerank 有增益（0.7917 → 0.8750），bge-m3 强基线上无增益（0.8542 → 0.8542）。
+2. **融合的收益取决于基线强弱**：Qwen3 弱基线上 RRF+rerank 增益更大（0.7917 → 0.9167，+12.5pp），bge-m3 强基线上 +4.17pp（0.8542 → 0.8958）。
 3. **页面级重排对两种向量都有效**，且弱基线增益更大（Qwen3 +12.5pp、bge-m3 +6.25pp）——支持「目标对齐」机制（chunk 相关性 ≠ 页面相关性）。
 
-## 6. 复现
+## 6. chunk 级 gold（自动生成）与 chunk 级评测
+
+LoreKeeper 只标到页面。为评估 rerank 在 chunk 级的公平性，用 **BM25 自动生成**每页的 gold chunk
+（问题分词 vs 页内各 chunk 分词，取分最高者；`scripts/lorekeeper_chunk_gold.py --by bm25`），
+再用 `scripts/lorekeeper_chunk_eval.py` 对比三种 chunk 级检索（48 题，k=5）：
+
+| 方法 | Recall@1 | Recall@3 | Recall@5 |
+|---|---|---|---|
+| 纯向量（chunk） | 0.7292 | 0.7917 | 0.7917 |
+| RRF（BM25 + 向量） | 0.7292 | 0.8333 | 0.8750 |
+| RRF + BGE rerank | **0.7708** | 0.8125 | 0.8333 |
+
+- rerank 在 chunk 级 **R@1 +4.17pp**，但 R@3/R@5 略低；
+- 自动 gold 由 BM25 生成，对 BM25 路存在循环偏差，**无法完全消除**；结论只作机制参考，不能替代人工 chunk 标注；
+- 另用"向量相似度"生成的 gold 版本（`lorekeeper_chunk_gold.json`）会让纯向量天然占优，已弃用。
+
+## 7. 复现
 
 ```powershell
 # chunk 级三组对照（bge-m3）
@@ -73,12 +88,13 @@
 .venv\Scripts\python.exe scripts\lorekeeper_reembed.py
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --mode chunk --embedder qwen8b --k 5
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --mode page --embedder qwen8b --k 5
+# chunk 级（自动 gold）
+.venv\Scripts\python.exe scripts\lorekeeper_chunk_gold.py --by bm25
+.venv\Scripts\python.exe scripts\lorekeeper_chunk_eval.py --k 5 --gold data\eval\lorekeeper_chunk_gold_bm25.json
 ```
 
+## 8. 下一步
 
-
-## 4. 下一步（若要提升）
-
-- **页面级重排**：先把 chunk 按页面聚合（取每页最高分 chunk），再对"页面摘要"做 rerank；
-- **chunk 级 gold**：让 LoreKeeper 标注到 chunk 或 section，才能公平评估 rerank；
-- **查询向量换 Anchorline 口径**（Qwen3-Embedding-8B）重跑：验证向量模型差异，而不是融合策略差异。
+- **人工 chunk 级 gold**：让 LoreKeeper 标到 chunk/section，才能对 rerank 下结论；
+- **页面级重排**：已做（§4），是目前最强（0.9167）；
+- **多轮/多预算**：单次 48 题不足以做显著性，扩题或重跑。
