@@ -220,17 +220,17 @@ export default function MemoryPage() {
   };
 
   const columns = [
-    { title: "实体", dataIndex: "entity_id", width: 90, ellipsis: true },
-    { title: "属性", dataIndex: "attribute", width: 120, ellipsis: true },
-    { title: "值", dataIndex: "value", width: 300 },
+    { title: "实体", dataIndex: "entity_id", width: "10%", ellipsis: true },
+    { title: "属性", dataIndex: "attribute", width: "14%", ellipsis: true },
+    { title: "值", dataIndex: "value", width: "30%" },
     {
       title: "状态",
-      width: 80,
+      width: "8%",
       render: (_: unknown, r: Fact) => (r.valid_to ? <Tag>已失效</Tag> : <Tag color="green">当前</Tag>),
     },
     {
       title: "生效时间",
-      width: 150,
+      width: "15%",
       render: (_: unknown, r: Fact) => (
         <span>
           {new Date(r.valid_from).toLocaleString()}
@@ -240,9 +240,9 @@ export default function MemoryPage() {
     },
     {
       title: "操作",
-      width: 140,
+      width: "23%",
       render: (_: unknown, r: Fact) => (
-        <Space size={8}>
+        <div className="action-buttons">
           <Tooltip title="查看历史">
             <Button
               icon={<HistoryOutlined />}
@@ -258,9 +258,9 @@ export default function MemoryPage() {
             <Button danger icon={<StopOutlined />} disabled={!!r.valid_to} onClick={() => invalidateFact(r)} />
           </Tooltip>
           <Tooltip title="彻底删除">
-            <Button danger type="text" icon={<DeleteOutlined />} onClick={() => deleteFact(r)} />
+            <Button danger icon={<DeleteOutlined />} onClick={() => deleteFact(r)} />
           </Tooltip>
-        </Space>
+        </div>
       ),
     },
   ];
@@ -386,7 +386,7 @@ export default function MemoryPage() {
                       当前占比 <b>{rows.length ? Math.round((cur / rows.length) * 100) : 0}%</b>
                     </div>
                   </div>
-                  <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" tableLayout="fixed" scroll={{ x: 880 }} />
+                  <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" tableLayout="fixed" scroll={{ x: 720 }} />
                 </div>
               ),
             };

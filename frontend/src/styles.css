@@ -456,3 +456,7 @@ input,
 @media (max-width: 1100px) {
   .hamburger { display: inline-flex !important; }
 }
+
+/* 操作列：三个按钮均分撑满单元格，左右留白 */
+.action-buttons { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 0 6px; }
+.action-buttons .ant-btn { flex: 1; min-width: 32px; }
