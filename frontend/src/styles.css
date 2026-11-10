@@ -154,7 +154,10 @@ input,
   background: rgba(0, 212, 255, 0.10);
   box-shadow: inset 2px 0 0 var(--neon);
 }
-.session-title { color: var(--text); font-size: 13px; line-height: 1.4; margin-bottom: 2px; }
+.session-title {
+  color: var(--text); font-size: 13px; line-height: 1.4; margin-bottom: 2px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 
 /* 消息时间 */
 .msg-time { margin-left: 8px; font-size: 10px; color: var(--weak); letter-spacing: 0; }
@@ -348,7 +351,10 @@ input,
   background: rgba(0, 212, 255, 0.10);
   box-shadow: inset 2px 0 0 var(--neon);
 }
-.session-title { color: var(--text); font-size: 13px; line-height: 1.4; margin-bottom: 2px; }
+.session-title {
+  color: var(--text); font-size: 13px; line-height: 1.4; margin-bottom: 2px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 
 .tool-item { margin-bottom: 8px; }
 .tool-item pre {
@@ -409,3 +415,31 @@ input,
   .chat-grid { grid-template-columns: 1fr; }
   .app-content { padding: 10px; }
 }
+
+/* 聊天消息：用户右侧 / 模型左侧的气泡，支持 Markdown 表格与代码 */
+.msg { margin-bottom: 14px; max-width: 88%; }
+.msg-user { margin-left: auto; }
+.msg-user .msg-role, .msg-assistant .msg-role { display: flex; align-items: center; gap: 6px; }
+.msg-user .msg-role { justify-content: flex-end; }
+.msg-user .msg-body {
+  background: rgba(0, 212, 255, .10);
+  border: 1px solid rgba(0, 212, 255, .22);
+  border-radius: 12px 12px 4px 12px;
+  padding: 10px 12px;
+}
+.msg-assistant .msg-body {
+  background: var(--panel, rgba(255, 255, 255, .03));
+  border: 1px solid var(--line);
+  border-radius: 12px 12px 12px 4px;
+  padding: 10px 12px;
+}
+.msg-body > *:first-child { margin-top: 0; }
+.msg-body > *:last-child { margin-bottom: 0; }
+.msg-body p { margin: 6px 0; }
+.msg-body table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 12px; }
+.msg-body th, .msg-body td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; }
+.msg-body th { background: rgba(0, 212, 255, .08); }
+.msg-body code { padding: 1px 4px; border-radius: 4px; background: rgba(0, 212, 255, .10); font-size: 12px; }
+.msg-body pre { padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, .25); overflow: auto; }
+.msg-body blockquote { margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--line); color: var(--weak); }
+.msg-thinking { color: var(--weak); font-style: italic; }

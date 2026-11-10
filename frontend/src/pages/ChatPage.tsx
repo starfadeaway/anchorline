@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, Card, Collapse, Descriptions, Empty, Input, List, message, Segmented, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { DownloadOutlined, PlusOutlined, SettingOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { canonicalTopic } from "../topics";
 import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type Recall, type SettingsOut, type TraceRow } from "../api";
 
 const { Text } = Typography;
@@ -22,8 +25,8 @@ function topicOf(title: string): string {
 function groupByTopic(sessions: ChatSession[]): [string, ChatSession[]][] {
   const m = new Map<string, ChatSession[]>();
   for (const s of sessions) {
-    // 优先用模型生成的主题（s.topic），回退关键词规则
-    const k = (s.topic && s.topic.trim()) || topicOf(s.title);
+    // 统一词表：模型 topic 或标题关键词 → 规范分组（两页共用同一套命名）
+    const k = canonicalTopic(s.topic || s.title);
     m.set(k, [...(m.get(k) ?? []), s]);
   }
   return [...m.entries()];
@@ -224,7 +227,7 @@ export default function ChatPage() {
                 <Link to="/sessions"><Button size="small" icon={<SettingOutlined />} /></Link>
               </Tooltip>
               <Tooltip title="导出当前会话 Markdown">
-                <Button size="small" icon={<DownloadOutlined />} onClick={exportMarkdown} />
+                <Button size="small" icon={<DownloadOutlined />} onClick={exportMarkdown}>导出</Button>
               </Tooltip>
             </Space>
           }
@@ -284,12 +287,18 @@ export default function ChatPage() {
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）" />
             )}
             {messages.map((m, i) => (
-              <div key={i} className="msg msg-enter">
+              <div key={i} className={`msg msg-${m.role} msg-enter`}>
                 <div className="msg-role">
                   {m.role === "user" ? "你" : "Anchorline"}
                   {m.created_at && <span className="msg-time">{new Date(m.created_at).toLocaleTimeString()}</span>}
                 </div>
-                <div className="msg-body">{m.content}</div>
+                <div className="msg-body">
+                  {m.role === "assistant" && !m.content.trim() ? (
+                    <span className="msg-thinking">正在思考…</span>
+                  ) : (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                  )}
+                </div>
               </div>
             ))}
             {trace && (

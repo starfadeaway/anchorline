@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Card, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
+import { topicOfText } from "../topics";
 
 const { Text } = Typography;
 
@@ -28,14 +29,8 @@ function formatRelative(iso: string, now: Date): string {
 }
 
 function topicOfFact(f: Fact): string {
-  const s = `${f.entity_id} ${f.attribute} ${f.value}`.toLowerCase();
-  if (/mcp|test|check/.test(s)) return "测试数据";
-  if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(s)) return "游泳记录";
-  if (/乒乓球|羽毛球|网球|篮球|足球|排球|台球|球类/.test(s)) return "球类运动";
-  if (/5k|跑步|配速|跑|pb|半马|全马/.test(s)) return "跑步记录";
-  if (/体重|身高|体脂|睡眠|心率|health/.test(s)) return "身体数据";
-  if (/模型|model/.test(s)) return "模型与配置";
-  return "其他";
+  // 与聊天页共用同一套词表（topics.ts），避免两页分组命名不一致
+  return topicOfText(`${f.entity_id} ${f.attribute} ${f.value}`);
 }
 
 /** 分段环形图：当前/失效两段，hover 段加粗突起并显示数据；加载时有转圈动画。 */

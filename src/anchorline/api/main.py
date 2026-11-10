@@ -449,6 +449,38 @@ def _persist_turn(
         db.rollback()
 
 
+TOPIC_CANON = [
+    ("饮食", "饮食偏好"),
+    ("跑步", "跑步记录"),
+    ("5k", "跑步记录"),
+    ("游泳", "游泳记录"),
+    ("乒乓", "球类运动"),
+    ("球类", "球类运动"),
+    ("健身", "健身记录"),
+    ("身体", "身体数据"),
+    ("模型", "模型与配置"),
+    ("配置", "模型与配置"),
+    ("宠物", "宠物"),
+    ("旅行", "旅行"),
+    ("出差", "出差"),
+    ("工作", "工作"),
+    ("项目", "工作"),
+    ("记忆", "记忆写入"),
+    ("闲聊", "闲聊"),
+]
+
+
+def _canonical_topic(topic: str) -> str:
+    """把模型生成或历史遗留的 topic 归一到统一词表（与前端 topics.ts 对齐）。"""
+    t = (topic or "").strip()
+    if not t:
+        return "其他"
+    for kw, name in TOPIC_CANON:
+        if t.startswith(kw) or kw in t:
+            return name
+    return t if len(t) <= 8 else "其他"
+
+
 def _gen_topic_bg(sid: str, text: str, model: str) -> None:
     """后台生成会话主题（独立 DB session；不占用响应时间）。"""
     if not sid or not text.strip():
@@ -461,7 +493,7 @@ def _gen_topic_bg(sid: str, text: str, model: str) -> None:
         if row is not None and not row.topic:
             topic = _gen_topic(text[:400], model)
             if topic:
-                row.topic = topic
+                row.topic = _canonical_topic(topic)
                 db.commit()
     except Exception:
         db.rollback()
