@@ -49,6 +49,23 @@ def _params():
     )
 
 
+@pytest.fixture(autouse=True)
+def _cleanup_mcp():
+    """MCP 测试写的是真实库（stdio server 读 .env），跑完清掉 user:mcp 事实。"""
+    yield
+    from sqlalchemy import delete
+
+    from anchorline.db import session_factory
+    from anchorline.models import Fact
+
+    db = session_factory()()
+    try:
+        db.execute(delete(Fact).where(Fact.entity_id == "user:mcp"))
+        db.commit()
+    finally:
+        db.close()
+
+
 @pytest.mark.asyncio
 async def test_mcp_tools_roundtrip():
     # 唯一 attribute，保证测试可重复跑（上次 forget 会把旧 fact 置为失效）
