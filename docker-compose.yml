@@ -18,11 +18,11 @@ services:
     build: .
     env_file: .env
     environment:
-      ANCHORLINE_MYSQL_HOST: mysql
-      ANCHORLINE_MYSQL_PORT: "3306"
-      ANCHORLINE_MYSQL_DATABASE: anchorline
-      ANCHORLINE_MYSQL_USER: root
-      ANCHORLINE_MYSQL_PASSWORD: root
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: anchorline
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
     depends_on:
       mysql:
         condition: service_healthy

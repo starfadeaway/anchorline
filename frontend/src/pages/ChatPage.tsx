@@ -150,9 +150,13 @@ export default function ChatPage() {
     const withPlaceholder = [...next, { role: "assistant" as const, content: "", created_at: new Date().toISOString() }];
     setMessages(withPlaceholder);
     try {
+      const token = window.localStorage.getItem("anchorline-token");
       const resp = await fetch("/api/chat/stream", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "X-API-Token": token } : {}),
+        },
         body: JSON.stringify({ messages: next, max_steps: 8, model, session_id: active }),
       });
       if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);

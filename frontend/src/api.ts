@@ -198,6 +198,7 @@ export const api = {
   writeFact: (body: { entity_id: string; attribute: string; value: string; valid_from?: string }) =>
     json<{ fact_id: string; supersedes: string | null; archived?: number }>("/api/memory/write", post(body)),
   capacity: () => json<Capacity>("/api/memory/capacity"),
+  listTraces: (limit = 20) => json<TraceRow[]>(`/api/traces?limit=${limit}`),
   forget: (body: { entity_id: string; attribute: string; at?: string }) =>
     json<{ fact_id: string }>("/api/memory/forget", post(body)),
   invalidate: (id: string) => json<{ fact_id: string }>(`/api/memory/facts/${id}/invalidate`, post({})),

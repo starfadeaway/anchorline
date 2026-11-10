@@ -35,8 +35,8 @@ export default function ReviewPage() {
     void load();
   }, []);
 
-  const decide = async (group: { entity_id: string; facts: ConflictFact[] }) => {
-    const keepId = kept[group.entity_id];
+  const decide = async (group: { entity_id: string; facts: ConflictFact[] }, gid: string) => {
+    const keepId = kept[gid];
     if (!keepId) {
       message.warning("先选择要保留的那一条");
       return;
@@ -47,11 +47,11 @@ export default function ReviewPage() {
         entity_id: group.entity_id,
         kept_fact_id: keepId,
         invalidated_fact_ids: group.facts.filter((f) => f.id !== keepId).map((f) => f.id),
-        reason: reason[group.entity_id] ?? "",
+        reason: reason[gid] ?? "",
       });
       message.success("裁决已记录：保留 1 条，其余标记失效");
-      setKept((s) => ({ ...s, [group.entity_id]: "" }));
-      setReason((s) => ({ ...s, [group.entity_id]: "" }));
+      setKept((s) => ({ ...s, [gid]: "" }));
+      setReason((s) => ({ ...s, [gid]: "" }));
       void load();
     } catch (e) {
       message.error(String(e));
@@ -123,9 +123,11 @@ export default function ReviewPage() {
               groups.length === 0 ? (
                 <Text type="secondary">没有需要审核的冲突 🎉</Text>
               ) : (
-                groups.map((g) => (
+                groups.map((g, idx) => {
+                  const gid = `${g.entity_id}#${idx}`;
+                  return (
                   <Card
-                    key={g.entity_id}
+                    key={gid}
                     size="small"
                     style={{ marginBottom: 10 }}
                     title={<Space><Text strong>{g.entity_id}</Text><Tag>{g.facts.length} 个当前值</Tag></Space>}
@@ -137,23 +139,24 @@ export default function ReviewPage() {
                       rowKey="id"
                       size="small"
                       dataSource={g.facts}
-                      columns={conflictColumns(g.entity_id)}
+                      columns={conflictColumns(gid)}
                       pagination={false}
                       tableLayout="fixed"
                     />
                     <Space style={{ marginTop: 10 }} wrap>
                       <Input
                         placeholder="裁决原因（可选）"
-                        value={reason[g.entity_id] ?? ""}
-                        onChange={(e) => setReason((s) => ({ ...s, [g.entity_id]: e.target.value }))}
+                        value={reason[gid] ?? ""}
+                        onChange={(e) => setReason((s) => ({ ...s, [gid]: e.target.value }))}
                         style={{ width: 320 }}
                       />
-                      <Button type="primary" loading={busy === g.entity_id} onClick={() => void decide(g)}>
+                      <Button type="primary" loading={busy === gid} onClick={() => void decide(g, gid)}>
                         裁决：保留选中，其余失效
                       </Button>
                     </Space>
                   </Card>
-                ))
+                  );
+                })
               ),
           },
           {

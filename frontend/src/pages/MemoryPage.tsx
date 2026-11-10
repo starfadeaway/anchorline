@@ -29,10 +29,9 @@ function formatRelative(iso: string, now: Date): string {
 }
 
 function topicOfFact(f: Fact): string {
-  // 实体前缀优先（大模型.* → 模型与配置；user.宠物 → 宠物），否则按属性关键词
+  // 大模型实体 → 模型与配置；其余按「实体 + 属性」的内容匹配（与 topics.ts / 后端一致）
   if (/^大模型/.test(f.entity_id)) return "模型与配置";
-  if (/^user\.[^:]/.test(f.entity_id)) return "宠物";
-  return topicOfText(f.attribute);
+  return topicOfText(`${f.entity_id} ${f.attribute}`);
 }
 
 /** 分段环形图：当前/失效两段，hover 段加粗突起并显示数据；加载时有转圈动画。 */
@@ -116,9 +115,9 @@ export default function MemoryPage() {
     void load();
   }, []);
   useEffect(() => {
-    fetch("/api/traces?limit=12")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows: TraceRow[]) => setTraces(rows))
+    api
+      .listTraces(12)
+      .then((rows) => setTraces(rows))
       .catch(() => setTraces([]));
   }, []);
 
@@ -185,7 +184,12 @@ export default function MemoryPage() {
   const submitAdd = async () => {
     try {
       const v = await form.validateFields();
-      const res = await api.writeFact(v);
+      const eventDate = String(v.event_date ?? "").trim();
+      const res = await api.writeFact({
+        entity_id: v.entity_id,
+        attribute: v.attribute,
+        value: eventDate ? `${v.value}（日期 ${eventDate}）` : v.value,
+      });
       setAddOpen(false);
       form.resetFields();
       if (res.archived && res.archived > 0) {
@@ -429,8 +433,8 @@ export default function MemoryPage() {
           <Form.Item name="value" label="值" rules={[{ required: true }]}>
             <Input placeholder="如 25:50" />
           </Form.Item>
-          <Form.Item name="valid_from" label="事件日期（可选；生效时间仍按记录时间）">
-            <Input placeholder="2023-05-30T00:00:00" />
+          <Form.Item name="event_date" label="事件日期（可选，仅写入到值文本；生效时间始终按记录时间）">
+            <Input placeholder="2023-05-30" />
           </Form.Item>
         </Form>
       </Modal>

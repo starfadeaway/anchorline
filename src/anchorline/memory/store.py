@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -50,6 +50,7 @@ class FactStore:
         confidence: float = 1.0,
         fact_type: str = "semantic",
         conflict_type: str | None = None,
+        supersedes_id: str | None = None,
     ) -> Fact:
         # 规范实体：把属性误写成实体（user.乒乓球经历 且后缀=属性）时归回 user
         if isinstance(entity_id, str) and entity_id.startswith("user.") and entity_id[5:] == attribute:
@@ -81,17 +82,24 @@ class FactStore:
             self.db.flush()
             return existing
 
+        # 显式 supersedes：在 store 内统一完成「失效旧事实 + 建立链接」（工具层不再自行改 valid_to）
+        supersedes: str | None = None
+        explicit = self.db.get(Fact, supersedes_id) if supersedes_id else None
+        if explicit is not None:
+            if explicit.valid_to is None:
+                explicit.valid_to = valid_from
+            supersedes = explicit.id
+
         old = self.current(entity_id, attribute)
-        supersedes_id: str | None = None
         if old is not None:
             if valid_from >= old.valid_from:
                 # 新值更晚或同时：旧事实失效（不删除），有效区间截止到新值生效时刻
                 old.valid_to = valid_from
-                supersedes_id = old.id
+                supersedes = supersedes or old.id
             else:
                 # 乱序补写更早的事实：插入为历史区间，不改变当前值；
                 # 该历史事实的有效期截止到当前事实的生效时间。
-                supersedes_id = None
+                supersedes = supersedes or None
         # attribute 名变了（如 5K_personal_best → 5K 最好成绩（PB）→ 5k_pb）：
         # 同一实体下共享关键词的当前值视为「同一属性的更新」，自动失效（历史保留）。
         new_tokens = _attr_tokens(attribute)
@@ -108,7 +116,7 @@ class FactStore:
                     continue
                 if _attr_tokens(cand.attribute) & new_tokens:
                     cand.valid_to = valid_from
-                    supersedes_id = supersedes_id or cand.id
+                    supersedes = supersedes or cand.id
 
         fact = Fact(
             entity_id=entity_id,
@@ -121,7 +129,7 @@ class FactStore:
             confidence=confidence,
             fact_type=fact_type,
             conflict_type=conflict_type,
-            supersedes_id=supersedes_id,
+            supersedes_id=supersedes,
         )
         self.db.add(fact)
         self.db.flush()
@@ -179,7 +187,7 @@ class FactStore:
         cur = self.current(entity_id, attribute)
         if cur is None:
             return None
-        cur.valid_to = at or datetime.now(timezone.utc)
+        cur.valid_to = at or datetime.now()
         self.db.commit()
         return cur
 

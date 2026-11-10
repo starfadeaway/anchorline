@@ -111,7 +111,9 @@ def main():
     print("saved:", path)
     from eval_db import write_eval_runs
 
-    write_eval_runs("B", results, Settings().deepseek_reader_model)
+    # 只有 154 题 n=1 的主跑才写 v2-web；A/A（20 题 × 10 次）不覆盖主跑结果
+    if args.limit == 154 and args.n == 1:
+        write_eval_runs("B", results, Settings().deepseek_reader_model)
 
 
 if __name__ == "__main__":

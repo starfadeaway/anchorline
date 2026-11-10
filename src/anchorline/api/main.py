@@ -13,7 +13,7 @@ import os
 import re
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request
@@ -941,7 +941,7 @@ def create_review_decision(body: ReviewDecisionIn, db: Session = Depends(get_db)
     kept = db.get(Fact, body.kept_fact_id)
     if kept is None:
         raise HTTPException(status_code=404, detail="kept fact not found")
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     invalidated: list[str] = []
     for fid in body.invalidated_fact_ids:
         if fid == kept.id:
@@ -1067,7 +1067,7 @@ def invalidate_fact(fact_id: str, db: Session = Depends(get_db)) -> dict[str, st
     if fact is None:
         raise HTTPException(status_code=404, detail="fact not found")
     if fact.valid_to is None:  # 幂等：已失效的不重复写
-        fact.valid_to = datetime.now(timezone.utc)
+        fact.valid_to = datetime.now()
         db.commit()
         try:
             from anchorline.retrieval import facts_index

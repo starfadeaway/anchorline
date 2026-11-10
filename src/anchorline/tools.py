@@ -13,7 +13,6 @@ from typing import Any, Callable
 
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore
-from anchorline.models import Fact
 
 
 @dataclass(frozen=True)
@@ -96,12 +95,7 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
         # 记忆的「生效时间」= 写入/记录时间（会话时间），不是对话里提到的事件日期；
         # 事件日期应保留在 value 文本中（如 "25:50（日期 2023-05-30）"）。
         record_time = datetime.now()
-        # 可选：显式指定要覆盖的旧事实（agent 先 search 拿到旧 id，再 write）
-        if supersedes_id:
-            old = store.db.get(Fact, supersedes_id)
-            if old is not None and old.valid_to is None:
-                old.valid_to = record_time
-                store.db.flush()
+        # 显式 supersedes 交给 FactStore.write 统一处理（同一事务里失效旧事实 + 建链）
         fact = store.write(
             entity_id=entity_id,
             attribute=attribute,
@@ -110,6 +104,7 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
             confidence=confidence,
             source_session_id=source_session_id or session_id,
             conflict_type=conflict_type,
+            supersedes_id=supersedes_id,
         )
         # 同步向量索引（失败不影响写入）
         try:
@@ -194,7 +189,7 @@ TOOL_SCHEMAS = [
                     },
                     "conflict_type": {
                         "type": "string",
-                        "enum": ["时效", "数值", "否定", "无"],
+                        "enum": ["时效", "语义", "偏好反转", "无"],
                         "description": "可选：这次写入与旧值的冲突类型",
                     },
                 },
