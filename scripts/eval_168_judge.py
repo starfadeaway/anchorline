@@ -161,7 +161,7 @@ def main() -> int:
         f.write("\n".join(lines))
 
     print(json.dumps({k: v for k, v in summary.items() if k != "gotchas_rows"}, ensure_ascii=False, indent=1, default=float))
-    print("written:", OUT_JSON, OUT_MD)
+    print("written:", args.out, args.md_out)
     return 0
 
 
