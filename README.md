@@ -45,8 +45,9 @@ dataset/                   # 数据与核验产物（大文件不入库）
 - **M0a/M0b 完成**：G1 15/15 自洽（k=0）；V1-KU 72 题标注完成（63/9/6）
 - **M1 完成**：L0/L1/L2/L3、事实存储（supersedes + 容量归档）、LangGraph 聊天（真实 tool calling）、MCP 三工具、FastAPI、Alembic
 - **M2 前端完成**：聊天（会话主题分组/召回明细）、记忆（主题分组/环形图/删除）、评测（臂对比/Trace/LoreKeeper 桥接）、审核（冲突裁决金标）、报告、监控、会话管理、设置（主题色/日夜）
-- **M3 评测（同 reader/embedding/判分/4k 预算）**：B 53.9% / C2 57.1% / D 64.9%（154 题，D vs B p=0.0116）；168 题 B 53.3% vs D 63.6%（165 有效，p=0.0193）
-- **LoreKeeper 桥接实验**：48 题页面级召回，纯向量与 Anchorline 融合持平（0.8542 / 0.8750 / MRR 0.8646）；**页面级重排**把 Recall@1 提到 0.9167（+3 题、0 反向，p=0.25 方向正确不显著）→ 见 `reports/lorekeeper_bridge.md`
+- **M3 评测（同 reader/embedding/判分/4k 预算）**：B 53.9% / C2 57.1% / D 64.9%（154 题，D vs B p=0.0116）；168 题 run2 B 53.3% vs D 63.6%（p=0.0193）、run3 B 56.3% vs D 64.7%（p=0.054 边缘）；重复运行单题翻转 ~12%，D>B 两次都显著 → `reports/stability_runs.md`
+- **M3 2×2 因子**：B（a11y×官方切片）/ C2（a11y×L0+L3）/ C1（完整轨迹×官方切片）/ D（完整轨迹×L0+L3），配对检验 → `reports/m3_2x2.md`
+- **LoreKeeper 桥接实验**：48 题页面级召回——纯向量 R@1 0.8542；chunk 级 RRF 单用有害（0.7917）、**RRF+rerank 0.8958（+4.17pp）**；**页面级重排 0.9167**；chunk 级自动 gold 与换向量口径见 `reports/lorekeeper_bridge.md`
 
 ## 快速开始
 
