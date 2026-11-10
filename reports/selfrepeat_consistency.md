@@ -28,11 +28,13 @@
 - 第二遍 vs 人类 gold 的 `new_value` 语义 **16/16**，高于第一遍的 15/16（v3.2 修正后）；
 - `conflict_type` 3/16 坐实是协议词表版本差异（第一遍按协议词表全填「时效」，与 gold 72/72 一致）。
 
-## 3. 待决（明天）
+## 3. 仲裁结果（2026-11-10，协议 v3.22）
 
-1. **role 词表冲突**：拍板用 `current/stale/abstention`，协议与 gold 用 `current/old/null`（`stale`≡`old`）。需定：改协议还是改产物（或只做映射）。
-2. **协议文件头版本号** `v2` 未修（正文实为 v3.2）。
-3. `5831f84d` 的 `stale_value`：原始产物保留 `12`、v3.2 副本为 `10`；是否把 `10` 作为正式值（人类 gold 也是 `10`）。
+1. **role 词表**：协议与产物两处都改，统一为 `current / stale / abstention`；历史 gold 中 `old`≡`stale`、`null`≡`abstention`，比对时按映射。
+2. **`b01defab` 的 `stale_value`**：仲裁为 `null`（推翻 v3.2 #10 对该题的适用；该状态“未发生”）。
+3. **`5831f84d` 的 `stale_value`**：正式用 `10`（v3.2 #11，问题时间窗优先）。
+4. **协议版本号**：`v2` → **v3.22**（`docs/annotation-protocol-ku78.md`）。
+5. 包内 README 的 retrospective 表述已改为 spec 口径（`new_value`=当前值B、`stale_value`=旧值A、`gold_session_index`=1）。
 
 ## 4. 局限
 

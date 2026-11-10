@@ -1,6 +1,6 @@
 # knowledge-update 78 题标注协议（M0 交付物）
 
-> 版本：v2（二次修正，撤回首版「8/72 日期方向相反」）｜日期：2026-11-07｜配套：`DATASET_LICENSES.md`
+> 版本：v3.22（v3.2 + 2026-11-10 仲裁：role 词表统一 `current/stale/abstention`；`5831f84d` 的 `stale_value` 正式用 `10`；`b01defab` 仲裁为 `null`）｜日期：2026-11-10｜配套：`DATASET_LICENSES.md`
 > 主集：LongMemEval-S（`longmemeval_s_cleaned.json`，revision `98d7416c24c778c2fee6e6f3006e7a073259d48f`）
 > 本协议产出的是**层 1 主指标的 gold**，且**分三层**：层 1a 现行值题 / 层 1b 回溯题 / 层 1c 拒答题。
 
@@ -105,7 +105,7 @@
 | `query_form` | enum | `current` / `retrospective` / `abstention` | **问句形态（新增，必填）**。`current`=问当前状态；`retrospective`=问旧值（问句含 `initially/previous/before/first N months` 等回溯限定词）；`abstention`=该拒答。**这一列决定层 1 的分母分层，见 §5。** |
 | `new_value` | str | 自标（或官方 answer） | **语义当前值**。current 题通常等于官方 answer；retrospective 题是**较晚 session 的当前值**。⚠️ v3 起不再定义为「官方 answer 只读」——该定义与 §2「retrospective 的 answer 是旧值」自相矛盾，pilot 已暴露 |
 | `official_answer` | str | 只读 | 官方 `answer` 原样，仅用于追溯，不参与指标计算 |
-| `official_answer_role` | enum | `current` / `old` / null | 官方 answer 是当前值（current 题）还是旧值（retrospective 题）；abstention 为 null |
+| `official_answer_role` | enum | `current` / `stale` / `abstention` | 官方 answer 是当前值（current 题）还是旧值（retrospective 题，`stale`）；abstention 题填 `abstention`。v3.22 起统一词表：历史数据与 gold 中的 `old`≡`stale`、`null`≡`abstention` |
 | `official_answer_session_index` | int | `0` / `1` / null | 官方 answer 所在 gold session 的**相对索引**（0=较早，1=较晚）；abstention 为 null |
 | `stale_value` | str / null | 自标 | 旧事实的**具体值**（不是整句）。**null = 无旧值（首次发生）**：例 `22d2cb42`（旧状态是"还没送修"）、`5c40ec5b`（旧状态是"还没见面"）——候选店名/计划不算旧值。`stale_value=null` 的题不参与"过期事实率"计算 |
 | `stale_source_session_id` | str | `answer_*` | 旧值所在 gold session id |
@@ -427,4 +427,11 @@ pilot 通过后才批量标剩余题。**若 pilot 显示 schema 不够，改 sc
 |---|---|---|
 | 10 | **布尔事实的旧状态为 `No` 时填 `No`，不填 null**。`null` 只用于「该事实此前从未存在」 | `b01defab`：S1「读到一半暂时搁置」= 旧值 `No`；MiniMax 误判为 null。而 `22d2cb42`（未送修）、`5c40ec5b`（未见面）才是「从未存在」 |
 | 11 | **问题时间窗优先于累计口径** | `5831f84d`：题目问 `in the past few weeks`，旧值取同口径的 `10`，不取同 session 的累计 `12` |
+
+### v3.22 补充（2026-11-10 人工仲裁，覆盖 v3.2 的相关条目）
+
+| # | 规则 | 依据 |
+|---|---|---|
+| 12 | **`official_answer_role` 统一为 `current / stale / abstention`**：协议与产物两处都改；历史 gold 中的 `old`≡`stale`、`null`≡`abstention`，比对时按映射 | 词表冲突（拍板 `stale` vs 协议 `old`）导致自重复一致率口径不一 |
+| 13 | **`b01defab` 的 `stale_value` 仲裁为 `null`**（推翻 #10 对该题的适用：S1「读到一半暂时搁置」按“该状态未发生”处理，不记 `No`）；**`5831f84d` 的 `stale_value` 正式用 `10`**（#11） | 人工仲裁 2026-11-10；产物与 README 已同步 |
 
