@@ -25,7 +25,7 @@ from anchorline.llm import embedding_client, reader_client  # noqa: E402
 from anchorline.retrieval.store import open_table  # noqa: E402
 
 OUT_JSON = os.path.join(ROOT, "data", "eval", "c2_arm_154.json")
-OUT_MD = os.path.join(ROOT, "docs", "c2_arm_154.md")
+OUT_MD = os.path.join(ROOT, "reports", "c2_arm_154.md")
 B_REF = os.path.join(ROOT, "data", "eval", "b_arm_154_v2.json")
 
 
