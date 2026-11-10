@@ -4,7 +4,14 @@ import { api, type ReviewDecision } from "../api";
 
 const { Paragraph, Text } = Typography;
 
-type ConflictFact = { id: string; attribute: string; value: string; valid_from: string; confidence: number };
+type ConflictFact = {
+  id: string;
+  attribute: string;
+  value: string;
+  valid_from: string;
+  confidence: number;
+  source_session_id?: string | null;
+};
 
 /** 审核页：冲突裁决（选一个保留、其余失效 + 原因），并展示裁决金标历史。 */
 export default function ReviewPage() {
@@ -64,15 +71,26 @@ export default function ReviewPage() {
         />
       ),
     },
-    { title: "属性", dataIndex: "attribute", width: "16%" },
-    { title: "值", dataIndex: "value", width: "32%" },
+    { title: "属性", dataIndex: "attribute", width: "14%" },
+    { title: "值", dataIndex: "value", width: "28%" },
+    {
+      title: "来源会话",
+      dataIndex: "source_session_id",
+      width: "13%",
+      render: (v?: string | null) =>
+        v ? (
+          <Text code>{v.slice(0, 8)}</Text>
+        ) : (
+          <Text type="secondary">—</Text>
+        ),
+    },
     {
       title: "置信度",
       dataIndex: "confidence",
-      width: "12%",
+      width: "10%",
       render: (v: number) => <Tag color={v >= 0.9 ? "green" : v >= 0.7 ? "blue" : "orange"}>{Math.round(v * 100)}%</Tag>,
     },
-    { title: "生效时间", dataIndex: "valid_from", width: "24%", render: (v: string) => new Date(v).toLocaleString() },
+    { title: "生效时间", dataIndex: "valid_from", width: "22%", render: (v: string) => new Date(v).toLocaleString() },
   ];
 
   const decisionColumns = [

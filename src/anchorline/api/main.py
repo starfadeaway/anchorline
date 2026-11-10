@@ -1017,6 +1017,7 @@ def review_conflicts(db: Session = Depends(get_db)) -> list[ConflictEntity]:
                                 "value": f.value,
                                 "valid_from": f.valid_from.isoformat(),
                                 "confidence": f.confidence,
+                                "source_session_id": f.source_session_id,
                             }
                             for f in c
                         ],
