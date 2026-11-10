@@ -123,8 +123,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install backend
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .
+          D:\Python3135\python.exe -m pip install --upgrade pip
+          D:\Python3135\python.exe -m pip install -e ".[dev]"
       - name: Migrate (local MySQL)
         run: D:\Python3135\python.exe -m alembic upgrade head
       - name: Start API
