@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""评测结果落库（eval_runs 表）：幂等写入，DB 不可用时静默跳过。
+"""评测结果落库（eval_runs 表）：逐题 upsert（不删整臂），DB 不可用时静默跳过。
 
 各评测脚本在写完 JSON 后调用：write_eval_runs(arm, rows, reader_model, benchmark, budget)。
-rows 需含 question_id 与 mean。
+rows 需含 question_id 与 mean。小样本评测只替换本次涉及的题，不会清掉该臂其它题。
 """
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ def write_eval_runs(
     benchmark: str = "v2-web",
     budget: int = 4000,
 ) -> int:
+    if not rows:
+        return 0
     try:
         from sqlalchemy import delete
 
@@ -22,11 +24,14 @@ def write_eval_runs(
 
         db = session_factory()()
         try:
+            qids = [str(r["question_id"]) for r in rows]
+            # 只删本次要写的题（逐题 upsert），保留该臂其它题的结果
             db.execute(
                 delete(EvalRun).where(
                     EvalRun.benchmark == benchmark,
                     EvalRun.arm == arm,
                     EvalRun.budget_tokens == budget,
+                    EvalRun.question_id.in_(qids),
                 )
             )
             for r in rows:
@@ -41,7 +46,7 @@ def write_eval_runs(
                     )
                 )
             db.commit()
-            print(f"eval_runs: wrote {len(rows)} rows (arm={arm}, benchmark={benchmark})")
+            print(f"eval_runs: upserted {len(rows)} rows (arm={arm}, benchmark={benchmark})")
             return len(rows)
         finally:
             db.close()

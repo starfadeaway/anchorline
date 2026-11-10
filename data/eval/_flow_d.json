@@ -1,0 +1,38 @@
+{
+ "config": {
+  "arm": "D_full_trajectory_L0_L3",
+  "reader_model": "deepseek-flash",
+  "embedding_model": "Qwen/Qwen3-Embedding-8B",
+  "temperature": 1.0,
+  "budget_tokens": 4000,
+  "top_k": 6,
+  "n_questions": 2,
+  "n_per_question": 1
+ },
+ "d_accuracy": 0,
+ "b_accuracy_reference": 0.5714285714285714,
+ "paired_diff_d_minus_b_mean": -0.5,
+ "paired_diff_d_minus_b_median": -0.5,
+ "paired_permutation_pvalue": 1.0,
+ "per_question": [
+  {
+   "question_id": "2c45ecbb",
+   "scores": [
+    0
+   ],
+   "mean": 0,
+   "span": 0,
+   "context_tokens_mean": 4000
+  },
+  {
+   "question_id": "07b49858",
+   "scores": [
+    0
+   ],
+   "mean": 0,
+   "span": 0,
+   "context_tokens_mean": 4000
+  }
+ ],
+ "elapsed_s": 37.2
+}
