@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Checkbox, Collapse, Drawer, Dropdown, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
-import { DownloadOutlined, MoreOutlined } from "@ant-design/icons";
+import { Alert, Button, Card, Checkbox, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Tooltip, Typography, message } from "antd";
+import { DeleteOutlined, DownloadOutlined, HistoryOutlined, StopOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
 import { topicOfText } from "../topics";
 
@@ -240,30 +240,23 @@ export default function MemoryPage() {
     },
     {
       title: "操作",
-      width: "8%",
+      width: 120,
       render: (_: unknown, r: Fact) => (
-        <Dropdown
-          trigger={["click"]}
-          menu={{
-            items: [
-              { key: "history", label: "历史" },
-              { key: "invalidate", label: "标记失效", disabled: !!r.valid_to },
-              { type: "divider" },
-              { key: "delete", label: "删除", danger: true },
-            ],
-            onClick: ({ key }) => {
-              if (key === "history") {
-                api.history(r.id).then(setHistory).catch((e) => message.error(String(e)));
-              } else if (key === "invalidate") {
-                invalidateFact(r);
-              } else if (key === "delete") {
-                deleteFact(r);
-              }
-            },
-          }}
-        >
-          <Button size="small" icon={<MoreOutlined />} />
-        </Dropdown>
+        <Space size={6}>
+          <Tooltip title="查看历史">
+            <Button
+              size="small"
+              icon={<HistoryOutlined />}
+              onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}
+            />
+          </Tooltip>
+          <Tooltip title={r.valid_to ? "已失效" : "标记失效"}>
+            <Button size="small" danger icon={<StopOutlined />} disabled={!!r.valid_to} onClick={() => invalidateFact(r)} />
+          </Tooltip>
+          <Tooltip title="彻底删除">
+            <Button size="small" danger type="text" icon={<DeleteOutlined />} onClick={() => deleteFact(r)} />
+          </Tooltip>
+        </Space>
       ),
     },
   ];
@@ -389,7 +382,7 @@ export default function MemoryPage() {
                       当前占比 <b>{rows.length ? Math.round((cur / rows.length) * 100) : 0}%</b>
                     </div>
                   </div>
-                  <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" tableLayout="fixed" style={{ width: "100%" }} />
+                  <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" tableLayout="fixed" scroll={{ x: 960 }} />
                 </div>
               ),
             };
