@@ -5,6 +5,13 @@ import { expect, test } from "@playwright/test";
  * 依赖后端 API（127.0.0.1:8000）与 MySQL；CI 里不跑（见 .github/workflows/ci.yml）。
  */
 
+// 空库 runner 也能断言记忆页：先注入一条事实（本地/CI 都可重复执行）
+test.beforeAll(async ({ request }) => {
+  await request.post("/api/memory/write", {
+    data: { entity_id: "user:e2e", attribute: "e2e_probe", value: "ok" },
+  });
+});
+
 test("聊天页：标题、模型切换、输入框", async ({ page }) => {
   await page.goto("/chat");
   await expect(page.getByText("ANCHORLINE")).toBeVisible();
