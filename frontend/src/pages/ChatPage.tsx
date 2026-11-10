@@ -29,7 +29,15 @@ function groupByTopic(sessions: ChatSession[]): [string, ChatSession[]][] {
     const k = canonicalTopic([s.topic, s.title].filter(Boolean).join(" "));
     m.set(k, [...(m.get(k) ?? []), s]);
   }
-  return [...m.entries()];
+  // 组内按最新会话倒序；组之间按各自最新会话时间倒序（与记忆页一致：越新越前）
+  for (const rows of m.values()) {
+    rows.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+  return [...m.entries()].sort((a, b) => {
+    const ta = Math.max(...a[1].map((s) => new Date(s.created_at).getTime()));
+    const tb = Math.max(...b[1].map((s) => new Date(s.created_at).getTime()));
+    return tb - ta;
+  });
 }
 
 function parseToolCalls(raw: string | null): { name: string; arguments: string }[] {

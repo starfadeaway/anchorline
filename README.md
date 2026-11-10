@@ -33,12 +33,30 @@
 ```text
 src/anchorline/            # 记忆层（L0/L1/L2/L3）、检索（hybrid/facts_index）、图（chat/workflows）、API、MCP
 frontend/                  # React 前端（聊天/记忆/评测/审核/报告/监控/会话管理/设置）
-migrations/                # Alembic（0001 初始、0002 session.topic、0003 trace.recalls、0004 review_decisions）
+migrations/                # Alembic（0001 初始 → 0007：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode 等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
-tests/                     # pytest（54 项）
+tests/                     # pytest（90 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
+
+## 界面截图
+
+| 聊天（用户右 / 模型左、Markdown 表格、会话主题分组） | 记忆（分组 / 越新越前 / 分组导出） |
+|---|---|
+| ![聊天](docs/screenshots/01-chat.png) | ![记忆](docs/screenshots/02-memory.png) |
+
+| 评测（臂对比 + A/A 噪声底） | 审核（冲突裁决金标） |
+|---|---|
+| ![评测](docs/screenshots/03-eval.png) | ![审核](docs/screenshots/04-review.png) |
+
+| 报告中心 | 监控（延迟 / 错误率 / trace） |
+|---|---|
+| ![报告](docs/screenshots/05-reports.png) | ![监控](docs/screenshots/06-monitor.png) |
+
+| 设置（模型 / 预算 / 主题 / API Token） |
+|---|
+| ![设置](docs/screenshots/07-settings.png) |
 
 ## 当前状态
 

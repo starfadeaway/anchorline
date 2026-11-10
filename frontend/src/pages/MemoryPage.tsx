@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
+import { Alert, Button, Card, Checkbox, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
 import { topicOfText } from "../topics";
@@ -29,8 +29,10 @@ function formatRelative(iso: string, now: Date): string {
 }
 
 function topicOfFact(f: Fact): string {
-  // 与聊天页共用同一套词表（topics.ts），避免两页分组命名不一致
-  return topicOfText(`${f.entity_id} ${f.attribute} ${f.value}`);
+  // 实体前缀优先（大模型.* → 模型与配置；user.宠物 → 宠物），否则按属性关键词
+  if (/^大模型/.test(f.entity_id)) return "模型与配置";
+  if (/^user\.[^:]/.test(f.entity_id)) return "宠物";
+  return topicOfText(f.attribute);
 }
 
 /** 分段环形图：当前/失效两段，hover 段加粗突起并显示数据；加载时有转圈动画。 */
@@ -92,6 +94,8 @@ export default function MemoryPage() {
   const [q, setQ] = useState("");
   const [history, setHistory] = useState<Fact[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportSelected, setExportSelected] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [form] = Form.useForm();
   const now = useNow();
@@ -137,7 +141,13 @@ export default function MemoryPage() {
       if (topic === "测试数据") continue; // 不展示测试数据
       m.set(topic, [...(m.get(topic) ?? []), f]);
     }
-    return [...m.entries()];
+    // 组内：越新越前（按生效时间）；组：按组内最新一条倒序
+    for (const rows of m.values()) {
+      rows.sort((a, b) => new Date(b.valid_from).getTime() - new Date(a.valid_from).getTime());
+    }
+    return [...m.entries()].sort(
+      (a, b) => new Date(b[1][0].valid_from).getTime() - new Date(a[1][0].valid_from).getTime(),
+    );
   }, [filtered]);
 
   const visible = groups.reduce((n, [, rows]) => n + rows.length, 0);
@@ -163,9 +173,12 @@ export default function MemoryPage() {
     }
   };
 
-  const exportMarkdown = () => {
-    const lines = [`# Anchorline 记忆导出`, "", `- 导出时间：${new Date().toLocaleString()}`, `- 事实：${visible}（当前 ${current} / 失效 ${stale}）`, ""];
-    for (const [topic, rows] of groups) {
+  const exportMarkdown = (topics: string[] = groups.map(([t]) => t)) => {
+    const selected = groups.filter(([t]) => topics.includes(t));
+    const n = selected.reduce((acc, [, rows]) => acc + rows.length, 0);
+    const cur = selected.reduce((acc, [, rows]) => acc + rows.filter((f) => !f.valid_to).length, 0);
+    const lines = [`# Anchorline 记忆导出`, "", `- 导出时间：${new Date().toLocaleString()}`, `- 分组：${topics.join("、")}`, `- 事实：${n}（当前 ${cur} / 失效 ${n - cur}）`, ""];
+    for (const [topic, rows] of selected) {
       lines.push(`## ${topic}`, "");
       for (const f of rows) {
         lines.push(
@@ -175,7 +188,8 @@ export default function MemoryPage() {
       lines.push("");
     }
     downloadMarkdown(`anchorline-memory-${Date.now()}.md`, lines.join("\n"));
-    message.success("已导出 Markdown");
+    message.success(`已导出 ${topics.length} 组 Markdown`);
+    setExportOpen(false);
   };
 
   const columns = [
@@ -275,7 +289,7 @@ export default function MemoryPage() {
           >
             清空失效
           </Button>
-          <Button icon={<DownloadOutlined />} onClick={exportMarkdown}>导出 Markdown</Button>
+          <Button icon={<DownloadOutlined />} onClick={() => { setExportSelected(groups.map(([t]) => t)); setExportOpen(true); }}>导出 Markdown</Button>
           <Button onClick={() => void load()}>刷新</Button>
         </Space>
       }
@@ -392,6 +406,15 @@ export default function MemoryPage() {
           }))}
         />
       </Drawer>
+
+      <Modal open={exportOpen} onCancel={() => setExportOpen(false)} title="选择要导出的分组" okText="导出选中" onOk={() => exportMarkdown(exportSelected)}>
+        <Checkbox.Group
+          style={{ display: "flex", flexDirection: "column", gap: 8 }}
+          options={groups.map(([t, rows]) => ({ label: `${t}（${rows.length} 条）`, value: t }))}
+          value={exportSelected}
+          onChange={(v) => setExportSelected(v as string[])}
+        />
+      </Modal>
 
       <Modal open={addOpen} onCancel={() => setAddOpen(false)} onOk={() => void submitAdd()} title="新增事实" okText="写入">
         <Form form={form} layout="vertical">
