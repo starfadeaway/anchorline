@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   backend:
@@ -105,4 +106,45 @@ jobs:
         working-directory: frontend
         run: npm run e2e
 
+  # 本地 self-hosted runner（Windows）：用本机 MySQL，不需要 services 容器。
+  # 需要 runner 进程环境里提供 ANCHORLINE_MYSQL_PASSWORD（本机 MySQL 密码）。
+  e2e-local:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: [self-hosted, Windows, e2e]
+    env:
+      ANCHORLINE_MYSQL_HOST: "127.0.0.1"
+      ANCHORLINE_MYSQL_PORT: "3306"
+      ANCHORLINE_MYSQL_DATABASE: "anchorline"
+      ANCHORLINE_MYSQL_USER: "root"
+      ANCHORLINE_LOREKEEPER_ENABLED: "false"
+      ANCHORLINE_DEEPSEEK_API_KEY: "dummy-for-e2e"
+      ANCHORLINE_SILICONFLOW_API_KEY: "dummy-for-e2e"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Migrate (local MySQL)
+        run: alembic upgrade head
+      - name: Start API
+        run: |
+          $env:PYTHONPATH = "src"
+          Start-Process -FilePath "D:\Python3135\python.exe" -ArgumentList "-m","uvicorn","anchorline.api.main:app","--host","127.0.0.1","--port","8000"
+          Start-Sleep -Seconds 10
+          curl.exe -s -f http://127.0.0.1:8000/health
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Install Playwright
+        working-directory: frontend
+        run: npx playwright install chromium
+      - name: Run e2e
+        working-directory: frontend
+        run: npm run e2e
+
   # 本地：启动 API（uvicorn）后 cd frontend && npm run e2e
+
