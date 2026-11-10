@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import time
 import uuid
 from datetime import datetime, timezone
@@ -383,6 +384,9 @@ def _run_agent(
         {"configurable": {"thread_id": uuid.uuid4().hex}},
     )
 
+    # 硬校验：本轮写入了新值但最终回答没有体现 → 自动重答一次（防“复读上一轮”）
+    out = _verify_and_retry_answer(out, reader)
+
     query = next((m.get("content") or "" for m in reversed(messages) if m.get("role") == "user"), "")
     tool_calls = _extract_tool_calls(out)
     trace = Trace(
@@ -408,6 +412,56 @@ def _run_agent(
     )
     out["intent"] = intent
     out["session_id"] = session_id
+    return out
+
+
+def _verify_and_retry_answer(out: dict[str, Any], reader) -> dict[str, Any]:
+    """硬校验：本轮写入了新值但最终回答没有体现 → 用最新值重答一次。
+
+    返回（可能修改过的）out；失败不影响正常回答。
+    """
+    try:
+        write_values: list[str] = []
+        for m in out["messages"]:
+            for tc in m.get("tool_calls") or []:
+                fn = tc.get("function") or {}
+                if (fn.get("name") or tc.get("name")) != "memory_write":
+                    continue
+                raw = fn.get("arguments") or tc.get("arguments") or "{}"
+                try:
+                    args = json.loads(raw) if isinstance(raw, str) else raw
+                except Exception:
+                    continue
+                v = str((args or {}).get("value") or "").strip()
+                if v:
+                    write_values.append(v)
+        if not write_values:
+            return out
+        last = next(
+            (m for m in reversed(out["messages"]) if m.get("role") == "assistant" and (m.get("content") or "").strip()),
+            None,
+        )
+        answer = str((last or {}).get("content") or "")
+        missing: list[str] = []
+        for v in write_values:
+            toks = re.findall(r"\d+(?:\.\d+)?", v) + re.findall(r"[一二三四五六七八九十百千万]+", v)
+            if toks and not any(t in answer for t in toks):
+                missing.append(v)
+        if missing:
+            hint = (
+                "你刚才把新的记忆值写入了记忆库：" + "；".join(missing[:3]) + "。"
+                "但你的最终回答没有体现这个新值。请基于最新记忆重新回答，必须明确使用新值，不要重复上一轮回答。"
+            )
+            retry_msgs = [{"role": "system", "content": hint}, *out["messages"]]
+            new_answer = reader.complete(retry_msgs, temperature=1.0, max_tokens=2048)
+            if new_answer.strip():
+                out["messages"] = [m for m in out["messages"] if m is not last] + [
+                    {"role": "assistant", "content": new_answer}
+                ]
+                out["answer_retry"] = True
+                log.info("answer retried: missing new values from answer")
+    except Exception:
+        log.exception("answer verification failed")
     return out
 
 
@@ -485,6 +539,31 @@ TOPIC_CANON = [
 ]
 
 
+def _topic_of_text(text: str) -> str:
+    """与前端 topics.ts 的 topicOfText 同规则：任何文本 → 规范主题。"""
+    s = (text or "").lower()
+    for pat, name in [
+        (r"mcp|test|check", "测试数据"),
+        (r"游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim", "游泳记录"),
+        (r"乒乓球|羽毛球|网球|篮球|足球|排球|台球|球类", "球类运动"),
+        (r"5k|跑步|配速|半马|全马|\bpb\b|跑", "跑步记录"),
+        (r"健身|骑行|瑜伽|增肌|力量训练", "健身记录"),
+        (r"体重|身高|体脂|睡眠|心率|health", "身体数据"),
+        (r"模型|model|大模型|大肥鱼|deepseek|minimax", "模型与配置"),
+        (r"游戏|遗器|太空封印|崩铁|星穹|原神|绝区零|抽卡|角色|技能|副本|深渊|配队", "游戏"),
+        (r"饮食|米饭|咖啡|早餐|午餐|晚餐|口味|吃|食物", "饮食偏好"),
+        (r"宠物|猫|狗|鱼|豆豆|大肥鱼", "宠物"),
+        (r"旅行|旅游|云南|大理|丽江|景点", "旅行"),
+        (r"出差|成都|会议", "出差"),
+        (r"工作|项目|开发|实现|anchorline|lorekeeper", "工作"),
+        (r"记住|记忆|存下|保存|归档", "记忆写入"),
+        (r"你好|hi|hello|在吗|闲聊", "闲聊"),
+    ]:
+        if re.search(pat, s):
+            return name
+    return "其他"
+
+
 def _canonical_topic(topic: str) -> str:
     """把模型生成或历史遗留的 topic 归一到统一词表（与前端 topics.ts 对齐）。"""
     t = (topic or "").strip()
@@ -493,7 +572,7 @@ def _canonical_topic(topic: str) -> str:
     for kw, name in TOPIC_CANON:
         if t.startswith(kw) or kw in t:
             return name
-    return t if len(t) <= 8 else "其他"
+    return _topic_of_text(t)
 
 
 def _gen_topic_bg(sid: str, text: str, model: str) -> None:
