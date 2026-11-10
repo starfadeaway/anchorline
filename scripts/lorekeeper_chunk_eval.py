@@ -24,7 +24,7 @@ from rank_bm25 import BM25Plus  # noqa: E402
 from anchorline.config import Settings  # noqa: E402
 from anchorline.llm import EmbeddingClient, ReaderConfig, rerank_client  # noqa: E402
 
-LK = r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper"
+LK = os.environ.get("LOREKEEPER_DIR", r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper")
 LK_LANCE = os.path.join(LK, "data", "lance")
 LK_EMBED = "BAAI/bge-m3"
 GOLD = os.path.join(ROOT, "data", "eval", "lorekeeper_chunk_gold.json")

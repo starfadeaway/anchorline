@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, Card, Collapse, Descriptions, Empty, Input, List, message, Segmented, Space, Table, Tooltip, Typography } from "antd";
+import { Alert, Button, Card, Collapse, Descriptions, Empty, Input, List, message, Segmented, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { DownloadOutlined, PlusOutlined, SettingOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type Recall, type SettingsOut, type TraceRow } from "../api";
@@ -64,6 +64,7 @@ export default function ChatPage() {
   const [trace, setTrace] = useState<ChatResp | null>(null);
   const [env, setEnv] = useState<SettingsOut | null>(null);
   const [error, setError] = useState("");
+  const [loadingSessions, setLoadingSessions] = useState(true);
   const bottom = useRef<HTMLDivElement>(null);
 
   const loadSessions = () =>
@@ -73,7 +74,8 @@ export default function ChatPage() {
         setSessions(rows);
         setError("");
       })
-      .catch((e) => setError(String(e)));
+      .catch((e) => setError(String(e)))
+      .finally(() => setLoadingSessions(false));
 
   useEffect(() => {
     void loadSessions();
@@ -228,7 +230,8 @@ export default function ChatPage() {
           }
         >
           <div className="messages">
-            {sessions.length === 0 && <Empty description="还没有会话，发第一条消息即可创建" image={Empty.PRESENTED_IMAGE_SIMPLE} />}
+            {loadingSessions && <Spin style={{ display: "block", margin: "12px auto" }} />}
+            {!loadingSessions && sessions.length === 0 && <Empty description="还没有会话，发第一条消息即可创建" image={Empty.PRESENTED_IMAGE_SIMPLE} />}
             <Collapse
               size="small"
               ghost

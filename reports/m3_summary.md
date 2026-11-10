@@ -59,7 +59,7 @@
 .venv\Scripts\python.exe scripts\eval_c2_arm.py --limit 154
 # D 单 state（154）
 .venv\Scripts\python.exe scripts\eval_d_arm.py --limit 154 --n 1 --table v2_web_states_d `
-  --b-ref data\eval\b_arm_154_run2.json --out data\eval\d_arm_154_run2.json --md-out docs\d_arm_154_v2.md
+  --b-ref data\eval\b_arm_154_run2.json --out data\eval\d_arm_154_run2.json --md-out reports\d_arm_154_run2.md
 # D 邻居（154）
 .venv\Scripts\python.exe scripts\eval_d_arm.py --limit 154 --n 1 --table v2_web_states_d_neighbor `
   --b-ref data\eval\b_arm_154_run2.json --out data\eval\d_arm_154_neighbor.json --md-out docs\d_arm_154_neighbor.md

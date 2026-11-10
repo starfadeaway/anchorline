@@ -15,13 +15,14 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, select, text, update
 from sqlalchemy.orm import Session
 
 from anchorline import __version__
+from anchorline.config import Settings
 from anchorline.db import get_db
 from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
 from anchorline.llm import chat_client
@@ -40,6 +41,20 @@ EVAL_DIR = os.path.join(ROOT, "data", "eval")
 
 app = FastAPI(title="Anchorline", version=__version__)
 configure_logging()
+
+
+@app.middleware("http")
+async def _auth_middleware(request: Request, call_next):
+    """可选 API token：设置 API_TOKEN 后，除 /health 与文档外都要求 X-API-Token。默认关闭。"""
+    token = Settings().api_token
+    if token:
+        path = request.url.path
+        if path not in ("/health", "/docs", "/openapi.json", "/redoc"):
+            got = request.headers.get("x-api-token") or request.headers.get("authorization", "")
+            got = got.removeprefix("Bearer ").strip()
+            if got != token:
+                return JSONResponse(status_code=401, content={"detail": "unauthorized: invalid or missing X-API-Token"})
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -101,7 +116,7 @@ class WriteResponse(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    messages: list[dict[str, Any]]
+    messages: list[dict[str, Any]] = Field(min_length=1)
     max_steps: int = Field(default=6, ge=1, le=16)
     session_id: str | None = None  # 为空则新建会话（聊天模式有会话列表）
     model: str = "deepseek"  # 聊天模式可切换 deepseek / minimax；评测模式固定
@@ -413,7 +428,7 @@ def _ensure_session(db: Session, sid: str | None) -> str | None:
 def _persist_turn(
     db: Session, sid: str | None, messages: list[dict], answer: str, model: str
 ) -> None:
-    """落库本轮 user/assistant 消息 + 会话主题（失败不影响回答）。"""
+    """落库本轮 user/assistant 消息（主题生成放后台，不阻塞响应）。"""
     if not sid:
         return
     try:
@@ -421,19 +436,35 @@ def _persist_turn(
         if last_user:
             db.add(Message(session_id=sid, role="user", content=str(last_user.get("content") or "")[:8000]))
         db.add(Message(session_id=sid, role="assistant", content=str(answer or "")[:8000]))
-        session_row = db.get(ChatSession, sid)
-        if last_user and session_row is not None and not session_row.topic:
-            topic = _gen_topic(str(last_user.get("content") or ""), model)
-            if topic:
-                session_row.topic = topic
         db.commit()
     except Exception:
         log.exception("failed to persist chat session")
         db.rollback()
 
 
+def _gen_topic_bg(sid: str, text: str, model: str) -> None:
+    """后台生成会话主题（独立 DB session；不占用响应时间）。"""
+    if not sid or not text.strip():
+        return
+    from anchorline.db import session_factory
+
+    db = session_factory()()
+    try:
+        row = db.get(ChatSession, sid)
+        if row is not None and not row.topic:
+            topic = _gen_topic(text[:400], model)
+            if topic:
+                row.topic = topic
+                db.commit()
+    except Exception:
+        db.rollback()
+        log.exception("topic generation failed")
+    finally:
+        db.close()
+
+
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
+def chat(req: ChatRequest, background: BackgroundTasks, db: Session = Depends(get_db)) -> ChatResponse:
     # 先确定会话（trace 需要 session_id，页面切换后 trace 也能按会话找回）
     sid = _ensure_session(db, req.session_id)
 
@@ -447,8 +478,10 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
     finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
     answer = finals[-1]["content"] if finals else ""
 
-    # 会话消息落库（失败不影响本轮回答）
+    # 会话消息落库（失败不影响本轮回答）；主题生成放后台，不阻塞响应
     _persist_turn(db, sid, req.messages, answer, req.model)
+    last_user_text = next((str(m.get("content") or "") for m in reversed(req.messages) if m.get("role") == "user"), "")
+    background.add_task(_gen_topic_bg, sid or "", last_user_text, req.model)
 
     return ChatResponse(
         answer=answer,
@@ -568,17 +601,20 @@ def list_traces(limit: int = Query(default=20, ge=1, le=200), db: Session = Depe
 
 @app.delete("/sessions/{session_id}")
 def delete_session(session_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
-    """删除会话及其消息（记忆事实不受影响）。"""
+    """删除会话、消息与 trace（记忆事实不受影响）。"""
     if db.get(ChatSession, session_id) is None:
         raise HTTPException(status_code=404, detail="session not found")
     db.execute(delete(Message).where(Message.session_id == session_id))
+    db.execute(delete(Trace).where(Trace.session_id == session_id))
     db.execute(delete(ChatSession).where(ChatSession.id == session_id))
     db.commit()
     return {"deleted": session_id}
 
 
 @app.post("/chat/stream")
-def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingResponse:
+def chat_stream(
+    req: ChatRequest, background: BackgroundTasks, db: Session = Depends(get_db)
+) -> StreamingResponse:
     """SSE：tool 事件 → token 事件（逐块推送最终答案，前端打字机）→ final；出错推 error 事件。"""
 
     def _gen():
@@ -608,8 +644,12 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
                 for i in range(0, len(answer), 4):
                     chunk = answer[i:i + 4]
                     yield "event: token\ndata: " + json.dumps({"text": chunk}, ensure_ascii=False) + "\n\n"
-            # 落库（与 /chat 同源）：会话消息 + 主题
+            # 落库（与 /chat 同源）：会话消息 + 后台主题
             _persist_turn(db, sid, req.messages, answer, req.model)
+            last_user_text = next(
+                (str(m.get("content") or "") for m in reversed(req.messages) if m.get("role") == "user"), ""
+            )
+            background.add_task(_gen_topic_bg, sid or "", last_user_text, req.model)
             final_payload = {
                 "answer": answer,
                 "stop_reason": out.get("stop_reason", ""),
@@ -631,7 +671,7 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
             log.exception("chat stream failed")
             yield "event: error\ndata: " + json.dumps({"detail": f"{type(exc).__name__}: 生成失败"}, ensure_ascii=False) + "\n\n"
 
-    return StreamingResponse(_gen(), media_type="text/event-stream")
+    return StreamingResponse(_gen(), media_type="text/event-stream", background=background)
 
 
 # ---------------------------------------------------------------- 写接口（前端记忆页）

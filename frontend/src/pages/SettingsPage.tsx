@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Card, ColorPicker, Descriptions, Divider, Segmented, Space, Tag, Typography, message } from "antd";
+import { Alert, Button, Card, ColorPicker, Descriptions, Divider, Input, Segmented, Space, Tag, Typography, message } from "antd";
 import { api, type SettingsOut } from "../api";
 
 const { Paragraph, Text } = Typography;
@@ -23,6 +23,7 @@ export default function SettingsPage() {
   const [err, setErr] = useState("");
   const [color, setColor] = useState<string>(() => localStorage.getItem(THEME_KEY) || "#00d4ff");
   const [mode, setMode] = useState<string>(() => localStorage.getItem("anchorline-mode") || "dark");
+  const [apiToken, setApiToken] = useState<string>(() => localStorage.getItem("anchorline-token") || "");
 
   const load = () => {
     api
@@ -104,6 +105,37 @@ export default function SettingsPage() {
       <Paragraph type="secondary">
         评测模式固定 reader / embedding / judge；模型切换只用于聊天模式。
       </Paragraph>
+
+      <Divider titlePlacement="start">API Token（可选）</Divider>
+      <Paragraph type="secondary">
+        后端在 <Text code>.env</Text> 设置 <Text code>API_TOKEN</Text> 后启用鉴权；这里填写的 token 只存本地 localStorage。
+      </Paragraph>
+      <Space wrap>
+        <Input.Password
+          placeholder="X-API-Token"
+          value={apiToken}
+          onChange={(e) => setApiToken(e.target.value)}
+          style={{ width: 280 }}
+        />
+        <Button
+          type="primary"
+          onClick={() => {
+            localStorage.setItem("anchorline-token", apiToken.trim());
+            message.success("Token 已保存（刷新后生效）");
+          }}
+        >
+          保存
+        </Button>
+        <Button
+          onClick={() => {
+            localStorage.removeItem("anchorline-token");
+            setApiToken("");
+            message.success("已清除 Token");
+          }}
+        >
+          清除
+        </Button>
+      </Space>
     </Card>
   );
 }

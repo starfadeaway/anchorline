@@ -14,4 +14,16 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // 拆 vendor，避免单个 chunk 过大（antd 单独成块，业务代码按路由懒加载）
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          antd: ["antd", "@ant-design/icons"],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1500,
+  },
 });

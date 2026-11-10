@@ -39,6 +39,17 @@ def spawn(label: str, args: list[str], cwd: Path) -> subprocess.Popen:
     return subprocess.Popen(args, cwd=str(cwd), env=env)
 
 
+def _env_value(key: str, default: str = "") -> str:
+    """从项目 .env 读一个值（避免把密码硬编码在脚本里）。"""
+    env_path = ROOT / ".env"
+    if env_path.is_file():
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith(key + "="):
+                return line.split("=", 1)[1].strip()
+    return default
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="同时启动 Anchorline 前后端")
     ap.add_argument("--only", choices=["server", "client"], help="只启动其中一个")
@@ -50,7 +61,13 @@ def main() -> None:
         try:
             import pymysql
 
-            c = pymysql.connect(host="127.0.0.1", port=3306, user="root", password="placeholder-local-password", database="anchorline")
+            c = pymysql.connect(
+                host=_env_value("MYSQL_HOST", "127.0.0.1"),
+                port=int(_env_value("MYSQL_PORT", "3306")),
+                user=_env_value("MYSQL_USER", "root"),
+                password=_env_value("MYSQL_PASSWORD", ""),
+                database=_env_value("MYSQL_DATABASE", "anchorline"),
+            )
             c.close()
             print("[check] MySQL 连接正常")
         except Exception:

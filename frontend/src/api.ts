@@ -146,7 +146,11 @@ async function json<T>(url: string, init?: RequestInit, timeoutMs = 120_000): Pr
   const ctrl = new AbortController();
   const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const r = await fetch(url, { ...init, signal: ctrl.signal });
+    // 可选 API token（后端设置 API_TOKEN 时启用；存在 localStorage）
+    const headers = new Headers(init?.headers);
+    const token = window.localStorage.getItem("anchorline-token");
+    if (token) headers.set("X-API-Token", token);
+    const r = await fetch(url, { ...init, headers, signal: ctrl.signal });
     if (!r.ok) {
       const text = await r.text().catch(() => "");
       let detail = text;

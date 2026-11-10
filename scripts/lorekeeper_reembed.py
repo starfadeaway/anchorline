@@ -20,7 +20,8 @@ from anchorline.config import Settings  # noqa: E402
 from anchorline.llm import EmbeddingClient, ReaderConfig  # noqa: E402
 from anchorline.retrieval.store import open_lancedb  # noqa: E402
 
-LK_LANCE = r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper\data\lance"
+LK_DIR = os.environ.get("LOREKEEPER_DIR", r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper")
+LK_LANCE = os.path.join(LK_DIR, "data", "lance")
 EMBED_MODEL = "Qwen/Qwen3-Embedding-8B"
 BATCH = 8
 

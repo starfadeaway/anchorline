@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     llm_retry_base_delay_s: float = 0.5
     llm_timeout_s: float = 120.0
 
+    # --- optional API token (off by default; set API_TOKEN to require it) ---
+    api_token: str = ""
+
     # --- optional knowledge base (LoreKeeper bridge) ---
     # 打开后聊天 agent 多一个 kb_search 工具，查 LoreKeeper 的 chunk 索引；记忆仍走 memory_*
     lorekeeper_enabled: bool = True

@@ -402,3 +402,10 @@ input,
 
 /* 弱化但可读的提示文字 */
 .muted { color: var(--muted) !important; }
+
+/* 窄屏：隐藏侧栏、聊天区变单列（避免横向挤压） */
+@media (max-width: 1100px) {
+  .app-sider { display: none; }
+  .chat-grid { grid-template-columns: 1fr; }
+  .app-content { padding: 10px; }
+}

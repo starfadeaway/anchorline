@@ -85,7 +85,7 @@ export default function EvalPage() {
                 <Table rowKey={(r) => `${r.arm}-${r.source}`} size="small" dataSource={rows} columns={armColumns} pagination={false} />
                 <div style={{ marginTop: 12 }}>
                   <Tag color="blue">A/A 噪声底</Tag>
-                  <Text type="secondary">配对 |Δ| 均值 6.3pp；20 题单题翻转 5pp，差异需配对检验。</Text>
+                  <Text type="secondary">配对 |Δ| 均值 6.3pp（单题翻转约 5pp）；差异需配对检验。</Text>
                 </div>
               </>
             ),

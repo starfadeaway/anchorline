@@ -1,4 +1,4 @@
-name: ci
+﻿name: ci
 
 on:
   push:
@@ -127,13 +127,17 @@ jobs:
       - name: Install backend
         run: |
           # 依赖已在 runner 机器装过；--no-deps 避免每次联网拉包（本机网络到 PyPI 不稳）
-          D:\Python3135\python.exe -m pip install -e ".[dev]" --no-deps --no-build-isolation
+          $py = if (Test-Path 'D:\Python3135\python.exe') { 'D:\Python3135\python.exe' } else { 'python' }
+          & $py -m pip install -e '.[dev]' --no-deps --no-build-isolation
       - name: Migrate (local MySQL)
-        run: D:\Python3135\python.exe -m alembic upgrade head
+        run: |
+          $py = if (Test-Path 'D:\Python3135\python.exe') { 'D:\Python3135\python.exe' } else { 'python' }
+          & $py -m alembic upgrade head
       - name: Start API
         run: |
           $env:PYTHONPATH = "src"
-          Start-Process -FilePath "D:\Python3135\python.exe" -ArgumentList "-m","uvicorn","anchorline.api.main:app","--host","127.0.0.1","--port","8000"
+          $py = if (Test-Path 'D:\Python3135\python.exe') { 'D:\Python3135\python.exe' } else { 'python' }
+          Start-Process -FilePath $py -ArgumentList "-m","uvicorn","anchorline.api.main:app","--host","127.0.0.1","--port","8000"
           Start-Sleep -Seconds 10
           curl.exe -s -f http://127.0.0.1:8000/health
       - uses: actions/setup-node@v4
@@ -156,5 +160,6 @@ jobs:
           if ($conn) { Stop-Process -Id $conn.OwningProcess -Force -ErrorAction SilentlyContinue }
 
   # 本地：启动 API（uvicorn）后 cd frontend && npm run e2e
+
 
 
