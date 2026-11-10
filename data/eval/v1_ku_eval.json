@@ -1,806 +1,589 @@
 {
  "summary": {
+  "mode": "two-stage",
   "n": 72,
   "n_current": 63,
   "n_retrospective": 9,
-  "n_abstention": 0,
-  "current_hit_rate": 0.4444,
-  "retrospective_hit_rate": 0.0,
-  "abstention_hit_rate": 0.0,
-  "current_stale_rate": 0.1429
+  "intent_acc": 0.8333,
+  "current_hit_rate": 0.6508,
+  "retrospective_hit_rate": 0.7778
  },
  "rows": [
   {
    "question_id": "6a1eabeb",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "25:50",
-   "gold_stale": "27:12",
-   "answer": "25:50",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "retrospective",
+   "expected": "27:12",
+   "answer": "27:12",
+   "hit": true
   },
   {
    "question_id": "6aeb4375",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "four",
-   "gold_stale": "three",
-   "answer": "4",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "four",
+   "answer": "kimchi and bokkeumbap",
+   "hit": false
   },
   {
    "question_id": "830ce83f",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "the suburbs",
-   "gold_stale": "Chicago",
+   "pred_query_form": "current",
+   "expected": "the suburbs",
    "answer": "suburbs",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "852ce960",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "$400,000",
-   "gold_stale": "$350,000",
+   "pred_query_form": "retrospective",
+   "expected": "$350,000",
    "answer": "$350,000",
-   "hit": false,
-   "hit_stale": true,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "945e3d21",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Three times a week",
-   "gold_stale": "twice a week",
+   "pred_query_form": "current",
+   "expected": "Three times a week",
    "answer": "three times a week",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "d7c942c3",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Yes.",
-   "gold_stale": "No.",
-   "answer": "grocery list app",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "Yes.",
+   "answer": "chicken fajitas",
+   "hit": false
   },
   {
    "question_id": "71315a70",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "10-12 hours",
-   "gold_stale": "5-6 hours",
+   "pred_query_form": "current",
+   "expected": "10-12 hours",
    "answer": "10-12 hours",
-   "hit": true,
-   "hit_stale": true,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "89941a93",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "4",
-   "gold_stale": "3",
-   "answer": "San Francisco to New York City",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "4",
+   "answer": "",
+   "hit": false
   },
   {
    "question_id": "ce6d2d27",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Friday",
-   "gold_stale": "Thursday",
-   "answer": "Friday",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "Friday",
+   "answer": "Fridays",
+   "hit": true
   },
   {
    "question_id": "9ea5eabc",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Paris",
-   "gold_stale": "Hawaii",
+   "pred_query_form": "current",
+   "expected": "Paris",
    "answer": "Paris",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "07741c44",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "shoe rack in the closet",
-   "gold_stale": "under my bed",
-   "answer": "shoe rack in the closet",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "pred_query_form": "current",
+   "expected": "shoe rack in the closet",
+   "answer": "in a shoe rack in the closet",
+   "hit": true
   },
   {
    "question_id": "a1eacc2a",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "seven",
-   "gold_stale": "four",
+   "pred_query_form": "current",
+   "expected": "seven",
    "answer": "7",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "184da446",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "220",
-   "gold_stale": "200",
+   "pred_query_form": "current",
+   "expected": "220",
    "answer": "220",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "031748ae",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "5",
-   "gold_stale": "4",
-   "answer": "Senior Software Engineer",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "5",
+   "answer": "6",
+   "hit": false
   },
   {
    "question_id": "4d6b87c8",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "25",
-   "gold_stale": "20",
+   "pred_query_form": "current",
+   "expected": "25",
    "answer": "25",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "0f05491a",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": 120,
-   "gold_stale": 125,
-   "answer": "Make a purchase",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": 120,
+   "answer": "Make a purchase: earn 2 stars for every $1 spent.",
+   "hit": false
   },
   {
    "question_id": "08e075c7",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "9 months",
-   "gold_stale": "6 months",
+   "pred_query_form": "current",
+   "expected": "9 months",
    "answer": "9 months",
-   "hit": true,
-   "hit_stale": true,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "f9e8c073",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "five",
-   "gold_stale": "three",
+   "pred_query_form": "current",
+   "expected": "five",
    "answer": "bodyweight exercises",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": false
   },
   {
    "question_id": "41698283",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "a 70-200mm zoom lens",
-   "gold_stale": "a 50mm prime lens",
+   "pred_query_form": "current",
+   "expected": "a 70-200mm zoom lens",
    "answer": "70-200mm zoom lens",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "2698e78f",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "every week",
-   "gold_stale": "every two weeks",
-   "answer": "every two weeks",
-   "hit": true,
-   "hit_stale": true,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "every week",
+   "answer": "",
+   "hit": false
   },
   {
    "question_id": "b6019101",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "5",
-   "gold_stale": "4",
+   "pred_query_form": "current",
+   "expected": "5",
    "answer": "12",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": false
   },
   {
    "question_id": "45dc21b6",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "3",
-   "gold_stale": "two",
+   "pred_query_form": "current",
+   "expected": "3",
    "answer": "3",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "5a4f22c0",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "TechCorp",
-   "gold_stale": "Old Company",
+   "pred_query_form": "current",
+   "expected": "TechCorp",
    "answer": "TechCorp",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "6071bd76",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "You switched to less water (5 ounces) per tablespoon of coffee.",
-   "gold_stale": "You used 6 ounces of water per tablespoon of coffee",
+   "pred_query_form": "current",
+   "expected": "You switched to less water (5 ounces) per tablespoon of coffee.",
    "answer": "1 tablespoon of coffee for every 5 ounces of water",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "e493bb7c",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "in my bedroom",
-   "gold_stale": "above my living room sofa",
-   "answer": "Ethereal Dreams",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "in my bedroom",
+   "answer": "bedroom",
+   "hit": true
   },
   {
    "question_id": "618f13b2",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "six",
-   "gold_stale": "four",
-   "answer": "6次",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "six",
+   "answer": "6",
+   "hit": true
   },
   {
    "question_id": "72e3ee87",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "50",
-   "gold_stale": "10",
-   "answer": "The Power of Habit",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "50",
+   "answer": "10",
+   "hit": false
   },
   {
    "question_id": "c4ea545c",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "four times a week",
-   "gold_stale": "three times a week",
-   "answer": "four times a week",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "four times a week",
+   "answer": "4 times a week",
+   "hit": true
   },
   {
    "question_id": "01493427",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "25",
-   "gold_stale": "17",
+   "pred_query_form": "current",
+   "expected": "25",
    "answer": "8",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": false
   },
   {
    "question_id": "6a27ffc2",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "30",
-   "gold_stale": "20",
+   "pred_query_form": "current",
+   "expected": "30",
    "answer": "30",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "2133c1b5",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "3 months",
-   "gold_stale": "a month",
-   "answer": "It’s known as a beauty shrine, where people pray for beauty and good skin.",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "3 months",
+   "answer": "Harajuku",
+   "hit": false
   },
   {
    "question_id": "18bc8abd",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Kansas City Masterpiece",
-   "gold_stale": "Sweet Baby Ray's",
+   "pred_query_form": "current",
+   "expected": "Kansas City Masterpiece",
    "answer": "Kansas City Masterpiece BBQ sauce",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "db467c8c",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "nine months",
-   "gold_stale": "six months",
-   "answer": "nine months",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "nine months",
+   "answer": "九个月",
+   "hit": true
   },
   {
    "question_id": "7a87bd0c",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "4 weeks",
-   "gold_stale": "3 weeks",
-   "answer": "4 weeks",
-   "hit": true,
-   "hit_stale": true,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "4 weeks",
+   "answer": "4周",
+   "hit": true
   },
   {
    "question_id": "e61a7584",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "9 months",
-   "gold_stale": "6 months",
+   "pred_query_form": "current",
+   "expected": "9 months",
    "answer": "Luna",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": false
   },
   {
    "question_id": "1cea1afa",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "600",
-   "gold_stale": "500",
-   "answer": "Use the Question Sticker feature in Instagram Stories.",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "600",
+   "answer": "600 followers",
+   "hit": true
   },
   {
    "question_id": "ed4ddc30",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "20",
-   "gold_stale": "30",
+   "pred_query_form": "current",
+   "expected": "20",
    "answer": "20 dozen",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": false
   },
   {
    "question_id": "8fb83627",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Five",
-   "gold_stale": "three",
+   "pred_query_form": "current",
+   "expected": "Five",
    "answer": "5",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "b01defab",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Yes",
-   "gold_stale": "No",
-   "answer": "Yes",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "Yes",
+   "answer": "已读完《The Nightingale》",
+   "hit": true
   },
   {
    "question_id": "22d2cb42",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "The music shop on Main St.",
-   "gold_stale": null,
-   "answer": "the music shop on Main St",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "The music shop on Main St.",
+   "answer": "city center",
+   "hit": false
   },
   {
    "question_id": "0e4e4c46",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "132 points",
-   "gold_stale": "124 points",
+   "pred_query_form": "current",
+   "expected": "132 points",
    "answer": "124",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": false
   },
   {
    "question_id": "4b24c848",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "five",
-   "gold_stale": "three",
+   "pred_query_form": "current",
+   "expected": "five",
    "answer": "5",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "7e974930",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "$420",
-   "gold_stale": "$350",
-   "answer": "",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "retrospective",
+   "expected": "$350",
+   "answer": "100",
+   "hit": false
   },
   {
    "question_id": "603deb26",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "10",
-   "gold_stale": "5",
-   "answer": "10 times",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "10",
+   "answer": "10",
+   "hit": true
   },
   {
    "question_id": "59524333",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "6:00 pm",
-   "gold_stale": "7:00 pm",
-   "answer": "6:00 pm",
-   "hit": true,
-   "hit_stale": true,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "6:00 pm",
+   "answer": "Tuesday at 2:00 pm",
+   "hit": false
   },
   {
    "question_id": "5831f84d",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "15",
-   "gold_stale": "10",
+   "pred_query_form": "current",
+   "expected": "15",
    "answer": "15",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "eace081b",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Oahu",
-   "gold_stale": "Kauai",
-   "answer": "October",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "Oahu",
+   "answer": "Oahu",
+   "hit": true
   },
   {
    "question_id": "affe2881",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "32",
-   "gold_stale": "27",
+   "pred_query_form": "current",
+   "expected": "32",
    "answer": "32",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "50635ada",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "Premier Gold",
-   "gold_stale": "Premier Silver",
+   "pred_query_form": "current",
+   "expected": "Premier Gold",
    "answer": "Premier Gold",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "hit": true
   },
   {
    "question_id": "e66b632c",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "26 minutes and 30 seconds",
-   "gold_stale": "27 minutes and 45 seconds",
-   "answer": "约26分15秒",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "pred_query_form": "current",
+   "expected": "26 minutes and 30 seconds",
+   "answer": "26:15",
+   "hit": false
   },
   {
    "question_id": "0ddfec37",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "20",
-   "gold_stale": "15",
+   "pred_query_form": "current",
+   "expected": "20",
    "answer": "20",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "hit": true
   },
   {
    "question_id": "f685340e",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "every other week (Sunday)",
-   "gold_stale": "every week (on Sunday)",
-   "answer": "",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "every other week (Sunday)",
+   "answer": "Almaden Lake Park Loop",
+   "hit": false
   },
   {
    "question_id": "cc5ded98",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "about two hours",
-   "gold_stale": "about an hour",
-   "answer": "two hours",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "about two hours",
+   "answer": "two hours each day",
+   "hit": true
   },
   {
    "question_id": "dfde3500",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "Thursday",
-   "gold_stale": "Wednesday",
-   "answer": "Tuesday",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "pred_query_form": "current",
+   "expected": "Thursday",
+   "answer": "Thursday",
+   "hit": true
   },
   {
    "question_id": "69fee5aa",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "38",
-   "gold_stale": "37",
+   "pred_query_form": "current",
+   "expected": "38",
    "answer": "1915-S Barber quarter",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": false
   },
   {
    "question_id": "7401057b",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Two",
-   "gold_stale": "one",
-   "answer": "Yes, it is close to the Eiffel Tower.",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "Two",
+   "answer": "2 free nights",
+   "hit": true
   },
   {
    "question_id": "cf22b7bf",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "10 pounds",
-   "gold_stale": "5 pounds",
+   "pred_query_form": "current",
+   "expected": "10 pounds",
    "answer": "10 pounds",
-   "hit": true,
-   "hit_stale": true,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "a2f3aa27",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": 1300,
-   "gold_stale": "1250",
-   "answer": "",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": 1300,
+   "answer": "接近 1300",
+   "hit": false
   },
   {
    "question_id": "c7dc5443",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "5-2",
-   "gold_stale": "3-2",
-   "answer": "Net Ninjas",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "5-2",
+   "answer": "5-2",
+   "hit": true
   },
   {
    "question_id": "06db6396",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "5",
-   "gold_stale": "4",
+   "pred_query_form": "current",
+   "expected": "5",
    "answer": "5",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "3ba21379",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Ford F-150 pickup truck",
-   "gold_stale": "Ford Mustang Shelby GT350R",
-   "answer": "Ford Mustang Shelby GT350R",
-   "hit": false,
-   "hit_stale": true,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "Ford F-150 pickup truck",
+   "answer": "Ford F-150 pickup truck",
+   "hit": true
   },
   {
    "question_id": "9bbe84a2",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "level 150",
-   "gold_stale": "level 100",
+   "pred_query_form": "current",
+   "expected": "level 150",
    "answer": "150",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "hit": true
   },
   {
    "question_id": "10e09553",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "9",
-   "gold_stale": "7",
+   "pred_query_form": "current",
+   "expected": "9",
    "answer": "9",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "hit": true
   },
   {
    "question_id": "dad224aa",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "7:30 am",
-   "gold_stale": "8:30 am",
-   "answer": "8:15–8:30 am",
-   "hit": true,
-   "hit_stale": true,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "7:30 am",
+   "answer": "7:30 am",
+   "hit": true
   },
   {
    "question_id": "ba61f0b9",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "6",
-   "gold_stale": "5",
+   "pred_query_form": "current",
+   "expected": "6",
    "answer": "6",
-   "hit": true,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "42ec0761",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "Yes",
-   "gold_stale": "No (I had misplaced the small screwdriver and needed to buy one)",
-   "answer": "30 days",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "Yes",
+   "answer": "Backblaze",
+   "hit": false
   },
   {
    "question_id": "5c40ec5b",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "We've met up twice.",
-   "gold_stale": null,
-   "answer": "twice",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "We've met up twice.",
+   "answer": "2",
+   "hit": true
   },
   {
    "question_id": "c6853660",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "two cups per morning",
-   "gold_stale": "one cup per morning (cut back)",
-   "answer": "two cups",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "two cups per morning",
+   "answer": "drip coffee maker",
+   "hit": false
   },
   {
    "question_id": "26bdc477",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "five",
-   "gold_stale": "three",
+   "pred_query_form": "current",
+   "expected": "five",
    "answer": "5",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "hit": true
   },
   {
    "question_id": "0977f2af",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "Air Fryer",
-   "gold_stale": "Instant Pot",
+   "pred_query_form": "current",
+   "expected": "Air Fryer",
    "answer": "Air Fryer",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "hit": true
   },
   {
    "question_id": "89941a94",
    "query_form": "retrospective",
-   "is_abstention": false,
-   "gold_new": "Yes (road bike plus newly purchased hybrid bike)",
-   "gold_stale": "Yes (road bike only, before the new purchase)",
+   "pred_query_form": "current",
+   "expected": "Yes (road bike plus newly purchased hybrid bike)",
    "answer": "San Francisco to New York City",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "retrospective"
+   "hit": false
   },
   {
    "question_id": "07741c45",
    "query_form": "current",
-   "is_abstention": false,
-   "gold_new": "in a shoe rack in my closet",
-   "gold_stale": "under my bed",
-   "answer": "shoe rack",
-   "hit": false,
-   "hit_stale": false,
-   "kind": "current"
+   "pred_query_form": "current",
+   "expected": "in a shoe rack in my closet",
+   "answer": "在衣柜里的鞋架上",
+   "hit": true
   }
  ]
 }

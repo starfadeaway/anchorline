@@ -320,6 +320,25 @@ def _run_agent(
     store = FactStore(db)
     reader = chat_client(model)
 
+    query = next((m.get("content") or "" for m in reversed(messages) if m.get("role") == "user"), "")
+    # 回溯意图识别（产品链路）：retrospective 时注入系统提示 + 要求检索历史
+    intent = "current"
+    if query:
+        from anchorline.memory.intent import classify_intent
+
+        intent = classify_intent(str(query), model)
+        if intent == "retrospective":
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "用户这个问题问的是「过去/最初的值」。回答时请使用历史值："
+                        "调用 memory_search 时传 include_history=true 获取已失效的旧记录，不要回答当前值。"
+                    ),
+                },
+                *messages,
+            ]
+
     def model_fn(msgs: list[dict]) -> dict:
         return reader.complete_with_tools(msgs, TOOL_SCHEMAS, max_tokens=2048)
 
@@ -356,6 +375,7 @@ def _run_agent(
         for m in out["messages"]
         if m.get("role") == "tool" and str(m.get("content") or "").startswith("tool error")
     )
+    out["intent"] = intent
     return out
 
 
@@ -430,6 +450,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
             "tool_errors": out.get("tool_errors", 0),
             "run_id": str(out.get("trace_id") or ""),
             "recalls": out.get("recalls") or [],
+            "intent": out.get("intent", "current"),
         },
     )
 
@@ -585,6 +606,7 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
                     "total_tokens": out.get("total_tokens"),
                     "tool_errors": out.get("tool_errors", 0),
                     "run_id": str(out.get("trace_id") or ""),
+                    "intent": out.get("intent", "current"),
                 },
             }
             yield "event: final\ndata: " + json.dumps(final_payload, ensure_ascii=False) + "\n\n"

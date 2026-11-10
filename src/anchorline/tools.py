@@ -35,7 +35,9 @@ def _parse_valid_from(value: str | None) -> datetime:
 
 
 def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
-    def memory_search(query: str = "", budget_tokens: int = 2000, limit: int = 20) -> ToolResult:
+    def memory_search(
+        query: str = "", budget_tokens: int = 2000, limit: int = 20, include_history: bool = False
+    ) -> ToolResult:
         # 混合检索（BM25 + 向量 + RRF + rerank）；不可用时回退纯文本。recalls 供 trace 展示。
         recalls: list[dict] = []
         try:
@@ -44,6 +46,18 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
             facts, recalls = hybrid_search_with_recalls(store.db, query, top_k=limit) if query else ([], [])
         except Exception:
             facts = store.search_text(query, limit=limit) if query else []
+        # 回溯意图：把已失效的历史事实也带出来（retrospective 题必须能取到旧值）
+        if include_history and query:
+            try:
+                from sqlalchemy import select
+
+                from anchorline.models import Fact as FactModel
+
+                hist = list(store.db.scalars(select(FactModel).where(FactModel.valid_to.isnot(None)).limit(limit)))
+                seen = {f.id for f in facts}
+                facts = facts + [f for f in hist if f.id not in seen]
+            except Exception:
+                pass
         items = [
             ContextItem(
                 text=f"[{f.id[:8]}] {f.entity_id}.{f.attribute} = {f.value} (valid_from={f.valid_from:%Y-%m-%d %H:%M})",
@@ -144,12 +158,13 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "memory_search",
-            "description": "Search the memory store under a token budget.",
+            "description": "Search the memory store under a token budget. Pass include_history=true when the question asks about a past/initial value (retrospective), so invalidated history is returned too.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "query": {"type": "string"},
                     "budget_tokens": {"type": "integer", "default": 2000},
+                    "include_history": {"type": "boolean", "default": False, "description": "回溯题用：把已失效的历史事实也带出来"},
                 },
                 "required": ["query"],
             },

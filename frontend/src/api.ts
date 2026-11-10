@@ -38,6 +38,7 @@ export type ChatResp = {
     tool_errors?: number;
     run_id?: string;
     recalls?: Recall[];
+    intent?: string;
   };
 };
 
