@@ -1,4 +1,4 @@
-﻿name: ci
+name: ci
 
 on:
   push:
@@ -146,6 +146,13 @@ jobs:
       - name: Run e2e
         working-directory: frontend
         run: npm run e2e
+      - name: Stop API (cleanup)
+        if: always()
+        run: |
+          # 关掉本 job 启动的 uvicorn（Start-Process 的子进程不会随 job 退出）
+          Get-Process python -ErrorAction SilentlyContinue | Where-Object {
+            $_.Path -like "*Python3135*"
+          } | Stop-Process -Force -ErrorAction SilentlyContinue
 
   # 本地：启动 API（uvicorn）后 cd frontend && npm run e2e
 
