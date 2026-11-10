@@ -330,6 +330,7 @@ export default function ChatPage() {
                 <Descriptions.Item label="session_id">{trace.session_id ?? "—"}</Descriptions.Item>
                 <Descriptions.Item label="steps">{trace.steps || "—"}</Descriptions.Item>
                 <Descriptions.Item label="stop_reason">{trace.stop_reason || "—"}</Descriptions.Item>
+                <Descriptions.Item label="intent">{trace.meta?.intent ?? "—"}</Descriptions.Item>
                 <Descriptions.Item label="tool_calls">{trace.tool_calls.length}</Descriptions.Item>
               </Descriptions>
               <div style={{ marginTop: 12 }}>

@@ -376,6 +376,7 @@ def _run_agent(
         if m.get("role") == "tool" and str(m.get("content") or "").startswith("tool error")
     )
     out["intent"] = intent
+    out["session_id"] = session_id
     return out
 
 
@@ -391,23 +392,50 @@ def _extract_tool_calls(out: dict) -> list[dict[str, Any]]:
     return calls
 
 
-@app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
-    # 先确定会话（trace 需要 session_id，页面切换后 trace 也能按会话找回）
-    sid = req.session_id
+def _ensure_session(db: Session, sid: str | None) -> str | None:
+    """确保会话存在（不存在则创建）；失败返回原值，不阻断聊天。"""
     try:
         if not sid:
             s = ChatSession(domain="chat")
             db.add(s)
             db.flush()
-            sid = s.id
-        elif db.get(ChatSession, sid) is None:
+            return s.id
+        if db.get(ChatSession, sid) is None:
             db.add(ChatSession(id=sid, domain="chat"))
             db.flush()
+        return sid
     except Exception:
         log.exception("failed to create chat session")
         db.rollback()
-        sid = req.session_id
+        return sid
+
+
+def _persist_turn(
+    db: Session, sid: str | None, messages: list[dict], answer: str, model: str
+) -> None:
+    """落库本轮 user/assistant 消息 + 会话主题（失败不影响回答）。"""
+    if not sid:
+        return
+    try:
+        last_user = next((m for m in reversed(messages) if m.get("role") == "user"), None)
+        if last_user:
+            db.add(Message(session_id=sid, role="user", content=str(last_user.get("content") or "")[:8000]))
+        db.add(Message(session_id=sid, role="assistant", content=str(answer or "")[:8000]))
+        session_row = db.get(ChatSession, sid)
+        if last_user and session_row is not None and not session_row.topic:
+            topic = _gen_topic(str(last_user.get("content") or ""), model)
+            if topic:
+                session_row.topic = topic
+        db.commit()
+    except Exception:
+        log.exception("failed to persist chat session")
+        db.rollback()
+
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
+    # 先确定会话（trace 需要 session_id，页面切换后 trace 也能按会话找回）
+    sid = _ensure_session(db, req.session_id)
 
     try:
         out = _run_agent(req.messages, db, req.max_steps, model=req.model, session_id=sid)
@@ -420,21 +448,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
     answer = finals[-1]["content"] if finals else ""
 
     # 会话消息落库（失败不影响本轮回答）
-    try:
-        last_user = next((m for m in reversed(req.messages) if m.get("role") == "user"), None)
-        if last_user:
-            db.add(Message(session_id=sid, role="user", content=str(last_user.get("content") or "")[:8000]))
-        db.add(Message(session_id=sid, role="assistant", content=str(answer or "")[:8000]))
-        # 会话主题：新会话或 topic 为空的旧会话，都用模型生成（替代硬编码关键词分组）
-        session_row = db.get(ChatSession, sid)
-        if last_user and session_row is not None and not session_row.topic:
-            topic = _gen_topic(str(last_user.get("content") or ""), req.model)
-            if topic:
-                session_row.topic = topic
-        db.commit()
-    except Exception:
-        log.exception("failed to persist chat session")
-        db.rollback()
+    _persist_turn(db, sid, req.messages, answer, req.model)
 
     return ChatResponse(
         answer=answer,
@@ -568,8 +582,9 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
     """SSE：tool 事件 → token 事件（逐块推送最终答案，前端打字机）→ final；出错推 error 事件。"""
 
     def _gen():
+        sid = _ensure_session(db, req.session_id)
         try:
-            out = _run_agent(req.messages, db, req.max_steps, model=req.model, session_id=req.session_id)
+            out = _run_agent(req.messages, db, req.max_steps, model=req.model, session_id=sid)
             for tc in _extract_tool_calls(out):
                 yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
             finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
@@ -593,12 +608,14 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
                 for i in range(0, len(answer), 4):
                     chunk = answer[i:i + 4]
                     yield "event: token\ndata: " + json.dumps({"text": chunk}, ensure_ascii=False) + "\n\n"
+            # 落库（与 /chat 同源）：会话消息 + 主题
+            _persist_turn(db, sid, req.messages, answer, req.model)
             final_payload = {
                 "answer": answer,
                 "stop_reason": out.get("stop_reason", ""),
                 "steps": out["steps"],
                 "trace_id": out.get("trace_id"),
-                "session_id": out.get("session_id"),
+                "session_id": sid,
                 "tool_calls": _extract_tool_calls(out),
                 "meta": {
                     "model": req.model,
@@ -643,9 +660,20 @@ def _gen_topic(text: str, model: str) -> str:
                 {"role": "user", "content": str(text)[:400]},
             ],
             temperature=0.0,
-            max_tokens=16,
+            max_tokens=512,  # reasoning 模型要给足思考 token（16 会被思考耗尽、content 为空）
         )
-        return (out or "").strip().replace("\n", "").strip("。.，,：:")[:16]
+        topic = (out or "").strip().replace("\n", "").strip("。.，,：:")[:16]
+        if topic:
+            return topic
+        # 兜底：模型空答案时用关键词规则，避免 topic 永远为 None
+        low = str(text).lower()
+        for kw, label in [
+            ("跑", "跑步"), ("游泳", "游泳"), ("乒乓", "乒乓球"), ("网球", "球类运动"),
+            ("篮球", "球类运动"), ("足球", "球类运动"), ("吃", "饮食"), ("工作", "工作"),
+        ]:
+            if kw in low:
+                return label
+        return str(text).strip()[:6] or "其他"
     except Exception:
         log.exception("topic generation failed")
         return ""
@@ -955,39 +983,46 @@ def eval_review_summary(db: Session = Depends(get_db)) -> dict:
     }
 
 
+def _arm_accuracy(data: dict, key: str | None) -> float | None:
+    """优先读顶层字段；B 臂没有顶层 accuracy，用 per_question 均值。"""
+    if key and isinstance(data.get(key), (int, float)):
+        return float(data[key])
+    means = [r.get("mean") for r in (data.get("per_question") or []) if isinstance(r.get("mean"), (int, float))]
+    return sum(means) / len(means) if means else None
+
+
 @app.get("/eval/summary", response_model=list[EvalArmOut])
 def eval_summary() -> list[EvalArmOut]:
     """把 data/eval 下的结果汇总成臂级表；文件缺失/损坏只跳过，不抛 500。"""
     out: list[EvalArmOut] = []
-    b154 = _load_eval("b_arm_154_v2.json")
-    if b154:
-        rows = b154.get("per_question", [])
-        out.append(EvalArmOut(
-            arm="B（官方基线）", n=len(rows),
-            accuracy=sum(r["mean"] for r in rows) / max(1, len(rows)),
-            source="b_arm_154_v2.json", note="154 题确定性判分，1 次/题",
-        ))
     for fname, arm, key, note in [
-        ("d_arm_154_v2.json", "D（完整轨迹+L0，单 state）", "d_accuracy", "154 题，1 次/题"),
-        ("d_arm_154_neighbor.json", "D（state+邻居）", "d_accuracy", "154 题，检验检索粒度"),
-        ("c2_arm_154.json", "C2（a11y-only+L0）", "c2_accuracy", "154 题，压缩层单变量"),
+        ("b_arm_154_run3.json", "B（官方基线）", None, "154 题，run3（当前口径）"),
+        ("d_arm_154_run3.json", "D（完整轨迹+L0）", "d_accuracy", "154 题，run3（当前口径）"),
+        ("c1_arm_154.json", "C1（完整轨迹×官方切片）", None, "154 题，2×2 因子"),
+        ("c2_arm_154.json", "C2（a11y-only+L0）", "c2_accuracy", "154 题，2×2 因子"),
+        ("d_arm_154_neighbor.json", "D（state+邻居）", "d_accuracy", "154 题，检索粒度对照"),
     ]:
         d = _load_eval(fname)
-        if d and key in d:
-            n = int(
-                d.get("n_questions")
-                or (d.get("config") or {}).get("n_questions")
-                or len(d.get("per_question", []))
-            )
-            out.append(EvalArmOut(
-                arm=arm, accuracy=float(d[key]), n=n,
-                source=fname, note=note,
-            ))
-    a168 = _load_eval("arm_168.json")
-    if a168:
+        if not d:
+            continue
+        acc = _arm_accuracy(d, key)
+        if acc is None:
+            continue
+        n = int(
+            d.get("n_questions")
+            or (d.get("config") or {}).get("n_questions")
+            or len(d.get("per_question", []))
+        )
+        out.append(EvalArmOut(arm=arm, accuracy=acc, n=n, source=fname, note=note))
+
+    for fname, note in [
+        ("arm_168_run3.json", "154 + 14 judge，run3"),
+        ("arm_168_run2.json", "154 + 14 judge，run2"),
+    ]:
+        a168 = _load_eval(fname)
+        if not a168:
+            continue
         n = int(a168.get("n_common", 0))
-        out.append(EvalArmOut(arm="B（168）", accuracy=float(a168["b_accuracy"]), n=n,
-                              source="arm_168.json", note="154 + 14 judge（3 题 judge 缺失已排除）"))
-        out.append(EvalArmOut(arm="D（168）", accuracy=float(a168["d_accuracy"]), n=n,
-                              source="arm_168.json", note="同上；judge prompt 已冻结"))
+        out.append(EvalArmOut(arm=f"B（168，{fname[-10:-5]}）", accuracy=float(a168["b_accuracy"]), n=n, source=fname, note=note))
+        out.append(EvalArmOut(arm=f"D（168，{fname[-10:-5]}）", accuracy=float(a168["d_accuracy"]), n=n, source=fname, note=note))
     return out

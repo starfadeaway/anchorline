@@ -52,10 +52,14 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
                 from sqlalchemy import select
 
                 from anchorline.models import Fact as FactModel
+                from anchorline.retrieval.hybrid import tokenize
 
-                hist = list(store.db.scalars(select(FactModel).where(FactModel.valid_to.isnot(None)).limit(limit)))
+                q_tokens = set(tokenize(query))
+                hist = list(store.db.scalars(select(FactModel).where(FactModel.valid_to.isnot(None)).limit(200)))
+                if q_tokens:
+                    hist = [f for f in hist if q_tokens & set(tokenize(f"{f.attribute} {f.value}"))]
                 seen = {f.id for f in facts}
-                facts = facts + [f for f in hist if f.id not in seen]
+                facts = facts + [f for f in hist[:limit] if f.id not in seen]
             except Exception:
                 pass
         items = [

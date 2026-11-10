@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""thin MCP server：memory_search / memory_write / memory_forget。
+"""thin MCP server：memory_search / memory_write / memory_forget / kb_search。
 
 - 与内部聊天/评测路径**同源**（都调用 `anchorline.tools.build_tools`）；
 - schema 由 FastMCP 依据函数签名生成；错误在工具内捕获并返回文本；
@@ -63,6 +63,16 @@ def memory_forget(entity_id: str, attribute: str, at: str | None = None) -> str:
             return t["memory_forget"](entity_id=entity_id, attribute=attribute, at=at).content
     except Exception as exc:
         return f"memory_forget failed: {exc}"
+
+
+@mcp.tool()
+def kb_search(query: str, game: str = "", top_k: int = 3) -> str:
+    """Search the LoreKeeper game wiki (sr/ys/zzz). Use for factual game questions, not personal memories."""
+    try:
+        with _tools() as t:
+            return t["kb_search"](query=query, game=game, top_k=top_k).content
+    except Exception as exc:
+        return f"kb_search failed: {exc}"
 
 
 if __name__ == "__main__":

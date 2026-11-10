@@ -12,6 +12,16 @@ test.beforeAll(async ({ request }) => {
   });
 });
 
+// 跑完清掉 e2e 自己写的测试数据（否则每次 CI 都污染事实表）
+test.afterAll(async ({ request }) => {
+  const resp = await request.get("/api/memory/facts?limit=200");
+  if (!resp.ok()) return;
+  const facts = (await resp.json()) as { id: string; entity_id: string }[];
+  for (const f of facts.filter((x) => x.entity_id === "user:e2e")) {
+    await request.delete(`/api/memory/facts/${f.id}`);
+  }
+});
+
 test("聊天页：标题、模型切换、输入框", async ({ page }) => {
   await page.goto("/chat");
   await expect(page.getByText("ANCHORLINE")).toBeVisible();

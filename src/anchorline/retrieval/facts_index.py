@@ -19,6 +19,14 @@ log = logging.getLogger("anchorline.retrieval.facts_index")
 TABLE = "facts_index"
 
 
+def _tables(db) -> list[str]:
+    """兼容 lancedb 新旧 API（list_tables / table_names）。"""
+    try:
+        return list(db.list_tables())
+    except AttributeError:
+        return list(db.table_names())
+
+
 def topic_hint(f: Fact) -> str:
     """给事实加主题标签，提升中文检索命中（如 5k_pb → 跑步）。"""
     s = f"{f.entity_id} {f.attribute} {f.value}".lower()
@@ -56,7 +64,7 @@ def upsert_fact(fact: Fact, settings: Settings | None = None) -> bool:
             "text": fact_text(fact),
             "vector": vec,
         }
-        if TABLE not in db.table_names():
+        if TABLE not in _tables(db):
             db.create_table(TABLE, data=[row])
             return True
         tbl = db.open_table(TABLE)
@@ -74,7 +82,7 @@ def upsert_fact(fact: Fact, settings: Settings | None = None) -> bool:
 def delete_fact(fact_id: str) -> bool:
     try:
         db = open_lancedb()
-        if TABLE not in db.table_names():
+        if TABLE not in _tables(db):
             return True
         db.open_table(TABLE).delete(f"id = '{fact_id}'")
         return True
@@ -113,7 +121,7 @@ def search_vector(query: str, k: int = 20, settings: Settings | None = None) -> 
     """向量检索：返回 [(fact_id, score)]，score 越大越相关（1 - distance）。"""
     try:
         db = open_lancedb()
-        if TABLE not in db.table_names():
+        if TABLE not in _tables(db):
             return []
         vec = embedding_client(settings).embed([query])[0]
         rows = db.open_table(TABLE).search(vec).limit(k).to_list()
