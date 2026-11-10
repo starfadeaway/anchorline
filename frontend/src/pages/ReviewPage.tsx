@@ -56,7 +56,7 @@ export default function ReviewPage() {
   const conflictColumns = (entity: string) => [
     {
       title: "保留",
-      width: 70,
+      width: "8%",
       render: (_: unknown, r: ConflictFact) => (
         <Radio
           checked={kept[entity] === r.id}
@@ -64,9 +64,15 @@ export default function ReviewPage() {
         />
       ),
     },
-    { title: "属性", dataIndex: "attribute", width: 200 },
-    { title: "值", dataIndex: "value" },
-    { title: "生效时间", dataIndex: "valid_from", width: 180, render: (v: string) => new Date(v).toLocaleString() },
+    { title: "属性", dataIndex: "attribute", width: "16%" },
+    { title: "值", dataIndex: "value", width: "32%" },
+    {
+      title: "置信度",
+      dataIndex: "confidence",
+      width: "12%",
+      render: (v: number) => <Tag color={v >= 0.9 ? "green" : v >= 0.7 ? "blue" : "orange"}>{Math.round(v * 100)}%</Tag>,
+    },
+    { title: "生效时间", dataIndex: "valid_from", width: "24%", render: (v: string) => new Date(v).toLocaleString() },
   ];
 
   const decisionColumns = [
@@ -115,6 +121,8 @@ export default function ReviewPage() {
                       dataSource={g.facts}
                       columns={conflictColumns(g.entity_id)}
                       pagination={false}
+                      tableLayout="fixed"
+                      style={{ maxWidth: 920 }}
                     />
                     <Space style={{ marginTop: 10 }} wrap>
                       <Input
