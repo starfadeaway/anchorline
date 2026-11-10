@@ -896,6 +896,7 @@ def purge_stale_facts(db: Session = Depends(get_db)) -> dict[str, int]:
 class ConflictEntity(BaseModel):
     entity_id: str
     facts: list[dict[str, Any]]
+    reason: str = ""
 
 
 class ReviewDecisionIn(BaseModel):
@@ -999,9 +1000,16 @@ def review_conflicts(db: Session = Depends(get_db)) -> list[ConflictEntity]:
                 clusters.append([f])
         for c in clusters:
             if len(c) >= 2:
+                token_sets = [_attr_tokens(f.attribute) for f in c]
+                common = set.intersection(*token_sets) if token_sets else set()
+                if common:
+                    reason = f"属性关键词重叠（{'、'.join(sorted(common))}），{len(c)} 条当前值并存，需确认哪条有效"
+                else:
+                    reason = f"{len(c)} 条当前值属性相近，需确认哪条有效"
                 out.append(
                     ConflictEntity(
                         entity_id=entity,
+                        reason=reason,
                         facts=[
                             {
                                 "id": f.id,

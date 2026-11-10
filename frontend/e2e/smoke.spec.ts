@@ -45,10 +45,10 @@ test("评测页：臂对比 + LoreKeeper 桥接 Tab", async ({ page }) => {
   await expect(page.getByText("LoreKeeper 数据集桥接", { exact: false })).toBeVisible();
 });
 
-test("审核页：待裁决 / 裁决历史", async ({ page }) => {
+test("审核页：审核 / 审核历史", async ({ page }) => {
   await page.goto("/review");
-  await expect(page.getByRole("tab", { name: /待裁决/ })).toBeVisible();
-  await expect(page.getByRole("tab", { name: /裁决历史/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /^审核（/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /审核历史/ })).toBeVisible();
 });
 
 test("监控页：统计卡片", async ({ page }) => {

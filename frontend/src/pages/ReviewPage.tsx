@@ -8,7 +8,7 @@ type ConflictFact = { id: string; attribute: string; value: string; valid_from: 
 
 /** 审核页：冲突裁决（选一个保留、其余失效 + 原因），并展示裁决金标历史。 */
 export default function ReviewPage() {
-  const [groups, setGroups] = useState<{ entity_id: string; facts: ConflictFact[] }[]>([]);
+  const [groups, setGroups] = useState<{ entity_id: string; facts: ConflictFact[]; reason?: string }[]>([]);
   const [decisions, setDecisions] = useState<ReviewDecision[]>([]);
   const [kept, setKept] = useState<Record<string, string>>({});
   const [reason, setReason] = useState<Record<string, string>>({});
@@ -94,10 +94,10 @@ export default function ReviewPage() {
         items={[
           {
             key: "pending",
-            label: `待裁决（${groups.length}）`,
+            label: `审核（${groups.length}）`,
             children:
               groups.length === 0 ? (
-                <Text type="secondary">没有待裁决的冲突 🎉</Text>
+                <Text type="secondary">没有需要审核的冲突 🎉</Text>
               ) : (
                 groups.map((g) => (
                   <Card
@@ -106,6 +106,9 @@ export default function ReviewPage() {
                     style={{ marginBottom: 10 }}
                     title={<Space><Text strong>{g.entity_id}</Text><Tag>{g.facts.length} 个当前值</Tag></Space>}
                   >
+                    <Paragraph type="secondary" style={{ marginBottom: 8 }}>
+                      冲突原因：{g.reason || "同一实体下存在多条语义相近的当前值，需确认哪条有效"}
+                    </Paragraph>
                     <Table
                       rowKey="id"
                       size="small"
@@ -130,7 +133,7 @@ export default function ReviewPage() {
           },
           {
             key: "decisions",
-            label: `裁决历史（${decisions.length}）`,
+            label: `审核历史（${decisions.length}）`,
             children: (
               <Table
                 rowKey="id"
