@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KU = os.path.join(ROOT, "dataset", "longmemeval_s_cleaned.json")
@@ -151,7 +150,7 @@ EXAMPLES = """# Few-shot 示例（虚构，仅示范格式与判断）
 def main() -> int:
     ku = json.load(open(KU, encoding="utf-8"))
     qs = {q["question_id"]: q for q in ku if q.get("question_type") == "knowledge-update"}
-    rows = [json.loads(l) for l in open(ANN, encoding="utf-8") if l.strip()]
+    rows = [json.loads(line) for line in open(ANN, encoding="utf-8") if line.strip()]
 
     os.makedirs(os.path.join(OUT, "questions"), exist_ok=True)
     with open(os.path.join(OUT, "README.md"), "w", encoding="utf-8") as f:

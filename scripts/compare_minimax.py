@@ -32,8 +32,8 @@ ARBITRATION = {
 
 
 def main() -> int:
-    human = {r["question_id"]: r for r in (json.loads(l) for l in open(HUMAN, encoding="utf-8") if l.strip())}
-    mm_rows = [json.loads(l) for l in open(MM, encoding="utf-8") if l.strip()]
+    human = {r["question_id"]: r for r in (json.loads(line) for line in open(HUMAN, encoding="utf-8") if line.strip())}
+    mm_rows = [json.loads(line) for line in open(MM, encoding="utf-8") if line.strip()]
     mm = {r["question_id"]: r for r in mm_rows}
 
     assert len(mm_rows) == 72, len(mm_rows)
@@ -55,7 +55,11 @@ def main() -> int:
         nv = value_equivalent(m.get("new_value"), h.get("new_value"))
         cf = (m.get("conflict_type") or "") == (h.get("conflict_type") or "")
         res = (m.get("expected_resolution") or "") == (h.get("expected_resolution") or "")
-        qf_ok += qf; st_ok += st; nv_ok += nv; cf_ok += cf; res_ok += res
+        qf_ok += qf
+        st_ok += st
+        nv_ok += nv
+        cf_ok += cf
+        res_ok += res
         full = qf and st and nv
         full_ok += full
         if not full:

@@ -81,7 +81,7 @@ def msg_lines(session) -> str:
 def main() -> int:
     ku = json.load(open(KU, encoding="utf-8"))
     qs = {q["question_id"]: q for q in ku if q.get("question_type") == "knowledge-update"}
-    rows = [json.loads(l) for l in open(ANN, encoding="utf-8") if l.strip()]
+    rows = [json.loads(line) for line in open(ANN, encoding="utf-8") if line.strip()]
     by_id = {r["question_id"]: r for r in rows}
 
     random.seed(7)

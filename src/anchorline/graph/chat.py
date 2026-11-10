@@ -10,13 +10,13 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, TypedDict
+from typing import Callable, TypedDict
 
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, StateGraph
 
-from anchorline.tools import ToolResult, build_tools
 from anchorline.memory.store import FactStore
+from anchorline.tools import ToolResult, build_tools
 
 
 class ChatState(TypedDict):

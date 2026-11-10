@@ -22,7 +22,7 @@ OUT_DETAIL = os.path.join(ROOT, "dataset", "v1", "cross-model-16-compare.md")
 
 
 def main() -> int:
-    rows = [json.loads(l) for l in open(SRC, encoding="utf-8") if l.strip()]
+    rows = [json.loads(line) for line in open(SRC, encoding="utf-8") if line.strip()]
     detail = ["# 跨模型交叉标注（MiniMax）逐题明细\n"]
     detail.append("| qid | 模型 qf | 人类 qf | 模型 stale | 人类 stale | 模型 new | 人类 new | 一致 |")
     detail.append("|---|---|---|---|---|---|---|---|")

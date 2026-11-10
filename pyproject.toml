@@ -35,3 +35,10 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.ruff]
 line-length = 100
 target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]  # 基础错误 + import 排序
+ignore = ["E501"]  # 行宽交给 formatter
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]  # 测试里 sys.path 调整后的 import

@@ -228,7 +228,7 @@ def main():
     # --- build_report.md ---
     with open(os.path.join(OUT_V1, "build_report.md"), "w", encoding="utf-8") as f:
         f.write("# V1-KU 72 题骨架构建报告\n\n")
-        f.write(f"- 78 题 knowledge-update → 72 非拒答 + 6 `_abs`\n")
+        f.write("- 78 题 knowledge-update → 72 非拒答 + 6 `_abs`\n")
         f.write(f"- 自动定位：1a current {stats['current']} 题；1b retrospective {stats['retrospective']} 题\n")
         f.write(f"- 待人工：{stats['manual']} 题（NEITHER 14 + BOTH 2）\n")
         f.write(f"- 拒答：{stats['abstention']} 题（层 1c，单列）\n")

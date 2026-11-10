@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KU72 = os.path.join(ROOT, "data", "annotations", "ku72.jsonl")
@@ -35,7 +34,7 @@ FIELDS = [
 
 
 def load_jsonl(p):
-    return [json.loads(l) for l in open(p, encoding="utf-8") if l.strip()]
+    return [json.loads(line) for line in open(p, encoding="utf-8") if line.strip()]
 
 
 def main() -> int:

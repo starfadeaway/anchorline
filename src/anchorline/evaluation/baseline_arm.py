@@ -9,7 +9,6 @@ B 臂定义（v0.8 §6.5）：
 """
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 
 from anchorline.evaluation.reader import build_messages
@@ -17,7 +16,6 @@ from anchorline.llm import ChatClient, EmbeddingClient
 from anchorline.memory.l3 import assemble_blocks
 from anchorline.retrieval.baseline import (
     DEFAULT_TOP_K,
-    QUERY_INSTRUCTION,
     format_query_for_embedding,
     normalize_vector,
 )

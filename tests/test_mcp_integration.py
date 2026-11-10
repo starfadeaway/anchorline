@@ -9,7 +9,6 @@
 """
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import socket
@@ -52,11 +51,11 @@ def _params():
 
 @pytest.mark.asyncio
 async def test_mcp_tools_roundtrip():
-    from mcp import ClientSession, StdioServerParameters  # noqa: F401
-    from mcp.client.stdio import stdio_client
-
     # 唯一 attribute，保证测试可重复跑（上次 forget 会把旧 fact 置为失效）
     import uuid
+
+    from mcp import ClientSession, StdioServerParameters  # noqa: F401
+    from mcp.client.stdio import stdio_client
     attr = f"mcp check {uuid.uuid4().hex[:8]}"
 
     async with stdio_client(_params()) as (read, write):

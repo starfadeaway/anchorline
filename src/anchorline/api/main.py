@@ -24,10 +24,11 @@ from sqlalchemy.orm import Session
 from anchorline import __version__
 from anchorline.db import get_db
 from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
-from anchorline.llm import chat_client, reader_client
+from anchorline.llm import chat_client
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore, _attr_tokens
-from anchorline.models import Fact, Message, ReviewDecision, Session as ChatSession, Trace
+from anchorline.models import Fact, Message, ReviewDecision, Trace
+from anchorline.models import Session as ChatSession
 from anchorline.tools import TOOL_SCHEMAS
 
 log = logging.getLogger("anchorline.api")
@@ -371,7 +372,6 @@ def _extract_tool_calls(out: dict) -> list[dict[str, Any]]:
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
     # 先确定会话（trace 需要 session_id，页面切换后 trace 也能按会话找回）
-    is_new = not req.session_id
     sid = req.session_id
     try:
         if not sid:

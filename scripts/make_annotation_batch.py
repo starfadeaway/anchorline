@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KU = os.path.join(ROOT, "dataset", "longmemeval_s_cleaned.json")
@@ -37,7 +36,7 @@ def msg_lines(session):
 def main() -> int:
     ku = json.load(open(KU, encoding="utf-8"))
     qs = {q["question_id"]: q for q in ku if q.get("question_type") == "knowledge-update"}
-    rows = [json.loads(l) for l in open(ANN, encoding="utf-8") if l.strip()]
+    rows = [json.loads(line) for line in open(ANN, encoding="utf-8") if line.strip()]
     todo = [r for r in rows if r["question_id"] not in DONE]
     manual = [r for r in todo if r["query_form"] == "manual_needed"]
     batch = [r for r in todo if r["query_form"] != "manual_needed"]

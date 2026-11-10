@@ -35,7 +35,7 @@ def md_official(path: str) -> str:
 
 
 def main() -> int:
-    rows = {r["question_id"]: r for r in (json.loads(l) for l in open(KU, encoding="utf-8") if l.strip())}
+    rows = {r["question_id"]: r for r in (json.loads(line) for line in open(KU, encoding="utf-8") if line.strip())}
     current = [q for q, r in rows.items() if r.get("query_form") == "current" and not r.get("is_abstention")]
     retro = [q for q, r in rows.items() if r.get("query_form") == "retrospective"]
     abst = [q for q, r in rows.items() if r.get("is_abstention")]

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EVAL = os.path.join(ROOT, "data", "eval")

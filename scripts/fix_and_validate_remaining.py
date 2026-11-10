@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "dataset", "v1", "annotate-remaining-template.jsonl")
@@ -49,7 +48,7 @@ def norm(s) -> str:
 def main() -> int:
     ku = json.load(open(KU, encoding="utf-8"))
     qs = {q["question_id"]: q for q in ku if q.get("question_type") == "knowledge-update"}
-    rows = [json.loads(l) for l in open(SRC, encoding="utf-8") if l.strip()]
+    rows = [json.loads(line) for line in open(SRC, encoding="utf-8") if line.strip()]
 
     errors, warnings = [], []
     seen = set()

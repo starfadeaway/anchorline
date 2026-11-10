@@ -9,7 +9,6 @@ gold：`data/eval/lorekeeper_chunk_gold.json`（auto-generated：每个 gold 页
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 import os
 import statistics

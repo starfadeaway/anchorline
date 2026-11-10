@@ -20,11 +20,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from anchorline.evaluation.v1_judge import (  # noqa: E402
-    MODES,
     is_ambiguous_record,
     judge_used_stale,
-    match,
-    token_f1,
 )
 
 ANN = os.path.join(ROOT, "data", "annotations", "ku72.jsonl")
@@ -40,7 +37,7 @@ CONFIGS = [
 
 
 def main() -> int:
-    rows = [json.loads(l) for l in open(ANN, encoding="utf-8") if l.strip()]
+    rows = [json.loads(line) for line in open(ANN, encoding="utf-8") if line.strip()]
     stale_rows = [r for r in rows if r.get("stale_value") is not None and not r.get("stale_value_is_placeholder")]
     skipped = [r for r in rows if r not in stale_rows]
     ambiguous = [r for r in rows if is_ambiguous_record(r)]
@@ -69,7 +66,7 @@ def main() -> int:
     lines.append(f"- **跳过**（不进过期事实率）：`stale_value=null` 或 `stale_value_is_placeholder=true`，共 {len(skipped)} 题：")
     for r in skipped:
         lines.append(f"  - `{r['question_id']}`（{r.get('note','')[:60]}）")
-    lines.append(f"- **单列**（old/new 共享结论词或 F1 高，区分度弱）：")
+    lines.append("- **单列**（old/new 共享结论词或 F1 高，区分度弱）：")
     for r in ambiguous:
         lines.append(f"  - `{r['question_id']}`：stale=`{r['stale_value']}` / new=`{r['new_value']}`")
     lines.append("")
