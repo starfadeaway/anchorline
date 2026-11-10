@@ -53,3 +53,6 @@ Thumbs.db
 # e2e artifacts
 frontend/test-results/
 frontend/playwright-report/
+
+# 界面截图仅本地（不入库）
+docs/screenshots/

@@ -40,23 +40,19 @@ docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
 
-## 界面截图
+## 界面截图（仅本地，未入库）
 
-| 聊天（用户右 / 模型左、Markdown 表格、会话主题分组） | 记忆（分组 / 越新越前 / 分组导出） |
+截图目录 `docs/screenshots/` 已加入 `.gitignore`（只保留在本地，不随仓库推送）：
+
+| 页面 | 文件 |
 |---|---|
-| ![聊天](docs/screenshots/01-chat.png) | ![记忆](docs/screenshots/02-memory.png) |
-
-| 评测（臂对比 + A/A 噪声底） | 审核（冲突裁决金标） |
-|---|---|
-| ![评测](docs/screenshots/03-eval.png) | ![审核](docs/screenshots/04-review.png) |
-
-| 报告中心 | 监控（延迟 / 错误率 / trace） |
-|---|---|
-| ![报告](docs/screenshots/05-reports.png) | ![监控](docs/screenshots/06-monitor.png) |
-
-| 设置（模型 / 预算 / 主题 / API Token） |
-|---|
-| ![设置](docs/screenshots/07-settings.png) |
+| 聊天（用户右 / 模型左、Markdown 表格、主题分组） | `docs/screenshots/01-chat.png` |
+| 记忆（分组 / 越新越前 / 分组导出） | `docs/screenshots/02-memory.png` |
+| 评测（臂对比 + A/A 噪声底） | `docs/screenshots/03-eval.png` |
+| 审核（冲突裁决金标） | `docs/screenshots/04-review.png` |
+| 报告中心 | `docs/screenshots/05-reports.png` |
+| 监控（延迟 / 错误率 / trace） | `docs/screenshots/06-monitor.png` |
+| 设置（模型 / 预算 / 主题 / API Token） | `docs/screenshots/07-settings.png` |
 
 ## 当前状态
 
