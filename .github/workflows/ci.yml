@@ -21,7 +21,7 @@ jobs:
       - name: Lint
         run: ruff check src tests scripts run_all.py
       - name: Pytest
-        run: pytest -q
+        run: pytest -q --cov=src/anchorline --cov-report=term-missing
 
   frontend:
     runs-on: ubuntu-latest

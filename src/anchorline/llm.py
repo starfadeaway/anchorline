@@ -149,6 +149,27 @@ class ChatClient:
         return _retry(_call, label=f"tools:{self.cfg.model}")
 
 
+    def stream(
+        self,
+        messages: list[dict],
+        *,
+        temperature: float = 0.0,
+        max_tokens: int = 2048,
+    ):
+        """真流式：逐 token yield（OpenAI stream=True）。"""
+        resp = self._client.chat.completions.create(
+            model=self.cfg.model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+        )
+        for chunk in resp:
+            choices = chunk.choices or []
+            if choices and choices[0].delta and choices[0].delta.content:
+                yield choices[0].delta.content
+
+
 class EmbeddingClient:
     def __init__(self, cfg: ReaderConfig):
         self.cfg = cfg

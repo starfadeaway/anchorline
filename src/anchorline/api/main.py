@@ -25,6 +25,7 @@ from anchorline import __version__
 from anchorline.db import get_db
 from anchorline.graph.chat import Bounds, build_chat_graph, initial_state
 from anchorline.llm import chat_client
+from anchorline.logging_setup import configure_logging
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore, _attr_tokens
 from anchorline.models import Fact, Message, ReviewDecision, Trace
@@ -38,6 +39,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.a
 EVAL_DIR = os.path.join(ROOT, "data", "eval")
 
 app = FastAPI(title="Anchorline", version=__version__)
+configure_logging()
 
 
 @app.middleware("http")
@@ -551,10 +553,25 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
                 yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
             finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
             answer = finals[-1]["content"] if finals else ""
-            # 伪流式：答案已生成后按小块推送（不是模型逐 token；前端可逐字显示，避免长时间空白）
-            for i in range(0, len(answer), 4):
-                chunk = answer[i:i + 4]
-                yield "event: token\ndata: " + json.dumps({"text": chunk}, ensure_ascii=False) + "\n\n"
+            mode = (os.getenv("STREAM_MODE") or "chunk").strip().lower()
+            if mode == "real":
+                # 真流式：agent 完成后用完整对话（去掉最终回答）让模型逐 token 重新生成。
+                # 代价：多一次模型调用；收益：真 token 流（首 token 延迟、逐字效果）。
+                history = list(out["messages"])
+                if history and history[-1].get("role") == "assistant":
+                    history = history[:-1]
+                client = chat_client(req.model)
+                parts: list[str] = []
+                for piece in client.stream(history, temperature=1.0, max_tokens=2048):
+                    parts.append(piece)
+                    yield "event: token\ndata: " + json.dumps({"text": piece}, ensure_ascii=False) + "\n\n"
+                if parts:
+                    answer = "".join(parts)
+            else:
+                # 伪流式（默认）：答案已生成后按小块推送，不额外调用模型
+                for i in range(0, len(answer), 4):
+                    chunk = answer[i:i + 4]
+                    yield "event: token\ndata: " + json.dumps({"text": chunk}, ensure_ascii=False) + "\n\n"
             final_payload = {
                 "answer": answer,
                 "stop_reason": out.get("stop_reason", ""),

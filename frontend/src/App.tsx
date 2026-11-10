@@ -1,15 +1,17 @@
-import { useEffect } from "react";
-import { Layout, Menu, Typography, message } from "antd";
+import { Suspense, lazy, useEffect } from "react";
+import { Layout, Menu, Spin, Typography, message } from "antd";
 import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileTextOutlined, DashboardOutlined, SettingOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import ChatPage from "./pages/ChatPage";
-import MemoryPage from "./pages/MemoryPage";
-import EvalPage from "./pages/EvalPage";
-import SessionsPage from "./pages/SessionsPage";
-import ReviewPage from "./pages/ReviewPage";
-import ReportsPage from "./pages/ReportsPage";
-import MonitorPage from "./pages/MonitorPage";
-import SettingsPage from "./pages/SettingsPage";
+
+// 路由级懒加载：首屏只加载聊天页，其余页面按需加载（减小首包）
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const MemoryPage = lazy(() => import("./pages/MemoryPage"));
+const EvalPage = lazy(() => import("./pages/EvalPage"));
+const SessionsPage = lazy(() => import("./pages/SessionsPage"));
+const ReviewPage = lazy(() => import("./pages/ReviewPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const MonitorPage = lazy(() => import("./pages/MonitorPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 const { Sider, Content, Header } = Layout;
 const { Text } = Typography;

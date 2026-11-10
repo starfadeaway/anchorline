@@ -54,7 +54,7 @@ dataset/                   # 数据与核验产物（大文件不入库）
 ```powershell
 # 0) 依赖（Python 3.13）
 python -m venv .venv
-.venv\Scripts\python.exe -m pip install -e .
+.venv\Scripts\python.exe -m pip install -e ".[dev]"
 
 # 1) 配置（模板，不含真实 key）
 Copy-Item .env.example .env   # 填 MySQL 与 provider key
@@ -62,14 +62,14 @@ Copy-Item .env.example .env   # 填 MySQL 与 provider key
 # 2) 数据库（MySQL 8 运行中）
 .venv\Scripts\python.exe -m alembic upgrade head
 
-# 3) 启动 API（127.0.0.1:8000）
-$env:PYTHONPATH='src'
-.venv\Scripts\python.exe -m uvicorn anchorline.api.main:app --host 127.0.0.1 --port 8000
+# 3) 一键启动前后端（仿 lorekeeper run_all.py；Ctrl+C 同时停止）
+.venv\Scripts\python.exe run_all.py
+#    只起后端：run_all.py --only server
+#    只起前端：run_all.py --only client
 
-# 4) 启动前端（127.0.0.1:5173，/api 代理到 8000）
-cd frontend
-npm install
-npm run dev
+# 或分别启动：
+# $env:PYTHONPATH='src'; .venv\Scripts\python.exe -m uvicorn anchorline.api.main:app --host 127.0.0.1 --port 8000
+# cd frontend; npm run dev
 ```
 
 ## Docker 部署
@@ -133,6 +133,20 @@ docker compose up -d --build
 .venv\Scripts\python.exe scripts\eval_m2_quality.py
 .venv\Scripts\python.exe scripts\eval_l2_extraction.py
 ```
+
+## 工程与运维
+
+| 项 | 用法 |
+|---|---|
+| 一键启动 | `.venv\Scripts\python.exe run_all.py`（`--only server\|client`、`--port`） |
+| Lint | `.venv\Scripts\python.exe -m ruff check src tests scripts run_all.py examples` |
+| 测试 | `.venv\Scripts\python.exe -m pytest -q`；CI 里带 `--cov=src/anchorline` |
+| e2e | `cd frontend; npm run e2e`（本地真实模型用例：`$env:REAL_E2E='1'; npm run e2e`） |
+| 备份/恢复 | `scripts\backup_db.ps1` / `scripts\restore_db.ps1 -File <sql>` |
+| MCP 客户端示例 | `.venv\Scripts\python.exe examples\mcp_client.py` |
+| 日志 | 默认文本；`LOG_FORMAT=json` 输出结构化 JSON，`LOG_LEVEL=DEBUG` 调级别 |
+| 流式 | 默认伪流式（答案生成后逐块）；`STREAM_MODE=real` 时真 token 流（多一次模型调用） |
+| 依赖锁 | `requirements.lock`（`pip freeze`） |
 
 ## 数据与许可边界
 

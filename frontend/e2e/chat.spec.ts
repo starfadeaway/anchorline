@@ -55,3 +55,15 @@ test("聊天页：流失败时回退 /chat 并报错不崩", async ({ page }) =>
   await page.getByRole("button", { name: /发\s*送/ }).click();
   await expect(page.getByText("回退成功")).toBeVisible();
 });
+
+test("真实模型回复（仅本地：REAL_E2E=1 时跑）", async ({ page }) => {
+  test.skip(process.env.REAL_E2E !== "1", "需要真实 API key；CI 用 mock 用例");
+  test.setTimeout(180_000);
+  await page.goto("/chat");
+  await page.locator(".composer textarea").fill("用一句话回答：1+1 等于几？");
+  await page.getByRole("button", { name: /发\s*送/ }).click();
+  // 最终助手消息非空（等模型返回）
+  await expect
+    .poll(async () => (await page.locator(".msg-body").last().innerText()).length, { timeout: 150_000 })
+    .toBeGreaterThan(0);
+});
