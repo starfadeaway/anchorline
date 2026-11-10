@@ -1,4 +1,4 @@
-name: ci
+﻿name: ci
 
 on:
   push:
@@ -79,14 +79,14 @@ jobs:
       - name: Configure env
         run: |
           printf '%s\n' \
-            ANCHORLINE_MYSQL_HOST=127.0.0.1 \
-            ANCHORLINE_MYSQL_PORT=3306 \
-            ANCHORLINE_MYSQL_DATABASE=anchorline \
-            ANCHORLINE_MYSQL_USER=root \
-            ANCHORLINE_MYSQL_PASSWORD=root \
-            ANCHORLINE_DEEPSEEK_API_KEY=dummy-for-e2e \
-            ANCHORLINE_SILICONFLOW_API_KEY=dummy-for-e2e \
-            ANCHORLINE_LOREKEEPER_ENABLED=false > .env
+            MYSQL_HOST=127.0.0.1 \
+            MYSQL_PORT=3306 \
+            MYSQL_DATABASE=anchorline \
+            MYSQL_USER=root \
+            MYSQL_PASSWORD=root \
+            DEEPSEEK_API_KEY=dummy-for-e2e \
+            SILICONFLOW_API_KEY=dummy-for-e2e \
+            LOREKEEPER_ENABLED=false > .env
       - name: Migrate
         run: alembic upgrade head
       - name: Start API
@@ -107,19 +107,19 @@ jobs:
         run: npm run e2e
 
   # 本地 self-hosted runner（Windows）：用本机 MySQL，不需要 services 容器。
-  # 需要 runner 进程环境里提供 ANCHORLINE_MYSQL_PASSWORD（本机 MySQL 密码）。
+  # 环境变量用无前缀（MYSQL_*），与本地 .env 一致；密码是本机 MySQL 的。
   e2e-local:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: [self-hosted, Windows, e2e]
     env:
-      ANCHORLINE_MYSQL_HOST: "127.0.0.1"
-      ANCHORLINE_MYSQL_PORT: "3306"
-      ANCHORLINE_MYSQL_DATABASE: "anchorline"
-      ANCHORLINE_MYSQL_USER: "root"
-      ANCHORLINE_MYSQL_PASSWORD: "placeholder-local-password"
-      ANCHORLINE_LOREKEEPER_ENABLED: "false"
-      ANCHORLINE_DEEPSEEK_API_KEY: "dummy-for-e2e"
-      ANCHORLINE_SILICONFLOW_API_KEY: "dummy-for-e2e"
+      MYSQL_HOST: "127.0.0.1"
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: "anchorline"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "placeholder-local-password"
+      LOREKEEPER_ENABLED: "false"
+      DEEPSEEK_API_KEY: "dummy-for-e2e"
+      SILICONFLOW_API_KEY: "dummy-for-e2e"
     steps:
       - uses: actions/checkout@v4
       - name: Install backend
@@ -148,4 +148,5 @@ jobs:
         run: npm run e2e
 
   # 本地：启动 API（uvicorn）后 cd frontend && npm run e2e
+
 
