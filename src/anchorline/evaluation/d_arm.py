@@ -43,6 +43,7 @@ def answer_d_arm(
     temperature: float = 1.0,
     max_tokens: int = 8192,
     context_budget_tokens: int = 4000,
+    system_hint: str | None = None,
 ) -> DArmResult:
     hits = retrieve_d(tbl, embedder, question, top_k=top_k)
     items: list[tuple[float, str]] = []
@@ -61,6 +62,8 @@ def answer_d_arm(
     context, used_tokens, dropped = assemble_blocks(items, context_budget_tokens)
     context = context or "(empty)"
     messages = build_messages(question, context)
+    if system_hint:
+        messages = [{"role": "system", "content": system_hint}, *messages]
     answer = reader.complete(messages, temperature=temperature, max_tokens=max_tokens)
     if not answer.strip():
         # 同 B 臂：reasoning 模型空答案时放大上限重试一次

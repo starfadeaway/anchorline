@@ -1,0 +1,1247 @@
+{
+ "config": {
+  "table": "v2_web_states_d",
+  "n_questions": 154,
+  "n_per_question": 1,
+  "seed": 0
+ },
+ "acc_intent": 0.6753246753246753,
+ "acc_ref": 0.6623376623376623,
+ "paired_diff_mean": 0.012987012987012988,
+ "paired_pvalue": 0.8109189081091891,
+ "per_question": [
+  {
+   "question_id": "99ae54d1",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "a92dff92",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "0c0fdcd7",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "65fbcbdf",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "dae9f7e9",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "d16a18fe",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "a42071db",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "70e79657",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "c7e367e2",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "8f70bc0e",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "5a85ca0f",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "d886b018",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "36fe48ef",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "6a5bbcdb",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "edea0219",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "23aecb38",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "631667c9",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "e77d1287",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "3f366e15",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "744dbdad",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "26a038ce",
+   "intent": "retrospective",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "18f9d965",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "820d56e2",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "c6124506",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "e3a1d7f3",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "8cb3280c",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "b5a25676",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "41bb40df",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "73297783",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "77db204d",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "be541aa6",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "289aea4a",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "6a23675f",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "60c7ca22",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "5c826b28",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "b4dcf650",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "fe18a443",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "31f146ba",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "07d86be1",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "f928c075",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "c738b934",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "05cce9b3",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "0c6b0c60",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "90dc7e66",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "ff8f3a22",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "521b124f",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "d6da3938",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "a62de1f1",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "99fa7c96",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "86fa86eb",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "762d34b8",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "00aa905a",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "d1d8cf9f",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "626e401e",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "4266cb67",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "2ee130d2",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "91d0775e",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "4252cc1c",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "b2595523",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "07fff330",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "e9bb843a",
+   "intent": "retrospective",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "edb69441",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "2c45ecbb",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "2e67d04f",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "deb008ed",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "691cd1da",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "5cb7289b",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "d5b9fda4",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "fec652a9",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "d3300354",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "63a1b94b",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "60f2b293",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "10003186",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "401566e6",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "b8d56b89",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "e71f7c92",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "11dac74b",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "e4d36b58",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "99b6e22f",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "896017e0",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "f23807ed",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "6f9cb5fc",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "3c0c1b19",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "c56e69ca",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "8955b988",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "4d7dda89",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "dea446d0",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "96497069",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "9cae869c",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "238c3621",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "98b62f3d",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "5387d23d",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "6cb662d7",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "06a5a25f",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "40758d8b",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "6d975a08",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "15e5efa6",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "c36b0d68",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "0738c1ac",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "07ab3723",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "4329b535",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "4ca9f7d7",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "92642fe7",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "0a4a47e6",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "609acb91",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "597ca614",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "436c58d5",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "3269a3c5",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "597645be",
+   "intent": "retrospective",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "ee68431d",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "c843c4ec",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "17d63ad8",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "44c05e59",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "f61a096f",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "f93031d2",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "7c8efee5",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "6a73e32b",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "5d6b993a",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "f13eb38d",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "ffa4e57e",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "1e011eb5",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "7bfbd5f1",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "1b43f7df",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "19c641bd",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "06e965cf",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "6652c337",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "8c55d6bc",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "48ab5c3d",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "a59d50f7",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "07b49858",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "bdf0e84b",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "a12b7094",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "abadf765",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "2ca2d443",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "e83245c5",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "f9f9cd61",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "30fab98c",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "499488a6",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "5db4899c",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "eab07e81",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "97d5309a",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "b828a6b2",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "674a6972",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "ba047686",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "10466872",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "1defc293",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "0fe2c676",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "4f92aa38",
+   "intent": "current",
+   "scores": [
+    0
+   ],
+   "mean": 0
+  },
+  {
+   "question_id": "a7da9ab3",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "c39f6edf",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "6a2e74de",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "eef545a0",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "8957a127",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  },
+  {
+   "question_id": "2b1a8fc6",
+   "intent": "current",
+   "scores": [
+    1
+   ],
+   "mean": 1
+  }
+ ],
+ "elapsed_s": 2911.5
+}
