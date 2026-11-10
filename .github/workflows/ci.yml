@@ -124,8 +124,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install backend
         run: |
-          D:\Python3135\python.exe -m pip install --upgrade pip
-          D:\Python3135\python.exe -m pip install -e ".[dev]"
+          # 依赖已在 runner 机器装过；--no-deps 避免每次联网拉包（本机网络到 PyPI 不稳）
+          D:\Python3135\python.exe -m pip install -e ".[dev]" --no-deps --no-build-isolation
       - name: Migrate (local MySQL)
         run: D:\Python3135\python.exe -m alembic upgrade head
       - name: Start API
