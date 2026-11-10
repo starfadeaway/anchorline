@@ -1,0 +1,43 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: anchorline
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      ANCHORLINE_MYSQL_HOST: mysql
+      ANCHORLINE_MYSQL_PORT: "3306"
+      ANCHORLINE_MYSQL_DATABASE: anchorline
+      ANCHORLINE_MYSQL_USER: root
+      ANCHORLINE_MYSQL_PASSWORD: root
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    # 可选：评测 / 索引构建需要 dataset（不入库，挂本地目录）
+    # volumes:
+    #   - ./dataset:/app/dataset:ro
+
+  web:
+    build: frontend
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  mysql_data:

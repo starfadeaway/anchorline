@@ -32,7 +32,7 @@ from anchorline.llm import embedding_client, judge_client, reader_client  # noqa
 from anchorline.retrieval.store import open_table  # noqa: E402
 
 OUT_JSON = os.path.join(ROOT, "data", "eval", "arm_168.json")
-OUT_MD = os.path.join(ROOT, "docs", "m3_168.md")
+OUT_MD = os.path.join(ROOT, "reports", "m3_168.md")
 B_154 = os.path.join(ROOT, "data", "eval", "b_arm_154_v2.json")
 D_154 = os.path.join(ROOT, "data", "eval", "d_arm_154_v2.json")
 
@@ -52,6 +52,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--b-154", default=B_154)
     ap.add_argument("--d-154", default=D_154)
+    ap.add_argument("--out", default=OUT_JSON)
+    ap.add_argument("--md-out", default=OUT_MD)
     args = ap.parse_args()
 
     qs = load_questions()
@@ -130,7 +132,7 @@ def main() -> int:
         "judge_model": Settings().deepseek_judge_model,
         "gotchas_rows": rows,
     }
-    with open(OUT_JSON, "w", encoding="utf-8") as f:
+    with open(args.out, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1, default=float)
 
     lines = [
@@ -155,7 +157,7 @@ def main() -> int:
         "> 168 题中 14 道由 LLM judge 判分；judge prompt 已冻结并记录 sha256。",
         "> 本文档口径：不进官方 leaderboard；只报同 reader/judge/预算下的相对结果。",
     ])
-    with open(OUT_MD, "w", encoding="utf-8") as f:
+    with open(args.md_out, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
     print(json.dumps({k: v for k, v in summary.items() if k != "gotchas_rows"}, ensure_ascii=False, indent=1, default=float))

@@ -71,12 +71,29 @@ npm install
 npm run dev
 ```
 
+## Docker 部署
+
+```powershell
+# 1) 准备 .env（从 .env.example 复制并填 provider key；MySQL 用 compose 内的库）
+Copy-Item .env.example .env
+
+# 2) 启动 MySQL + API + 前端
+docker compose up -d --build
+
+# 3) 访问
+#   前端  http://127.0.0.1:8080
+#   API   http://127.0.0.1:8000/health
+```
+
+说明：`dataset/` 不入库，容器默认不含评测数据；要做评测/索引构建，取消 `docker-compose.yml` 里 dataset 挂载的注释。
+
 ## 核心能力
 
 | 能力 | 说明 | 命令/入口 |
 |---|---|---|
 | 记忆层 | L0 跨 state 行去重 → L1 观测摘要 → L2 事实（supersedes）→ L3 预算组装 | `src/anchorline/memory/` |
 | **混合检索** | jieba 分词 + BM25Plus + 向量（Qwen3-Embedding/LanceDB）+ RRF + BGE rerank；失败自动回退 | `memory_search` 工具 / `POST /memory/search` |
+| **知识库问答（可选）** | `kb_search` 工具查 LoreKeeper 三库 wiki（sr/ys/zzz，页面级重排），与事实记忆分工；关掉 `LOREKEEPER_ENABLED` 即禁用 | 聊天 / MCP |
 | **容量保护** | 每实体当前值上限（默认 200，`MEMORY_MAX_CURRENT_PER_ENTITY`），超限自动归档最旧/低置信度（标记失效） | `GET /memory/capacity` |
 | **召回可解释** | 每条召回的 BM25/向量/RRF/rerank 分数写入 trace，前端 Trace 面板展示 | `trace.recalls` |
 | **冲突裁决** | 审核页：选一条保留、其余失效、记录原因 → `review_decisions` 金标 | `POST /review/decisions` |

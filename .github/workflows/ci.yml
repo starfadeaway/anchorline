@@ -35,5 +35,20 @@ jobs:
       - name: Build
         run: npm run build
 
+  eval-regression:
+    # 只读 data/eval 已入库产物；不需要 MySQL / dataset / API key
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Eval artifacts check
+        run: python scripts/eval_regression.py
+
   # e2e 需要 MySQL + API（含真实 key），不在 CI 跑；本地：
   #   启动 API（uvicorn）后 cd frontend && npm run e2e
