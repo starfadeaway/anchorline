@@ -1,6 +1,6 @@
-import { Suspense, lazy, useEffect } from "react";
-import { Layout, Menu, Spin, Typography, message } from "antd";
-import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileTextOutlined, DashboardOutlined, SettingOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { Button, Drawer, Layout, Menu, Spin, Typography, message } from "antd";
+import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileTextOutlined, DashboardOutlined, MenuOutlined, SettingOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 // 路由级懒加载：首屏只加载聊天页，其余页面按需加载（减小首包）
@@ -30,6 +30,7 @@ const items = [
 export default function App() {
   const loc = useLocation();
   const selected = items.find((i) => loc.pathname.startsWith(i.key))?.key ?? "/chat";
+  const [navOpen, setNavOpen] = useState(false);
 
   // 启动时应用本地保存的主题色与日夜模式
   useEffect(() => {
@@ -61,10 +62,27 @@ export default function App() {
   return (
     <Layout className="app-layout">
       <Header className="app-header">
+        <Button
+          className="hamburger"
+          type="text"
+          icon={<MenuOutlined />}
+          onClick={() => setNavOpen(true)}
+          aria-label="打开导航"
+        />
         <Text strong className="brand">ANCHORLINE</Text>
         <span className="status-dot" />
         <Text type="secondary">预算内记忆层 · V2-web 主评测 / V1-KU 冲突专项</Text>
       </Header>
+      <Drawer
+        placement="left"
+        open={navOpen}
+        onClose={() => setNavOpen(false)}
+        title="导航"
+        width={200}
+        styles={{ body: { padding: 0 } }}
+      >
+        <Menu mode="inline" selectedKeys={[selected]} items={items} onClick={() => setNavOpen(false)} />
+      </Drawer>
       <Layout>
         <Sider width={168} className="app-sider">
           <Menu mode="inline" selectedKeys={[selected]} items={items} />
