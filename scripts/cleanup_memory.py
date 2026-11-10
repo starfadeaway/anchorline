@@ -52,6 +52,29 @@ def main() -> int:
         db.execute(update(Fact).where(Fact.entity_id == "大模型.大肥鱼", Fact.attribute == "饮食偏好").values(attribute="模型伙食"))
         db.execute(update(Fact).where(Fact.attribute == "饮食 偏好").values(attribute="饮食偏好"))
         db.execute(update(Fact).where(Fact.attribute == "饮食 禁忌").values(attribute="饮食禁忌"))
+        # 跑步类属性归一（处理 (entity, attribute, valid_from) 唯一约束冲突：重复则删一条）
+        def normalize_attr(old: str, new: str) -> None:
+            rows = list(db.scalars(select(Fact).where(Fact.attribute == old)).all())
+            for f in rows:
+                dup = db.scalar(
+                    select(Fact).where(
+                        Fact.entity_id == f.entity_id,
+                        Fact.attribute == new,
+                        Fact.valid_from == f.valid_from,
+                        Fact.id != f.id,
+                    )
+                )
+                if dup is not None:
+                    db.execute(update(Fact).where(Fact.supersedes_id == f.id).values(supersedes_id=None))
+                    db.delete(f)
+                else:
+                    f.attribute = new
+            db.flush()
+
+        for old_attr in ("5k_pb", "5K_personal_best", "5K 最好成绩（PB）", "5K best time"):
+            normalize_attr(old_attr, "5K 最好成绩")
+        normalize_attr("跑步 配速", "跑步配速")
+        normalize_attr("跑步 目标配速", "目标配速")
         db.commit()
         print(f"removed {removed} rows; attributes normalized")
 

@@ -193,17 +193,17 @@ export default function MemoryPage() {
   };
 
   const columns = [
-    { title: "实体", dataIndex: "entity_id", width: 130 },
-    { title: "属性", dataIndex: "attribute", width: 190 },
-    { title: "值", dataIndex: "value" },
+    { title: "实体", dataIndex: "entity_id", width: 100, ellipsis: true },
+    { title: "属性", dataIndex: "attribute", width: 140, ellipsis: true },
+    { title: "值", dataIndex: "value", width: 420 },
     {
       title: "状态",
-      width: 90,
+      width: 76,
       render: (_: unknown, r: Fact) => (r.valid_to ? <Tag>已失效</Tag> : <Tag color="green">当前</Tag>),
     },
     {
       title: "生效时间",
-      width: 220,
+      width: 170,
       render: (_: unknown, r: Fact) => (
         <span>
           {new Date(r.valid_from).toLocaleString()}
@@ -213,7 +213,7 @@ export default function MemoryPage() {
     },
     {
       title: "操作",
-      width: 240,
+      width: 190,
       render: (_: unknown, r: Fact) => (
         <Space>
           <Button size="small" onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}>历史</Button>
@@ -384,7 +384,7 @@ export default function MemoryPage() {
                       当前占比 <b>{rows.length ? Math.round((cur / rows.length) * 100) : 0}%</b>
                     </div>
                   </div>
-                  <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" />
+                  <Table rowKey="id" size="small" dataSource={rows} columns={columns} pagination={false} className="group-table" style={{ width: "100%" }} />
                 </div>
               ),
             };
