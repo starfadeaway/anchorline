@@ -74,6 +74,8 @@ def main() -> int:
         for old_attr in ("5k_pb", "5K_personal_best", "5K 最好成绩（PB）", "5K best time"):
             normalize_attr(old_attr, "5K 最好成绩")
         normalize_attr("跑步 配速", "跑步配速")
+        normalize_attr("工作 目标", "工作目标")
+        normalize_attr("工作 项目", "工作项目")
         normalize_attr("跑步 目标配速", "目标配速")
         db.commit()
         print(f"removed {removed} rows; attributes normalized")

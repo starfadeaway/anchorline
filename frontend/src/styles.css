@@ -87,7 +87,7 @@ input,
   color: inherit !important;
 }
 
-.app-content { padding: 16px; overflow: auto; }
+.app-content { padding: 16px; overflow: auto; max-width: 1440px; margin: 0 auto; }
 
 /* 卡片：描边发光 */
 .ant-card {
@@ -177,6 +177,8 @@ input,
 }
 .group-table, .group-table .ant-table, .group-table .ant-table-container, .group-table table { width: 100% !important; }
 .group-table .ant-table { font-size: 12px; }
+.group-table table { table-layout: fixed; }
+.group-table td, .group-table th { word-break: break-word; overflow-wrap: anywhere; }
 
 /* 记忆饼图（纯 CSS，无图表库） */
 .pie-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
@@ -303,7 +305,7 @@ input,
 }
 .bar-tip.muted { color: var(--weak); }
 .bar-tip-query { color: var(--muted); font-size: 10px; margin-top: 2px; }
-.group-body { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: start; animation: fadeUp .2s ease-out; }
+.group-body { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px; align-items: start; animation: fadeUp .2s ease-out; }
 .group-chart { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .group-chart-legend { font-size: 11px; color: var(--weak); }
 .group-chart b { color: var(--text); }

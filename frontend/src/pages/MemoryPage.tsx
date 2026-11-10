@@ -193,17 +193,17 @@ export default function MemoryPage() {
   };
 
   const columns = [
-    { title: "实体", dataIndex: "entity_id", width: "9%", ellipsis: true },
-    { title: "属性", dataIndex: "attribute", width: "13%", ellipsis: true },
-    { title: "值", dataIndex: "value", width: "42%" },
+    { title: "实体", dataIndex: "entity_id", width: "10%", ellipsis: true },
+    { title: "属性", dataIndex: "attribute", width: "14%", ellipsis: true },
+    { title: "值", dataIndex: "value", width: "32%" },
     {
       title: "状态",
-      width: "7%",
+      width: "8%",
       render: (_: unknown, r: Fact) => (r.valid_to ? <Tag>已失效</Tag> : <Tag color="green">当前</Tag>),
     },
     {
       title: "生效时间",
-      width: "15%",
+      width: "16%",
       render: (_: unknown, r: Fact) => (
         <span>
           {new Date(r.valid_from).toLocaleString()}
@@ -213,7 +213,7 @@ export default function MemoryPage() {
     },
     {
       title: "操作",
-      width: "14%",
+      width: "17%",
       render: (_: unknown, r: Fact) => (
         <Space>
           <Button size="small" onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}>历史</Button>
