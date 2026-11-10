@@ -37,7 +37,6 @@ class Session(Base):
     __tablename__ = "sessions"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
-    external_id: Mapped[str | None] = mapped_column(String(128), unique=True)
     domain: Mapped[str] = mapped_column(String(32), default="chat")  # chat / web / enterprise
     # 会话主题标签（模型生成，前端按它分组；空则回退首条消息关键词）
     topic: Mapped[str | None] = mapped_column(String(32), nullable=True)

@@ -52,10 +52,11 @@ def build_chat_graph(
     store: FactStore,
     model_fn: Callable[[list[dict]], dict],
     bounds: Bounds | None = None,
+    session_id: str | None = None,
 ):
     """model_fn(messages) -> {"content": str, "tool_calls": [{"id","name","arguments"}]}"""
     bounds = bounds or Bounds()
-    tools = build_tools(store)
+    tools = build_tools(store, session_id)
 
     def agent(state: ChatState) -> dict:
         reply = model_fn(state["messages"])

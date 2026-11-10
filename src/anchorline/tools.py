@@ -34,7 +34,7 @@ def _parse_valid_from(value: str | None) -> datetime:
     return datetime.now()
 
 
-def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
+def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Callable[..., ToolResult]]:
     def memory_search(
         query: str = "", budget_tokens: int = 2000, limit: int = 20, include_history: bool = False
     ) -> ToolResult:
@@ -91,6 +91,7 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
         confidence: float = 1.0,
         source_session_id: str | None = None,
         supersedes_id: str | None = None,
+        conflict_type: str | None = None,
     ) -> ToolResult:
         # 记忆的「生效时间」= 写入/记录时间（会话时间），不是对话里提到的事件日期；
         # 事件日期应保留在 value 文本中（如 "25:50（日期 2023-05-30）"）。
@@ -107,7 +108,8 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
             value=value,
             valid_from=record_time,
             confidence=confidence,
-            source_session_id=source_session_id,
+            source_session_id=source_session_id or session_id,
+            conflict_type=conflict_type,
         )
         # 同步向量索引（失败不影响写入）
         try:
@@ -189,6 +191,11 @@ TOOL_SCHEMAS = [
                     "supersedes_id": {
                         "type": "string",
                         "description": "旧事实 id（先 memory_search 取得）；更新已有记忆时传入，旧值会标记失效",
+                    },
+                    "conflict_type": {
+                        "type": "string",
+                        "enum": ["时效", "数值", "否定", "无"],
+                        "description": "可选：这次写入与旧值的冲突类型",
                     },
                 },
                 "required": ["entity_id", "attribute", "value"],

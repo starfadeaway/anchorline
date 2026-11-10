@@ -143,6 +143,8 @@ class FactOut(BaseModel):
     supersedes_id: str | None
     fact_type: str
     conflict_type: str | None
+    source_session_id: str | None = None
+    source_message_id: int | None = None
 
 
 @app.get("/memory/facts", response_model=list[FactOut])
@@ -174,6 +176,8 @@ def list_facts(
             supersedes_id=f.supersedes_id,
             fact_type=f.fact_type,
             conflict_type=f.conflict_type,
+            source_session_id=f.source_session_id,
+            source_message_id=f.source_message_id,
         )
         for f in rows
     ]
@@ -198,6 +202,8 @@ def fact_history(fact_id: str, db: Session = Depends(get_db)) -> list[FactOut]:
             supersedes_id=f.supersedes_id,
             fact_type=f.fact_type,
             conflict_type=f.conflict_type,
+            source_session_id=f.source_session_id,
+            source_message_id=f.source_message_id,
         )
         for f in rows
     ]
@@ -361,6 +367,7 @@ def _run_agent(
         store,
         model_fn,
         Bounds(max_steps=max_steps, max_tokens=24000, wall_time_s=180.0),
+        session_id=session_id,
     )
     out = graph.invoke(
         initial_state(messages),

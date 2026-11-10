@@ -97,17 +97,19 @@ def main() -> int:
             )
             session_ids.append(s.id)
 
-        # 裁决（演示：user:demo 的两条 5k_pb 历史选保留）
+        # 演示：5k_pb 保留最新（旧值已自动失效，但裁决记录里列出旧值以便追溯）
         db.commit()
-        kept = db.scalars(select(Fact).where(Fact.entity_id == ENTITY, Fact.attribute == "5k_pb").order_by(Fact.valid_from.desc()).limit(1)).first()
+        same_attr = list(db.scalars(select(Fact).where(Fact.entity_id == ENTITY, Fact.attribute == "5k_pb")).all())
+        kept = max(same_attr, key=lambda f: f.valid_from) if same_attr else None
         if kept:
+            old_ids = [f.id for f in same_attr if f.id != kept.id]
             db.add(
                 ReviewDecision(
                     entity_id=ENTITY,
                     attribute="5k_pb",
                     kept_fact_id=kept.id,
-                    invalidated_fact_ids=json.dumps([], ensure_ascii=False),
-                    reason="demo: 保留最新 PB",
+                    invalidated_fact_ids=json.dumps(old_ids, ensure_ascii=False),
+                    reason="demo: 保留最新 PB（旧值已自动失效）",
                     operator="seed",
                 )
             )
