@@ -69,23 +69,6 @@ class SliceEntry:
     axtree_text: str  # 检索面
     state_blocks: str  # 注入面（URL / Action / AXTree）
 
-    def context_item(self, rank: int, query: str, score: float, goal: str) -> str:
-        blocks = "\n\n".join(
-            f"State {i}\n- URL: {_state_url(self._raw[i])}\n- Action: {_state_action(self._raw[i])}\n"
-            f"- AXTree:\n{axtree_of(self._raw[i])}"
-            for i in self.slice_state_indexes
-        )
-        return (
-            f"### Raw state result {rank}\n"
-            f"- Source raw query: {query}\n"
-            f"- Retrieval rank within query: {rank}\n"
-            f"- Similarity: {score:.4f}\n"
-            f"- Trajectory: {self.trajectory_id}\n"
-            f"- Goal: {goal}\n"
-            f"- Center state index: {self.center_state_index}\n\n"
-            f"Relevant state slices\n{blocks}\n"
-        )
-
 
 def normalize_vector(vec: list[float]) -> list[float]:
     """L2 归一化（官方 `_normalize_embeddings` 同口径），使 l2 排序等价 cosine。"""
