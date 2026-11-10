@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     llm_retry_base_delay_s: float = 0.5
     llm_timeout_s: float = 120.0
 
+    # --- optional knowledge base (LoreKeeper bridge) ---
+    # 打开后聊天 agent 多一个 kb_search 工具，查 LoreKeeper 的 chunk 索引；记忆仍走 memory_*
+    lorekeeper_enabled: bool = True
+    lorekeeper_lance_dir: str = r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper\data\lance"
+    lorekeeper_embed_model: str = "BAAI/bge-m3"
+
     @property
     def mysql_dsn(self) -> str:
         return (

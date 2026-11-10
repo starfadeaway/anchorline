@@ -114,10 +114,28 @@ def build_tools(store: FactStore) -> dict[str, Callable[..., ToolResult]]:
         cur.valid_to = _parse_valid_from(at)
         return ToolResult(ok=True, content=f"marked invalid: {cur.id}", meta={"fact_id": cur.id})
 
+    def kb_search(query: str = "", game: str = "", top_k: int = 3) -> ToolResult:
+        """查 LoreKeeper 知识库（wiki 页面级）；与 memory_search（事实记忆）分工。"""
+        try:
+            from anchorline.retrieval.lorekeeper_kb import search as kb_search_fn
+
+            hits = kb_search_fn(query, game or None, top_k)
+        except Exception:
+            hits = []
+        if not hits:
+            return ToolResult(ok=True, content="(no knowledge hit)", meta={"hits": 0})
+        text = "\n\n".join(f"[{h['game']}] {h['page_title']}\n{h['text'][:800]}" for h in hits)
+        return ToolResult(
+            ok=True,
+            content=text,
+            meta={"hits": len(hits), "pages": [h["page_title"] for h in hits]},
+        )
+
     return {
         "memory_search": memory_search,
         "memory_write": memory_write,
         "memory_forget": memory_forget,
+        "kb_search": kb_search,
     }
 
 
@@ -171,6 +189,22 @@ TOOL_SCHEMAS = [
                     "at": {"type": "string"},
                 },
                 "required": ["entity_id", "attribute"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "kb_search",
+            "description": "Search the LoreKeeper game wiki knowledge base (page-level chunks). Use for factual game questions (characters/items/mechanics); use memory_search for personal memories/facts.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "game": {"type": "string", "enum": ["sr", "ys", "zzz"], "description": "可选：sr=崩坏星穹铁道, ys=原神, zzz=绝区零；留空则三库都查"},
+                    "top_k": {"type": "integer", "default": 3},
+                },
+                "required": ["query"],
             },
         },
     },
