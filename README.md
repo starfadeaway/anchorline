@@ -100,6 +100,7 @@ docker compose up -d --build
 | 可追溯 | 事实不物理删除；历史、失效时间、裁决记录可查 | `GET /memory/facts/{id}/history` |
 | 会话主题 | 模型生成 topic（如“跑步/游泳/乒乓球”），前端按主题分组 | `sessions.topic` |
 | 报告导出 | 记忆 / 会话 / 评测 Markdown 导出 | 前端「报告」页 |
+| 审核裁决金标 | 审核页裁决（保留 + 失效 + 原因）写入 `review_decisions`，评测页「审核裁决」Tab 展示 | `POST /review/decisions` |
 
 ## 实验与复现
 
@@ -121,6 +122,15 @@ docker compose up -d --build
 
 # LoreKeeper 数据集桥接（页面级 Recall/MRR）
 .venv\Scripts\python.exe scripts\lorekeeper_bridge.py --k 5
+.venv\Scripts\python.exe scripts\lorekeeper_bridge.py --mode page --k 5
+
+# chunk 级（自动 gold）与换向量口径
+.venv\Scripts\python.exe scripts\lorekeeper_chunk_gold.py --by bm25
+.venv\Scripts\python.exe scripts\lorekeeper_chunk_eval.py --k 5 --gold data\eval\lorekeeper_chunk_gold_bm25.json
+
+# M2 记忆质量（V1 72 题）与 L2 事实抽取
+.venv\Scripts\python.exe scripts\eval_m2_quality.py
+.venv\Scripts\python.exe scripts\eval_l2_extraction.py
 ```
 
 ## 数据与许可边界

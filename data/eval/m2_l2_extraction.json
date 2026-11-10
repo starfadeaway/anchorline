@@ -1,0 +1,3826 @@
+{
+ "summary": {
+  "n": 72,
+  "value_hit_rate": 0.0139,
+  "avg_facts": 9.21,
+  "parse_fail": 3
+ },
+ "rows": [
+  {
+   "question_id": "6a1eabeb",
+   "gold_value": "25:50",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "5k_pb",
+     "value": "27:12"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_running",
+     "value": "doing some running lately"
+    },
+    {
+     "entity": "user",
+     "attribute": "soccer_game_frequency",
+     "value": "every two weeks"
+    },
+    {
+     "entity": "user",
+     "attribute": "next_soccer_game",
+     "value": "in two weeks"
+    },
+    {
+     "entity": "user",
+     "attribute": "core_and_leg_strength_focus",
+     "value": "strengthening core and legs"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_goal",
+     "value": "scored a goal in a recreational game with coworkers"
+    },
+    {
+     "entity": "user",
+     "attribute": "goal_scoring_typical",
+     "value": "not typically a goal-scorer"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "6aeb4375",
+   "gold_value": "four",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "event",
+     "value": "planning a dinner party"
+    },
+    {
+     "entity": "user",
+     "attribute": "menu_theme",
+     "value": "variety of dishes from different cuisines"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_pairing",
+     "value": "Korean BBQ options with Indian and Middle Eastern dishes"
+    },
+    {
+     "entity": "user",
+     "attribute": "middle_eastern_dish",
+     "value": "falafel"
+    },
+    {
+     "entity": "user",
+     "attribute": "noodle_experimentation",
+     "value": "different types of noodles lately"
+    },
+    {
+     "entity": "user",
+     "attribute": "korean_bbq_request",
+     "value": "popular Korean BBQ dishes easy to make in large quantities"
+    },
+    {
+     "entity": "user",
+     "attribute": "indian_dish_request",
+     "value": "Indian dishes easy to make in large quantities"
+    },
+    {
+     "entity": "user",
+     "attribute": "korean_noodle_request",
+     "value": "popular Korean noodle dishes to try making at home"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "830ce83f",
+   "gold_value": "the suburbs",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "trip_companions",
+     "value": "friends"
+    },
+    {
+     "entity": "user",
+     "attribute": "trip_destination_options",
+     "value": "a beach town in Florida and a hiking trip in Colorado"
+    },
+    {
+     "entity": "user",
+     "attribute": "friend",
+     "value": "Rachel"
+    },
+    {
+     "entity": "user",
+     "attribute": "thinking_about_visiting",
+     "value": "Rachel"
+    },
+    {
+     "entity": "Rachel",
+     "attribute": "recent_move",
+     "value": "new apartment in the city"
+    },
+    {
+     "entity": "Rachel",
+     "attribute": "moved_to",
+     "value": "Chicago"
+    },
+    {
+     "entity": "user",
+     "attribute": "visit_plan",
+     "value": "visiting Rachel in Chicago"
+    },
+    {
+     "entity": "user",
+     "attribute": "visit_goal",
+     "value": "explore the city and meet up with Rachel easily"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "852ce960",
+   "gold_value": "$400,000",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "home_purchase_status",
+     "value": "in the process of buying a new home"
+    },
+    {
+     "entity": "user",
+     "attribute": "budget_goal",
+     "value": "finalize my budget"
+    },
+    {
+     "entity": "user",
+     "attribute": "house_purchase_price",
+     "value": "$325,000"
+    },
+    {
+     "entity": "user",
+     "attribute": "mortgage_pre_approval_amount",
+     "value": "$350,000"
+    },
+    {
+     "entity": "user",
+     "attribute": "mortgage_pre_approval_lender",
+     "value": "Wells Fargo"
+    },
+    {
+     "entity": "user",
+     "attribute": "inspection_report_issues",
+     "value": "minor issues with the roof and plumbing"
+    },
+    {
+     "entity": "user",
+     "attribute": "seller_closing_cost_credit_agreed",
+     "value": "$2,000"
+    },
+    {
+     "entity": "user",
+     "attribute": "additional_closing_cost_credit_request",
+     "value": "1% of the purchase price, $3,250"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "945e3d21",
+   "gold_value": "Three times a week",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "overwhelmed_with_work_tasks",
+     "value": "a bit"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_1",
+     "value": "Finish project report"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_1_deadline",
+     "value": "End of the week"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_1_description",
+     "value": "Need to finalize the project report and send it to the manager for review"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_2",
+     "value": "Respond to client email"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_2_deadline",
+     "value": "Today"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_2_description",
+     "value": "Need to respond to the client's email regarding the project timeline"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_3",
+     "value": "Prepare for meeting"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_3_deadline",
+     "value": "Tomorrow"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_3_description",
+     "value": "Need to prepare for the team meeting by reviewing the agenda and preparing my notes"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_4",
+     "value": "Review and update project plan"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_4_deadline",
+     "value": "Next week"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_4_description",
+     "value": "Need to review and update the project plan to ensure it's on track"
+    },
+    {
+     "entity": "user",
+     "attribute": "task_handle",
+     "value": "good handle"
+    },
+    {
+     "entity": "user",
+     "attribute": "self_care_priority",
+     "value": "trying to prioritize self-care"
+    },
+    {
+     "entity": "user",
+     "attribute": "yoga_frequency",
+     "value": "twice a week"
+    },
+    {
+     "entity": "user",
+     "attribute": "yoga_effect",
+     "value": "helping me relax and focus"
+    },
+    {
+     "entity": "user",
+     "attribute": "meditation_use",
+     "value": "set intentions and focus on goals for the day"
+    },
+    {
+     "entity": "user",
+     "attribute": "journaling_reflection_goal",
+     "value": "identify my triggers and work through childhood trauma"
+    },
+    {
+     "entity": "user",
+     "attribute": "childhood_trauma",
+     "value": "yes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "d7c942c3",
+   "gold_value": "Yes.",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "dinner_party",
+     "value": "this weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "desired_ingredients",
+     "value": "chicken breasts and veggies"
+    },
+    {
+     "entity": "user",
+     "attribute": "selected_dish",
+     "value": "Lemon Garlic Chicken Breast with Roasted Vegetables"
+    },
+    {
+     "entity": "user",
+     "attribute": "requested_recipe",
+     "value": "simple roasted vegetable medley"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_dish",
+     "value": "roasted sweet potatoes"
+    },
+    {
+     "entity": "user",
+     "attribute": "grocery_list_method",
+     "value": "new grocery list app"
+    },
+    {
+     "entity": "user",
+     "attribute": "grocery_list_app_purpose",
+     "value": "keep track of all the ingredients I need"
+    },
+    {
+     "entity": "user",
+     "attribute": "grocery_list_app_opinion",
+     "value": "lifesaver"
+    },
+    {
+     "entity": "user",
+     "attribute": "grocery_list_app_status",
+     "value": "recently downloaded"
+    },
+    {
+     "entity": "user",
+     "attribute": "grocery_list_app_benefit",
+     "value": "organizing my grocery lists and keeping me on top of what I need to buy"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_dish",
+     "value": "cauliflower gnocchi"
+    },
+    {
+     "entity": "user",
+     "attribute": "requested_recipe",
+     "value": "simple cauliflower gnocchi recipe"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "71315a70",
+   "gold_value": "10-12 hours",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "abstract_ocean_sculpture_hours_spent",
+     "value": "around 5-6 hours so far"
+    },
+    {
+     "entity": "user",
+     "attribute": "abstract_ocean_sculpture_location",
+     "value": "at home"
+    },
+    {
+     "entity": "user",
+     "attribute": "new_piece_inspiration",
+     "value": "sunset on the beach"
+    },
+    {
+     "entity": "user",
+     "attribute": "sculpture_series_theme",
+     "value": "ocean"
+    },
+    {
+     "entity": "user",
+     "attribute": "sculpture_series_material_experimentation",
+     "value": "different materials and finishes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "89941a93",
+   "gold_value": "4",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "location",
+     "value": "San Francisco Bay Area"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_ride_distance",
+     "value": "50-mile"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_ride_time",
+     "value": "this weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "owned_bike",
+     "value": "road bike"
+    },
+    {
+     "entity": "user",
+     "attribute": "owned_bike",
+     "value": "mountain bike"
+    },
+    {
+     "entity": "user",
+     "attribute": "owned_bike",
+     "value": "commuter bike"
+    },
+    {
+     "entity": "user",
+     "attribute": "road_bike_mileage",
+     "value": "2,000 miles"
+    },
+    {
+     "entity": "user",
+     "attribute": "century_ride_plan",
+     "value": "soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "wheel_upgrade_consideration",
+     "value": "carbon fiber wheels"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "ce6d2d27",
+   "gold_value": "Friday",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "dinner_party_menu_planning",
+     "value": "planning a dinner party menu"
+    },
+    {
+     "entity": "user",
+     "attribute": "cocktail_pairing",
+     "value": "spicy mango margaritas"
+    },
+    {
+     "entity": "user",
+     "attribute": "appetizer_choice_1",
+     "value": "grilled pineapple and prosciutto skewers"
+    },
+    {
+     "entity": "user",
+     "attribute": "appetizer_choice_2",
+     "value": "spicy shrimp ceviche"
+    },
+    {
+     "entity": "user",
+     "attribute": "main_course_choice",
+     "value": "grilled jerk chicken with mango salsa"
+    },
+    {
+     "entity": "user",
+     "attribute": "jerk_seasoning_experimentation",
+     "value": "experimenting with jerk seasoning lately"
+    },
+    {
+     "entity": "user",
+     "attribute": "jerk_seasoning_preference",
+     "value": "loves the flavor it adds to chicken"
+    },
+    {
+     "entity": "user",
+     "attribute": "side_dish_option",
+     "value": "grilled asparagus and quinoa"
+    },
+    {
+     "entity": "user",
+     "attribute": "cocktail_making_class_day",
+     "value": "Thursday"
+    },
+    {
+     "entity": "user",
+     "attribute": "side_dish_choice",
+     "value": "roasted sweet potatoes instead of quinoa"
+    },
+    {
+     "entity": "user",
+     "attribute": "dessert_plan",
+     "value": "making a dessert to serve after the main course"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "9ea5eabc",
+   "gold_value": "Paris",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "recent_family_trip_destination",
+     "value": "Hawaii"
+    },
+    {
+     "entity": "user",
+     "attribute": "family_trip_activity",
+     "value": "snorkeling together"
+    },
+    {
+     "entity": "user",
+     "attribute": "family_trip_schedule_feeling",
+     "value": "felt a bit stuck to a schedule"
+    },
+    {
+     "entity": "user",
+     "attribute": "hawaii_trip_regret",
+     "value": "set aside more time for myself to explore Waikiki and do some shopping"
+    },
+    {
+     "entity": "user",
+     "attribute": "next_family_trip_plan",
+     "value": "plan some solo excursions"
+    },
+    {
+     "entity": "user",
+     "attribute": "post_family_trip_plan",
+     "value": "take a few extra days after the family trip to explore on my own"
+    },
+    {
+     "entity": "user",
+     "attribute": "post_family_trip_activities",
+     "value": "meet up with friends who live in the area or try new restaurants"
+    },
+    {
+     "entity": "user",
+     "attribute": "accommodation_plan",
+     "value": "stay in social hostels"
+    },
+    {
+     "entity": "user",
+     "attribute": "activity_plan",
+     "value": "join some food tours or cooking classes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "07741c44",
+   "gold_value": "shoe rack in the closet",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "looking_for",
+     "value": "good quality sandals with sturdy straps"
+    },
+    {
+     "entity": "user",
+     "attribute": "heard_of_brands",
+     "value": "Teva and Merrell"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_sneakers_location",
+     "value": "under my bed"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_sneakers_condition",
+     "value": "starting to smell"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_sneakers_needed_service",
+     "value": "polished and conditioned"
+    },
+    {
+     "entity": "user",
+     "attribute": "cobbler_dropoff_time",
+     "value": "this weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_donation_item",
+     "value": "old dress shoes"
+    },
+    {
+     "entity": "user",
+     "attribute": "donation_recipient",
+     "value": "local charity thrift store"
+    },
+    {
+     "entity": "user",
+     "attribute": "donation_time",
+     "value": "this Saturday"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_activity",
+     "value": "take inventory of my shoe collection"
+    },
+    {
+     "entity": "user",
+     "attribute": "hidden_shoes_location",
+     "value": "in my closet"
+    },
+    {
+     "entity": "user",
+     "attribute": "unworn_shoes_duration",
+     "value": "ages"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "a1eacc2a",
+   "gold_value": "seven",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "writing_projects",
+     "value": "short stories, journal, memoir"
+    },
+    {
+     "entity": "user",
+     "attribute": "likes_writing_calendar_idea",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "enjoys_writing_short_stories_lately",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "short_stories_written_since_regular_writing",
+     "value": "four"
+    },
+    {
+     "entity": "user",
+     "attribute": "hopes_to_keep_momentum",
+     "value": "yes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "184da446",
+   "gold_value": "220",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "reading_book",
+     "value": "A Short History of Nearly Everything"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_page",
+     "value": "200"
+    },
+    {
+     "entity": "user",
+     "attribute": "interest",
+     "value": "AI-powered medical diagnosis"
+    },
+    {
+     "entity": "user",
+     "attribute": "interest",
+     "value": "applications of AI in medical imaging"
+    },
+    {
+     "entity": "user",
+     "attribute": "interest",
+     "value": "AI-powered diagnosis systems using NLP for clinical decision support"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "031748ae",
+   "gold_value": "5",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "role",
+     "value": "Senior Software Engineer"
+    },
+    {
+     "entity": "user",
+     "attribute": "team_outing_activity",
+     "value": "outdoor games / giant Jenga"
+    },
+    {
+     "entity": "user",
+     "attribute": "rooftop_group_size",
+     "value": "5 people"
+    },
+    {
+     "entity": "user",
+     "attribute": "chosen_venue",
+     "value": "City View Rooftop"
+    },
+    {
+     "entity": "user",
+     "attribute": "manager_name",
+     "value": "Rachel"
+    },
+    {
+     "entity": "user",
+     "attribute": "team_composition",
+     "value": "5 engineers and a manager"
+    },
+    {
+     "entity": "user",
+     "attribute": "total_group_size",
+     "value": "6 people"
+    },
+    {
+     "entity": "user",
+     "attribute": "contact_person",
+     "value": "Samantha"
+    },
+    {
+     "entity": "user",
+     "attribute": "requested_package",
+     "value": "Corporate Team Building Package for 6 people"
+    }
+   ],
+   "hit": true
+  },
+  {
+   "question_id": "4d6b87c8",
+   "gold_value": "25",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "streaming_service",
+     "value": "Netflix"
+    },
+    {
+     "entity": "user",
+     "attribute": "wants_shows_similar_to",
+     "value": "Stranger Things or The Crown"
+    },
+    {
+     "entity": "user",
+     "attribute": "to_watch_list_count",
+     "value": "20 titles"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_show",
+     "value": "The Haunting of Hill House"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_mood",
+     "value": "horror series"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_viewing_pace",
+     "value": "an episode or two a week"
+    },
+    {
+     "entity": "user",
+     "attribute": "show_to_check_out",
+     "value": "The OA"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_focus_show",
+     "value": "The Haunting of Hill House"
+    },
+    {
+     "entity": "user",
+     "attribute": "enjoys",
+     "value": "complex, atmospheric shows"
+    },
+    {
+     "entity": "user",
+     "attribute": "appreciates",
+     "value": "good balance between character development and plot progression"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "0f05491a",
+   "gold_value": 120,
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "shopping_trip",
+     "value": "weekly grocery"
+    },
+    {
+     "entity": "user",
+     "attribute": "coffee_plan",
+     "value": "stocking up for daily routine"
+    },
+    {
+     "entity": "user",
+     "attribute": "starbucks_rewards_app",
+     "value": "using"
+    },
+    {
+     "entity": "user",
+     "attribute": "starbucks_rewards_goal",
+     "value": "gold level"
+    },
+    {
+     "entity": "user",
+     "attribute": "gold_level_stars_needed",
+     "value": "125"
+    },
+    {
+     "entity": "user",
+     "attribute": "shopping_trip",
+     "value": "weekend"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "08e075c7",
+   "gold_value": "9 months",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "yoga_goal",
+     "value": "get more into yoga"
+    },
+    {
+     "entity": "user",
+     "attribute": "yoga_video_source",
+     "value": "YouTube, Adriene's videos"
+    },
+    {
+     "entity": "user",
+     "attribute": "wants_yoga_app_variety",
+     "value": "more variety"
+    },
+    {
+     "entity": "user",
+     "attribute": "fitbit_model",
+     "value": "Fitbit Charge 3"
+    },
+    {
+     "entity": "user",
+     "attribute": "fitbit_usage_duration",
+     "value": "6 months"
+    },
+    {
+     "entity": "user",
+     "attribute": "fitbit_use",
+     "value": "stay on track with daily steps"
+    },
+    {
+     "entity": "user",
+     "attribute": "daily_step_goal",
+     "value": "has a daily step goal"
+    },
+    {
+     "entity": "user",
+     "attribute": "lazy_sunday_step_motivation_issue",
+     "value": "reach daily step goal on lazy Sundays"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_new_yoga_mat",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "yoga_mat_usage_duration",
+     "value": "a while"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_yoga_mat_quality",
+     "value": "great"
+    },
+    {
+     "entity": "user",
+     "attribute": "knee_issues",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "preferred_yoga_mat_thickness",
+     "value": "thicker"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_yoga_mat_model",
+     "value": "Hugger Mugger ParaMat"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "f9e8c073",
+   "gold_value": "five",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "calendar_organization_period",
+     "value": "past year"
+    },
+    {
+     "entity": "user",
+     "attribute": "attended_events",
+     "value": "family gatherings and funerals"
+    },
+    {
+     "entity": "user",
+     "attribute": "emotional_state",
+     "value": "tough time"
+    },
+    {
+     "entity": "user",
+     "attribute": "attended_bereavement_support_group",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "bereavement_support_group_sessions",
+     "value": "three"
+    },
+    {
+     "entity": "user",
+     "attribute": "bereavement_support_group_effect",
+     "value": "helped process emotions"
+    },
+    {
+     "entity": "user",
+     "attribute": "wants_memorial_or_ritual_info",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "memorial_or_ritual_start",
+     "value": "not sure where to start"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "41698283",
+   "gold_value": "a 70-200mm zoom lens",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "camera_bag_candidates",
+     "value": "Lowepro ProTactic 450 AW and Think Tank Urban Disguise 40L"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera_use",
+     "value": "portrait and low-light photography"
+    },
+    {
+     "entity": "user",
+     "attribute": "bag_requirement",
+     "value": "protect gear well"
+    },
+    {
+     "entity": "user",
+     "attribute": "lens_with_issues",
+     "value": "18-55mm kit lens"
+    },
+    {
+     "entity": "user",
+     "attribute": "focus_mode",
+     "value": "manual focus"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_lens_purchase",
+     "value": "50mm prime lens"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera",
+     "value": "Nikon D5600"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_tripod",
+     "value": "Manfrotto BeFree"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_tripod_condition",
+     "value": "showing signs of wear and tear"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_tripod_replacement",
+     "value": "new tripod to replace old Manfrotto BeFree"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "2698e78f",
+   "gold_value": "every week",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "sleep_problem",
+     "value": "trouble falling asleep some nights"
+    },
+    {
+     "entity": "user",
+     "attribute": "tried_sleep_strategies",
+     "value": "journaling and a consistent sleep schedule"
+    },
+    {
+     "entity": "user",
+     "attribute": "self_care_activities",
+     "value": "yoga and meditation"
+    },
+    {
+     "entity": "user",
+     "attribute": "self_care_effect",
+     "value": "helping with anxiety levels"
+    },
+    {
+     "entity": "user",
+     "attribute": "therapist",
+     "value": "Dr. Smith"
+    },
+    {
+     "entity": "user",
+     "attribute": "therapy_frequency",
+     "value": "every two weeks"
+    },
+    {
+     "entity": "user",
+     "attribute": "upcoming_therapy_session",
+     "value": "soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_feeling",
+     "value": "overwhelmed with commitments"
+    },
+    {
+     "entity": "user",
+     "attribute": "therapist_suggestion",
+     "value": "learn to say \"no\" and set healthy boundaries"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "b6019101",
+   "gold_value": "5",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "planned_activity",
+     "value": "movie marathon with my family over the long weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "wants_to_rewatch",
+     "value": "classic films from my childhood"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_activity",
+     "value": "Marvel binge recently"
+    },
+    {
+     "entity": "user",
+     "attribute": "mcu_films_watched_last_3_months",
+     "value": "4"
+    },
+    {
+     "entity": "user",
+     "attribute": "family_movie_choice",
+     "value": "Spider-Man: Homecoming"
+    },
+    {
+     "entity": "user",
+     "attribute": "photo_booth_idea",
+     "value": "Marvel-themed photo booth with props like Spider-Man masks and capes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "45dc21b6",
+   "gold_value": "3",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "weekend_plan",
+     "value": "trying out some new recipes"
+    },
+    {
+     "entity": "user",
+     "attribute": "emma_recipes_tried",
+     "value": 2
+    },
+    {
+     "entity": "user",
+     "attribute": "emma_recipes_sentiment",
+     "value": "loving"
+    },
+    {
+     "entity": "user",
+     "attribute": "tried_vegan_cheesecake",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_recipe",
+     "value": "Chocolate Chia Pudding"
+    },
+    {
+     "entity": "user",
+     "attribute": "vlogging_camera_interest",
+     "value": "seeking suggestions"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_phone",
+     "value": "Google Pixel 6"
+    },
+    {
+     "entity": "user",
+     "attribute": "watched_reviewer",
+     "value": "Unbox Therapy"
+    },
+    {
+     "entity": "user",
+     "attribute": "watches",
+     "value": "a lot of tech review videos lately"
+    },
+    {
+     "entity": "user",
+     "attribute": "enjoys_reviews_from",
+     "value": "JerryRigEverything"
+    },
+    {
+     "entity": "user",
+     "attribute": "enjoys_reviews_from",
+     "value": "Marques Brownlee"
+    },
+    {
+     "entity": "user",
+     "attribute": "uses_tech_reviews_for",
+     "value": "making informed decisions when buying new tech"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "5a4f22c0",
+   "gold_value": "TechCorp",
+   "facts": [],
+   "hit": false
+  },
+  {
+   "question_id": "6071bd76",
+   "gold_value": "You switched to less water (5 ounces) per tablespoon of coffee.",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "french_press_ratio",
+     "value": "1 tablespoon of coffee for every 6 ounces of water"
+    },
+    {
+     "entity": "user",
+     "attribute": "coffee_bean_to_try_first",
+     "value": "Kenyan coffee"
+    },
+    {
+     "entity": "user",
+     "attribute": "tea_pairing_choice",
+     "value": "Earl Grey tea with citrus-infused coffee"
+    },
+    {
+     "entity": "user",
+     "attribute": "coffee_subscription_status",
+     "value": "signed up last month"
+    },
+    {
+     "entity": "user",
+     "attribute": "first_coffee_shipment",
+     "value": "got first shipment of beans yesterday"
+    },
+    {
+     "entity": "user",
+     "attribute": "brewing_method",
+     "value": "French press"
+    },
+    {
+     "entity": "user",
+     "attribute": "plan_for_new_beans",
+     "value": "try out the new beans in French press"
+    },
+    {
+     "entity": "user",
+     "attribute": "flavor_expectation",
+     "value": "bright, vibrant flavors will pair really well with citrus notes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "e493bb7c",
+   "gold_value": "in my bedroom",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "art_box",
+     "value": "my art box"
+    },
+    {
+     "entity": "user",
+     "attribute": "ethereal_dreams_location",
+     "value": "above my living room sofa"
+    },
+    {
+     "entity": "user",
+     "attribute": "moonlit_ocean_print",
+     "value": "digital print of \"Moonlit Ocean\" by Jack Harris"
+    },
+    {
+     "entity": "user",
+     "attribute": "moonlit_ocean_planned_location",
+     "value": "my bedroom"
+    },
+    {
+     "entity": "user",
+     "attribute": "moonlit_ocean_temporary_move",
+     "value": "party area"
+    },
+    {
+     "entity": "user",
+     "attribute": "party_theme",
+     "value": "art-themed"
+    },
+    {
+     "entity": "user",
+     "attribute": "art_stations",
+     "value": "few art stations where guests can create their own art pieces"
+    },
+    {
+     "entity": "user",
+     "attribute": "own_art_display_location",
+     "value": "around the party area"
+    },
+    {
+     "entity": "user",
+     "attribute": "art_corner",
+     "value": "art books and magazines"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "618f13b2",
+   "gold_value": "six",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "拥有的鞋子",
+     "value": "a bunch of shoes"
+    },
+    {
+     "entity": "user",
+     "attribute": "拥有的运动鞋",
+     "value": "new black Converse Chuck Taylor All Star sneakers"
+    },
+    {
+     "entity": "user",
+     "attribute": "新黑色Converse穿着次数",
+     "value": "four times"
+    },
+    {
+     "entity": "user",
+     "attribute": "新黑色Converse穿着场合",
+     "value": "friend's birthday party last Saturday"
+    },
+    {
+     "entity": "user",
+     "attribute": "拥有的靴子",
+     "value": "brown leather boots"
+    },
+    {
+     "entity": "user",
+     "attribute": "棕色皮靴状况",
+     "value": "heel is coming loose"
+    },
+    {
+     "entity": "user",
+     "attribute": "鞋子分类方式",
+     "value": "by type and color"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "72e3ee87",
+   "gold_value": "50",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "wake_up_time",
+     "value": "7:30 AM"
+    },
+    {
+     "entity": "user",
+     "attribute": "bedtime",
+     "value": "11:30 PM"
+    },
+    {
+     "entity": "user",
+     "attribute": "work_hours",
+     "value": "9:00 AM to 5:30 PM"
+    },
+    {
+     "entity": "user",
+     "attribute": "lunch_break_duration",
+     "value": "1 hour"
+    },
+    {
+     "entity": "user",
+     "attribute": "daily_crash_course_episodes",
+     "value": "1"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_science_series_episode",
+     "value": "10"
+    },
+    {
+     "entity": "user",
+     "attribute": "priority_activity",
+     "value": "reading"
+    },
+    {
+     "entity": "user",
+     "attribute": "priority_activity",
+     "value": "exercise"
+    },
+    {
+     "entity": "user",
+     "attribute": "fixed_commitments",
+     "value": "none"
+    },
+    {
+     "entity": "user",
+     "attribute": "daily_reading_time",
+     "value": "30 minutes"
+    },
+    {
+     "entity": "user",
+     "attribute": "finished_book",
+     "value": "Sapiens"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_book",
+     "value": "The Power of Habit"
+    },
+    {
+     "entity": "user",
+     "attribute": "book_interests",
+     "value": "science, history, self-improvement"
+    },
+    {
+     "entity": "user",
+     "attribute": "interested_book",
+     "value": "A Short History of Nearly Everything by Bill Bryson"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "c4ea545c",
+   "gold_value": "four times a week",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "goal",
+     "value": "plan out the week and stay on top of tasks"
+    },
+    {
+     "entity": "user",
+     "attribute": "wants_time_for",
+     "value": "reading"
+    },
+    {
+     "entity": "user",
+     "attribute": "wants_time_for",
+     "value": "meditation"
+    },
+    {
+     "entity": "user",
+     "attribute": "dinner_with_Rachel",
+     "value": "this Friday"
+    },
+    {
+     "entity": "user",
+     "attribute": "family_dinner",
+     "value": "next Saturday"
+    },
+    {
+     "entity": "user",
+     "attribute": "needs_to_fit_in",
+     "value": "workouts"
+    },
+    {
+     "entity": "user",
+     "attribute": "non_workout_days",
+     "value": "Mondays, Wednesdays, Fridays"
+    },
+    {
+     "entity": "user",
+     "attribute": "gym_days",
+     "value": "Tuesdays, Thursdays, Saturdays"
+    },
+    {
+     "entity": "user",
+     "attribute": "meal_prep_day",
+     "value": "Sunday"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_meal_prep",
+     "value": "quinoa salad"
+    },
+    {
+     "entity": "user",
+     "attribute": "open_to_trying_new_recipes",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "dietary_restrictions",
+     "value": "none"
+    },
+    {
+     "entity": "user",
+     "attribute": "food_preference",
+     "value": "healthier options with lean proteins and veggies"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "01493427",
+   "gold_value": "25",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "collection_items",
+     "value": "vintage camera equipment and postcards"
+    },
+    {
+     "entity": "user",
+     "attribute": "collection_size",
+     "value": "small"
+    },
+    {
+     "entity": "user",
+     "attribute": "cataloging_status",
+     "value": "trying to sort through everything and document each piece"
+    },
+    {
+     "entity": "user",
+     "attribute": "cataloging_feeling",
+     "value": "a bit overwhelming"
+    },
+    {
+     "entity": "user",
+     "attribute": "connecting_with_collectors",
+     "value": "trying to connect with other collectors online"
+    },
+    {
+     "entity": "user",
+     "attribute": "interest",
+     "value": "forums or social media groups dedicated to collecting and photography"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "6a27ffc2",
+   "gold_value": "30",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "project_focus",
+     "value": "text analysis and sentiment analysis"
+    },
+    {
+     "entity": "user",
+     "attribute": "python_learning_resource",
+     "value": "Corey Schafer's Python programming series on YouTube"
+    },
+    {
+     "entity": "user",
+     "attribute": "completed_videos_corey_schafer",
+     "value": "20"
+    },
+    {
+     "entity": "user",
+     "attribute": "interested_nlp_library",
+     "value": "spaCy"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "2133c1b5",
+   "gold_value": "3 months",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "trip_destination",
+     "value": "Japanese Alps"
+    },
+    {
+     "entity": "user",
+     "attribute": "trip_month",
+     "value": "November"
+    },
+    {
+     "entity": "user",
+     "attribute": "trip_region",
+     "value": "Nagano prefecture"
+    },
+    {
+     "entity": "user",
+     "attribute": "friends_location",
+     "value": "Tokyo"
+    },
+    {
+     "entity": "user",
+     "attribute": "friends_join_duration",
+     "value": "a few days"
+    },
+    {
+     "entity": "user",
+     "attribute": "transport_interest",
+     "value": "public transportation from Tokyo to Nagano"
+    },
+    {
+     "entity": "user",
+     "attribute": "residence_city",
+     "value": "Tokyo"
+    },
+    {
+     "entity": "user",
+     "attribute": "adjustment",
+     "value": "still getting used to living in Tokyo"
+    },
+    {
+     "entity": "user",
+     "attribute": "apartment_type",
+     "value": "studio"
+    },
+    {
+     "entity": "user",
+     "attribute": "apartment_location",
+     "value": "Harajuku"
+    },
+    {
+     "entity": "user",
+     "attribute": "apartment_status",
+     "value": "new"
+    },
+    {
+     "entity": "user",
+     "attribute": "duration_in_current_apartment",
+     "value": "a month"
+    },
+    {
+     "entity": "user",
+     "attribute": "commute",
+     "value": "really convenient"
+    },
+    {
+     "entity": "user",
+     "attribute": "accommodation_choice",
+     "value": "Matsumoto"
+    },
+    {
+     "entity": "user",
+     "attribute": "interest",
+     "value": "traditional Japanese culture and history"
+    },
+    {
+     "entity": "user",
+     "attribute": "proximity_claim",
+     "value": "Matsumoto is closer to the Japanese Alps Visitor Center"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_visit",
+     "value": "Japanese Alps Visitor Center"
+    },
+    {
+     "entity": "user",
+     "attribute": "onsen_recommendation_area",
+     "value": "Matsumoto area"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "18bc8abd",
+   "gold_value": "Kansas City Masterpiece",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "event_plan",
+     "value": "host another backyard BBQ soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "bbq_meats",
+     "value": "ribs and brisket"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_dish",
+     "value": "mac and cheese"
+    },
+    {
+     "entity": "user",
+     "attribute": "favorite_dish",
+     "value": "mac and cheese"
+    },
+    {
+     "entity": "user",
+     "attribute": "favorite_bbq_sauce",
+     "value": "Sweet Baby Ray's"
+    },
+    {
+     "entity": "user",
+     "attribute": "bbq_sauce_to_stock_up",
+     "value": "Sweet Baby Ray's"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_brisket_recipe",
+     "value": "Low and Slow Smoked Brisket"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_wood_chips",
+     "value": "post oak"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_bbq_rub",
+     "value": "to complement Sweet Baby Ray's BBQ sauce"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "db467c8c",
+   "gold_value": "nine months",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "green_card_application",
+     "value": "considering applying for a green card"
+    },
+    {
+     "entity": "user",
+     "attribute": "green_card_process_understanding",
+     "value": "not sure about the process and requirements"
+    },
+    {
+     "entity": "user",
+     "attribute": "parents_living_with_user",
+     "value": "living with me in the US"
+    },
+    {
+     "entity": "user",
+     "attribute": "parents_help",
+     "value": "household chores, cooking, and even taking English language classes"
+    },
+    {
+     "entity": "user",
+     "attribute": "relationship_with_parents",
+     "value": "enjoying each other's company"
+    },
+    {
+     "entity": "user",
+     "attribute": "parents_stay_duration",
+     "value": "past six months"
+    },
+    {
+     "entity": "user",
+     "attribute": "financial_concern",
+     "value": "concerned about the financial aspect since parents are living with me"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "7a87bd0c",
+   "gold_value": "4 weeks",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "daily_tidying_routine_duration",
+     "value": "3 weeks"
+    },
+    {
+     "entity": "user",
+     "attribute": "feeling",
+     "value": "proud of sticking to daily tidying routine"
+    },
+    {
+     "entity": "user",
+     "attribute": "garage_organization_time",
+     "value": "this weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "garage_organization_start",
+     "value": "purging and categorizing all items in garage"
+    },
+    {
+     "entity": "user",
+     "attribute": "most_cluttered_categories",
+     "value": "tools and sports equipment"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_furniture_issue",
+     "value": "old furniture taking up space"
+    },
+    {
+     "entity": "user",
+     "attribute": "plan",
+     "value": "get rid of old furniture"
+    },
+    {
+     "entity": "user",
+     "attribute": "feeling",
+     "value": "pretty good about getting started"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "e61a7584",
+   "gold_value": "9 months",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "cat_name",
+     "value": "Luna"
+    },
+    {
+     "entity": "user",
+     "attribute": "goal",
+     "value": "keep cat Luna healthy and happy"
+    },
+    {
+     "entity": "user",
+     "attribute": "cat_weight_goal",
+     "value": "maintain her weight"
+    },
+    {
+     "entity": "user",
+     "attribute": "cat_shedding_goal",
+     "value": "reduce the amount of hair she sheds"
+    },
+    {
+     "entity": "user",
+     "attribute": "brushing_routine",
+     "value": "brushing Luna daily with the new brush"
+    },
+    {
+     "entity": "user",
+     "attribute": "cat_treats",
+     "value": "freeze-dried salmon treats"
+    },
+    {
+     "entity": "user",
+     "attribute": "playtime_plan",
+     "value": "thinking of setting up a playtime routine for Luna to help her get more exercise"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "1cea1afa",
+   "gold_value": "600",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "instagram_followers",
+     "value": "500"
+    },
+    {
+     "entity": "user",
+     "attribute": "cat_name",
+     "value": "Luna"
+    },
+    {
+     "entity": "user",
+     "attribute": "followers_like",
+     "value": "photos of cat Luna"
+    },
+    {
+     "entity": "user",
+     "attribute": "content_interest",
+     "value": "behind-the-scenes content and user-generated content campaign"
+    },
+    {
+     "entity": "user",
+     "attribute": "writing_activity",
+     "value": "manuscript and research"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_instagram_stories_content",
+     "value": "snippets of manuscript"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "ed4ddc30",
+   "gold_value": "20",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "eggs_stocked_in_fridge",
+     "value": "30 dozen"
+    },
+    {
+     "entity": "user",
+     "attribute": "has_goat_milk",
+     "value": "yes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "8fb83627",
+   "gold_value": "Five",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "reading_list_goal",
+     "value": "get more organized"
+    },
+    {
+     "entity": "user",
+     "attribute": "magazine_types_read",
+     "value": "news, science, and entertainment"
+    },
+    {
+     "entity": "user",
+     "attribute": "newspapers_read_regularly",
+     "value": "The New York Times and The Daily News"
+    },
+    {
+     "entity": "user",
+     "attribute": "likes_the_new_yorker_for",
+     "value": "fiction"
+    },
+    {
+     "entity": "user",
+     "attribute": "likes_national_geographic_for",
+     "value": "in-depth articles on science and nature"
+    },
+    {
+     "entity": "user",
+     "attribute": "national_geographic_issues_finished",
+     "value": "three"
+    },
+    {
+     "entity": "user",
+     "attribute": "national_geographic_current_issue",
+     "value": "fourth"
+    },
+    {
+     "entity": "user",
+     "attribute": "rolling_stone_reading",
+     "value": "a lot lately, especially online content"
+    },
+    {
+     "entity": "user",
+     "attribute": "online_publications_read_regularly",
+     "value": "The Atlantic and Medium online"
+    },
+    {
+     "entity": "user",
+     "attribute": "preferred_reading_tracker",
+     "value": "spreadsheet"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_trip_destination",
+     "value": "Amazon rainforest"
+    },
+    {
+     "entity": "user",
+     "attribute": "amazon_rainforest_learning_interest",
+     "value": "region's ecosystem and conservation efforts"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "b01defab",
+   "gold_value": "Yes",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "reading_preference",
+     "value": "mythology-inspired books"
+    },
+    {
+     "entity": "user",
+     "attribute": "recommendation_scope",
+     "value": "beyond The Song of Achilles"
+    },
+    {
+     "entity": "user",
+     "attribute": "reading_time",
+     "value": "daily commute"
+    },
+    {
+     "entity": "user",
+     "attribute": "picked_up_book",
+     "value": "The Song of Achilles"
+    },
+    {
+     "entity": "user",
+     "attribute": "picked_up_book_basis",
+     "value": "staff recommendation"
+    },
+    {
+     "entity": "user",
+     "attribute": "paused_book",
+     "value": "The Nightingale by Kristin Hannah"
+    },
+    {
+     "entity": "user",
+     "attribute": "paused_book_reason",
+     "value": "too emotional"
+    },
+    {
+     "entity": "user",
+     "attribute": "book_club_plan",
+     "value": "finish The Nightingale by Kristin Hannah in time for next book club discussion"
+    },
+    {
+     "entity": "user",
+     "attribute": "next_book_plan",
+     "value": "The Poppy War"
+    },
+    {
+     "entity": "user",
+     "attribute": "nightingale_timing",
+     "value": "later"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_reading_journal",
+     "value": "phone's Notes app"
+    },
+    {
+     "entity": "user",
+     "attribute": "reading_journal_preference",
+     "value": "physical"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_bookstore",
+     "value": "new bookstore on Main St"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_staff_question",
+     "value": "favorite mythology-inspired books beyond Madeline Miller's works"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "22d2cb42",
+   "gold_value": "The music shop on Main St.",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "festival_plan",
+     "value": "go to a music festival next weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "music_production_goal",
+     "value": "start to produce my own music"
+    },
+    {
+     "entity": "user",
+     "attribute": "owns_acoustic_guitar",
+     "value": "true"
+    },
+    {
+     "entity": "user",
+     "attribute": "acoustic_guitar_service_status",
+     "value": "meant to get it serviced but haven't gotten around to it yet"
+    },
+    {
+     "entity": "user",
+     "attribute": "heard_of_ableton_live_intro",
+     "value": "true"
+    },
+    {
+     "entity": "user",
+     "attribute": "tried_ableton_live_intro",
+     "value": "false"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_daw_to_try",
+     "value": "FL Studio Fruity Edition demo first"
+    },
+    {
+     "entity": "user",
+     "attribute": "friend_music_production",
+     "value": "friend produces hip-hop music"
+    },
+    {
+     "entity": "user",
+     "attribute": "violin_interest",
+     "value": "thinking of getting one"
+    },
+    {
+     "entity": "user",
+     "attribute": "violin_lesson_plan",
+     "value": "taking lessons"
+    },
+    {
+     "entity": "user",
+     "attribute": "wanted_music_shops",
+     "value": "good music shops in my area that sell violins"
+    },
+    {
+     "entity": "user",
+     "attribute": "music_shop_plan",
+     "value": "check out a few shops in my area"
+    },
+    {
+     "entity": "user",
+     "attribute": "acoustic_guitar_service_plan",
+     "value": "getting my acoustic guitar serviced soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "guitar_service_timing_question",
+     "value": "before or after the music festival"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "0e4e4c46",
+   "gold_value": "132 points",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "hosting_game_night",
+     "value": "another game night soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "enjoys_ticket_to_ride",
+     "value": "strategy aspect"
+    },
+    {
+     "entity": "user",
+     "attribute": "interested_game",
+     "value": "Carcassonne"
+    },
+    {
+     "entity": "user",
+     "attribute": "heard_about_game",
+     "value": "great things about Carcassonne"
+    },
+    {
+     "entity": "user",
+     "attribute": "ticket_to_ride_highest_score",
+     "value": "124 points"
+    },
+    {
+     "entity": "user",
+     "attribute": "ticket_to_ride_progress",
+     "value": "eager to keep improving"
+    },
+    {
+     "entity": "user",
+     "attribute": "carcassonne_group_size",
+     "value": "smaller group"
+    },
+    {
+     "entity": "user",
+     "attribute": "played_games",
+     "value": "Codenames and What Do You Meme"
+    },
+    {
+     "entity": "user",
+     "attribute": "loved_games",
+     "value": "Codenames and What Do You Meme"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_games",
+     "value": "Deception: Murder in Hong Kong or Two Rooms and a Boom"
+    },
+    {
+     "entity": "user",
+     "attribute": "next_game_night_games",
+     "value": "Deception: Murder in Hong Kong or Two Rooms and a Boom"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "4b24c848",
+   "gold_value": "five",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "weekend_plan",
+     "value": "go to the mall this weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "mall_website_plan",
+     "value": "try the mall's website first"
+    },
+    {
+     "entity": "user",
+     "attribute": "hm_purchase_plan",
+     "value": "buy more tops from H&M this weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "hm_tops_bought",
+     "value": "three"
+    },
+    {
+     "entity": "user",
+     "attribute": "hm_collection_preference",
+     "value": "loves H&M summer collection"
+    },
+    {
+     "entity": "The Vault",
+     "attribute": "type",
+     "value": "new thrift store"
+    },
+    {
+     "entity": "The Vault",
+     "attribute": "location",
+     "value": "near user's work"
+    },
+    {
+     "entity": "user",
+     "attribute": "review_sources_plan",
+     "value": "Google Reviews and Yelp"
+    },
+    {
+     "entity": "user",
+     "attribute": "vault_visit_count",
+     "value": "once"
+    },
+    {
+     "entity": "user",
+     "attribute": "vault_impression",
+     "value": "impressed with selection"
+    },
+    {
+     "entity": "user",
+     "attribute": "shopping_interest",
+     "value": "vintage clothing or second-hand items"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "7e974930",
+   "gold_value": "$420",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "business",
+     "value": "small business"
+    },
+    {
+     "entity": "user",
+     "attribute": "tracking",
+     "value": "sales and expenses"
+    },
+    {
+     "entity": "user",
+     "attribute": "March_18_Downtown_Farmers_Market_earnings",
+     "value": "$220"
+    },
+    {
+     "entity": "user",
+     "attribute": "March_25_Arts_and_Crafts_Fair_earnings",
+     "value": "$85"
+    },
+    {
+     "entity": "user",
+     "attribute": "April_1_Earth_Day_Market_earnings",
+     "value": "$25"
+    },
+    {
+     "entity": "user",
+     "attribute": "May_6_Downtown_Farmers_Market_earnings",
+     "value": "$350"
+    },
+    {
+     "entity": "user",
+     "attribute": "May_13_Mothers_Day_Market_earnings",
+     "value": "$200"
+    },
+    {
+     "entity": "user",
+     "attribute": "May_20_Foodie_Festival_earnings",
+     "value": "$400"
+    },
+    {
+     "entity": "user",
+     "attribute": "business_cards_need",
+     "value": "order more"
+    },
+    {
+     "entity": "user",
+     "attribute": "business_cards_quantity_considered",
+     "value": "100 or 200"
+    },
+    {
+     "entity": "user",
+     "attribute": "business_cards_quantity_chosen",
+     "value": "100"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_expanding_product_line",
+     "value": "gift baskets"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_product",
+     "value": "Downtown Farmers Market themed gift basket featuring best-selling soaps and candles from that event"
+    },
+    {
+     "entity": "user",
+     "attribute": "products_sold",
+     "value": "soaps and candles"
+    },
+    {
+     "entity": "user",
+     "attribute": "upcoming_orders",
+     "value": "a few big orders coming in"
+    },
+    {
+     "entity": "user",
+     "attribute": "inventory_goal",
+     "value": "enough stock for upcoming events"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_event",
+     "value": "Foodie Festival"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_event_experience",
+     "value": "amazing"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "603deb26",
+   "gold_value": "10",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "garden_herbs",
+     "value": "fresh herbs from my garden"
+    },
+    {
+     "entity": "user",
+     "attribute": "gin_experimentation",
+     "value": "different gin brands"
+    },
+    {
+     "entity": "user",
+     "attribute": "enjoyed_gin",
+     "value": "Hendrick's gin"
+    },
+    {
+     "entity": "user",
+     "attribute": "gin_purchased",
+     "value": "Hendrick's gin last week"
+    },
+    {
+     "entity": "user",
+     "attribute": "lavender_cocktail_interest",
+     "value": "thinking of experimenting with lavender"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_experimentation",
+     "value": "different Negroni recipes at home"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_gin_finding",
+     "value": "Hendrick's gin really brings out the flavors"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_recipe_goal",
+     "value": "perfect my Negroni recipe"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_ingredients",
+     "value": "Hendrick's gin and Carpano Antica vermouth"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_flavor_finding",
+     "value": "Hendrick's gin and Carpano Antica vermouth really bring out the flavors"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_teacher",
+     "value": "Emma"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_home_attempts_since_emma",
+     "value": "5 times"
+    },
+    {
+     "entity": "user",
+     "attribute": "negroni_progress",
+     "value": "getting closer to getting it just right"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_bitter_liqueur_trials",
+     "value": "some of those bitter liqueurs"
+    },
+    {
+     "entity": "user",
+     "attribute": "white_negroni_interest",
+     "value": "meaning to experiment with a White Negroni"
+    },
+    {
+     "entity": "user",
+     "attribute": "white_negroni_belief",
+     "value": "great way to showcase the gin and bitter liqueur"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "59524333",
+   "gold_value": "6:00 pm",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "interested_apps",
+     "value": "Todoist and Trello"
+    },
+    {
+     "entity": "user",
+     "attribute": "leaning_towards",
+     "value": "Todoist"
+    },
+    {
+     "entity": "user",
+     "attribute": "uses_todoist_for_task_management",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "gym_time",
+     "value": "7:00 pm"
+    },
+    {
+     "entity": "user",
+     "attribute": "gym_days",
+     "value": "Mondays, Wednesdays, and Fridays"
+    },
+    {
+     "entity": "user",
+     "attribute": "concurrent_projects",
+     "value": "a lot"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "5831f84d",
+   "gold_value": "15",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "learning_interest",
+     "value": "cloud computing"
+    },
+    {
+     "entity": "user",
+     "attribute": "requested_aws_resources",
+     "value": "online courses or tutorials on AWS"
+    },
+    {
+     "entity": "user",
+     "attribute": "crash_course_videos_completed",
+     "value": "10 in the past few weeks"
+    },
+    {
+     "entity": "user",
+     "attribute": "podcast_listening",
+     "value": "How I Built This"
+    },
+    {
+     "entity": "user",
+     "attribute": "inspired_by",
+     "value": "stories of entrepreneurs"
+    },
+    {
+     "entity": "user",
+     "attribute": "aws_project_plan",
+     "value": "start a project on AWS soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "aws_certification_consideration",
+     "value": "AWS Certified Cloud Practitioner exam"
+    },
+    {
+     "entity": "user",
+     "attribute": "python_course_taken",
+     "value": "Python programming course on edX"
+    },
+    {
+     "entity": "user",
+     "attribute": "ml_learning_interest",
+     "value": "machine learning using Python"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "eace081b",
+   "gold_value": "Oahu",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "birthday_trip_destination",
+     "value": "Hawaii"
+    },
+    {
+     "entity": "user",
+     "attribute": "hiking_trails_location",
+     "value": "Kauai"
+    },
+    {
+     "entity": "user",
+     "attribute": "waterfall_interest",
+     "value": "Kauai waterfalls accessible via hike"
+    },
+    {
+     "entity": "user",
+     "attribute": "local_cuisine_interest",
+     "value": "laulau and kalua pig"
+    },
+    {
+     "entity": "user",
+     "attribute": "snorkeling_trip_goal",
+     "value": "see sea turtles and monk seals"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "affe2881",
+   "gold_value": "32",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "bird_photography_skills",
+     "value": "trying to improve"
+    },
+    {
+     "entity": "user",
+     "attribute": "bird_identification_skills",
+     "value": "trying to improve"
+    },
+    {
+     "entity": "user",
+     "attribute": "bird_species_tracking_location",
+     "value": "local park"
+    },
+    {
+     "entity": "user",
+     "attribute": "local_park_bird_species_count",
+     "value": "27 different species so far"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "50635ada",
+   "gold_value": "Premier Gold",
+   "facts": [],
+   "hit": false
+  },
+  {
+   "question_id": "e66b632c",
+   "gold_value": "26 minutes and 30 seconds",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "sports_activities",
+     "value": "soccer, cycling, yoga, and triathlon training"
+    },
+    {
+     "entity": "user",
+     "attribute": "weekday_availability",
+     "value": "7-9 am"
+    },
+    {
+     "entity": "user",
+     "attribute": "weekend_availability",
+     "value": "8 am-12 pm"
+    },
+    {
+     "entity": "user",
+     "attribute": "yoga_frequency_duration",
+     "value": "2 times a week for 45 minutes"
+    },
+    {
+     "entity": "user",
+     "attribute": "cycling_frequency_duration",
+     "value": "1 time a week for 2 hours"
+    },
+    {
+     "entity": "user",
+     "attribute": "soccer_frequency_duration",
+     "value": "1 time a week for 1.5 hours"
+    },
+    {
+     "entity": "user",
+     "attribute": "triathlon_frequency_duration",
+     "value": "3 times a week with varying durations"
+    },
+    {
+     "entity": "user",
+     "attribute": "triathlon_priority",
+     "value": "weekends"
+    },
+    {
+     "entity": "user",
+     "attribute": "rest_days",
+     "value": "1 rest day per week"
+    },
+    {
+     "entity": "user",
+     "attribute": "goal_event",
+     "value": "sprint triathlon on June 24th"
+    },
+    {
+     "entity": "user",
+     "attribute": "charity_5k_pb",
+     "value": "27 minutes and 45 seconds"
+    },
+    {
+     "entity": "user",
+     "attribute": "yoga_fitness",
+     "value": "intermediate"
+    },
+    {
+     "entity": "user",
+     "attribute": "cycling_fitness",
+     "value": "intermediate"
+    },
+    {
+     "entity": "user",
+     "attribute": "swimming_fitness",
+     "value": "beginner"
+    },
+    {
+     "entity": "user",
+     "attribute": "running_fitness",
+     "value": "advanced"
+    },
+    {
+     "entity": "user",
+     "attribute": "cycling_group_ride_day",
+     "value": "Saturday"
+    },
+    {
+     "entity": "user",
+     "attribute": "route_length",
+     "value": "20 miles"
+    },
+    {
+     "entity": "user",
+     "attribute": "route_hill_preference",
+     "value": "some hills to challenge us, but not too difficult"
+    },
+    {
+     "entity": "user",
+     "attribute": "route_terrain",
+     "value": "mix of rolling and steeper hills"
+    },
+    {
+     "entity": "user",
+     "attribute": "route_road_type",
+     "value": "secondary roads with less traffic"
+    },
+    {
+     "entity": "user",
+     "attribute": "route_elevation_gain",
+     "value": "around 500-1000 feet"
+    },
+    {
+     "entity": "user",
+     "attribute": "route_features",
+     "value": "scenic views; bike-friendly infrastructure is a plus"
+    },
+    {
+     "entity": "user",
+     "attribute": "route_start_end",
+     "value": "local park where did the charity 5K run"
+    },
+    {
+     "entity": "user",
+     "attribute": "location",
+     "value": "local area"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "0ddfec37",
+   "gold_value": "20",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "autographed_baseballs_count",
+     "value": "15"
+    },
+    {
+     "entity": "user",
+     "attribute": "baseball_collection_started",
+     "value": "three months ago"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_signed_baseball",
+     "value": "signed Mike Trout baseball last week"
+    },
+    {
+     "entity": "user",
+     "attribute": "interest",
+     "value": "error coins"
+    },
+    {
+     "entity": "user",
+     "attribute": "vinyl_record_collection_plan",
+     "value": "expanding to include more international pressings"
+    },
+    {
+     "entity": "user",
+     "attribute": "stamp_show_plan",
+     "value": "attending a stamp show next quarter"
+    },
+    {
+     "entity": "user",
+     "attribute": "selling_plan",
+     "value": "selling vintage cameras to make room for new additions"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera_owned",
+     "value": "Leica camera"
+    },
+    {
+     "entity": "user",
+     "attribute": "cameras_owned",
+     "value": "other vintage cameras"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "f685340e",
+   "gold_value": "every other week (Sunday)",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "sock_shopping_intent",
+     "value": "ordering some new athletic socks online"
+    },
+    {
+     "entity": "user",
+     "attribute": "nike_socks_impression",
+     "value": "heard good things about Nike's athletic socks"
+    },
+    {
+     "entity": "user",
+     "attribute": "tennis_shoes",
+     "value": "Nike Air Zoom tennis shoes"
+    },
+    {
+     "entity": "user",
+     "attribute": "chosen_socks",
+     "value": "Nike Court Flex Tennis Socks"
+    },
+    {
+     "entity": "user",
+     "attribute": "tennis_frequency",
+     "value": "weekly"
+    },
+    {
+     "entity": "user",
+     "attribute": "tennis_partners",
+     "value": "friends"
+    },
+    {
+     "entity": "user",
+     "attribute": "last_sunday_location",
+     "value": "local park"
+    },
+    {
+     "entity": "user",
+     "attribute": "last_sunday_observation",
+     "value": "saw some people playing tennis"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_tennis_day",
+     "value": "this Sunday"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_tennis_location",
+     "value": "local park"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_tennis_partners",
+     "value": "friends"
+    },
+    {
+     "entity": "user",
+     "attribute": "favorite_tennis_player",
+     "value": "Roger Federer"
+    },
+    {
+     "entity": "user",
+     "attribute": "pro_inspiration",
+     "value": "not really inspired by the pros"
+    },
+    {
+     "entity": "user",
+     "attribute": "tennis_reason",
+     "value": "play for fun with friends"
+    },
+    {
+     "entity": "user",
+     "attribute": "playing_style",
+     "value": "baseline player"
+    },
+    {
+     "entity": "user",
+     "attribute": "focused_shots",
+     "value": "forehand and backhand groundstrokes"
+    },
+    {
+     "entity": "user",
+     "attribute": "net_game_goal",
+     "value": "trying to improve my net game"
+    },
+    {
+     "entity": "user",
+     "attribute": "practiced_shots",
+     "value": "volleys and overheads"
+    },
+    {
+     "entity": "user",
+     "attribute": "desired_training_focus",
+     "value": "reaction time and hand-eye coordination at the net"
+    },
+    {
+     "entity": "user",
+     "attribute": "tennis_racket",
+     "value": "my tennis racket"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "cc5ded98",
+   "gold_value": "about two hours",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "learning_journey_reflection_period",
+     "value": "over the past few months"
+    },
+    {
+     "entity": "user",
+     "attribute": "considered_useful_tools",
+     "value": "Habitica and WakaTime"
+    },
+    {
+     "entity": "user",
+     "attribute": "focus_method",
+     "value": "Pomodoro Technique"
+    },
+    {
+     "entity": "user",
+     "attribute": "daily_coding_exercise_time",
+     "value": "about an hour"
+    },
+    {
+     "entity": "user",
+     "attribute": "python_skill_goal",
+     "value": "improve Python skills"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "dfde3500",
+   "gold_value": "Thursday",
+   "facts": [],
+   "hit": false
+  },
+  {
+   "question_id": "69fee5aa",
+   "gold_value": "38",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "collections",
+     "value": "coins, records, cameras, books"
+    },
+    {
+     "entity": "user",
+     "attribute": "coin_cataloging_app",
+     "value": "Coin Collector's Assistant"
+    },
+    {
+     "entity": "user",
+     "attribute": "record_cataloging_app",
+     "value": "Discogs"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera_collection",
+     "value": "vintage cameras"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera",
+     "value": "1940s-era Leica IIIa"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera",
+     "value": "1960s-era Nikon F"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera_collection_addition",
+     "value": "a few more cameras"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "7401057b",
+   "gold_value": "Two",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "trip_type",
+     "value": "weekend getaway"
+    },
+    {
+     "entity": "user",
+     "attribute": "destination",
+     "value": "Las Vegas"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_hotel",
+     "value": "Hilton Lake Las Vegas Resort"
+    },
+    {
+     "entity": "user",
+     "attribute": "redemption_intent",
+     "value": "considering redeeming Hilton points for this stay"
+    },
+    {
+     "entity": "user",
+     "attribute": "points_sufficient_for_free_nights",
+     "value": "single free night's stay at any Hilton property"
+    },
+    {
+     "entity": "Hilton Lake Las Vegas Resort",
+     "attribute": "category",
+     "value": "Category 5"
+    },
+    {
+     "entity": "user",
+     "attribute": "other_hotels_considering",
+     "value": "other Hilton properties in Las Vegas"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_hotel",
+     "value": "Hilton Grand Vacations Club on the Las Vegas Strip"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "cf22b7bf",
+   "gold_value": "10 pounds",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "workout_plan_timeline",
+     "value": "next month"
+    },
+    {
+     "entity": "user",
+     "attribute": "liked_exercises",
+     "value": "Pallof Press and Bird Dog"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_exercises_to_add",
+     "value": "Pallof Press and Bird Dog"
+    },
+    {
+     "entity": "user",
+     "attribute": "10k_goal",
+     "value": "run a 10K by the end of summer"
+    },
+    {
+     "entity": "user",
+     "attribute": "running_experience",
+     "value": "complete beginner"
+    },
+    {
+     "entity": "user",
+     "attribute": "cardio_at_gym",
+     "value": "a lot"
+    },
+    {
+     "entity": "user",
+     "attribute": "outdoor_activity_effort",
+     "value": "trying to incorporate more outdoor activities"
+    },
+    {
+     "entity": "user",
+     "attribute": "lunch_walk_duration",
+     "value": "30 minutes"
+    },
+    {
+     "entity": "user",
+     "attribute": "lunch_walk_frequency",
+     "value": "3 times a week"
+    },
+    {
+     "entity": "user",
+     "attribute": "available_training_time",
+     "value": "4-5 hours a week"
+    },
+    {
+     "entity": "user",
+     "attribute": "fitness_tracking_method",
+     "value": "fitness app"
+    },
+    {
+     "entity": "user",
+     "attribute": "average_calories_burned_per_week",
+     "value": "2500 calories"
+    },
+    {
+     "entity": "user",
+     "attribute": "calorie_burn_goal_comparison",
+     "value": "higher than goal"
+    },
+    {
+     "entity": "user",
+     "attribute": "weight_lost_past_month",
+     "value": "about 5 pounds"
+    },
+    {
+     "entity": "user",
+     "attribute": "weight_loss_progress_opinion",
+     "value": "slow but okay"
+    },
+    {
+     "entity": "user",
+     "attribute": "concern_about_training_plan",
+     "value": "sudden increase in jogging time in weeks 5-8"
+    },
+    {
+     "entity": "user",
+     "attribute": "progress_sharing_feeling",
+     "value": "glad to share progress and report to someone"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "a2f3aa27",
+   "gold_value": 1300,
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "instagram_followers",
+     "value": "1250"
+    },
+    {
+     "entity": "user",
+     "attribute": "instagram_practice",
+     "value": "posting regularly"
+    },
+    {
+     "entity": "user",
+     "attribute": "instagram_practice",
+     "value": "using a consistent aesthetic"
+    },
+    {
+     "entity": "user",
+     "attribute": "instagram_live_plan",
+     "value": "trying out Instagram Live more often"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "c7dc5443",
+   "gold_value": "5-2",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "triathlon_signup_timing",
+     "value": "fall"
+    },
+    {
+     "entity": "user",
+     "attribute": "volleyball_league_record",
+     "value": "3-2"
+    },
+    {
+     "entity": "user",
+     "attribute": "exercise_routine",
+     "value": "mix of cardio and strength training at the gym"
+    },
+    {
+     "entity": "user",
+     "attribute": "sports_played",
+     "value": "volleyball and soccer"
+    },
+    {
+     "entity": "user",
+     "attribute": "swimming_ability",
+     "value": "can do laps"
+    },
+    {
+     "entity": "user",
+     "attribute": "swimming_pace",
+     "value": "slow"
+    },
+    {
+     "entity": "user",
+     "attribute": "bike_ownership",
+     "value": "no bike yet"
+    },
+    {
+     "entity": "user",
+     "attribute": "bike_plan",
+     "value": "planning to get one soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "running_experience",
+     "value": "limited"
+    },
+    {
+     "entity": "user",
+     "attribute": "recent_5k_time",
+     "value": "32:15"
+    },
+    {
+     "entity": "user",
+     "attribute": "triathlon_goal",
+     "value": "sprint triathlon"
+    },
+    {
+     "entity": "user",
+     "attribute": "triathlon_prep_time",
+     "value": "around 12 weeks"
+    },
+    {
+     "entity": "user",
+     "attribute": "training_focus",
+     "value": "improving swimming and biking skills"
+    },
+    {
+     "entity": "user",
+     "attribute": "volleyball_game_schedule",
+     "value": "weeknights"
+    },
+    {
+     "entity": "user",
+     "attribute": "soccer_schedule",
+     "value": "Sundays"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_organizing",
+     "value": "recreational basketball league at office"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "06db6396",
+   "gold_value": "5",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "studio_location",
+     "value": "spare bedroom"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_art_studio",
+     "value": "small art studio"
+    },
+    {
+     "entity": "user",
+     "attribute": "sister_birthday",
+     "value": "next month"
+    },
+    {
+     "entity": "user",
+     "attribute": "gift_recipient",
+     "value": "sister"
+    },
+    {
+     "entity": "user",
+     "attribute": "gift_idea_focus",
+     "value": "paintings"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_painting_subject",
+     "value": "sunset scene"
+    },
+    {
+     "entity": "user",
+     "attribute": "current_painting_intended_for",
+     "value": "sister"
+    },
+    {
+     "entity": "user",
+     "attribute": "completed_projects_since_painting_classes",
+     "value": "4"
+    },
+    {
+     "entity": "user",
+     "attribute": "confidence_in_skills",
+     "value": "pretty confident"
+    },
+    {
+     "entity": "user",
+     "attribute": "painting_classes_status",
+     "value": "started painting classes"
+    },
+    {
+     "entity": "user",
+     "attribute": "heard_about_signing_dating_painting",
+     "value": "important to sign and date the painting"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "3ba21379",
+   "gold_value": "Ford F-150 pickup truck",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "current_project",
+     "value": "Ford Mustang Shelby GT350R model"
+    },
+    {
+     "entity": "user",
+     "attribute": "paint_brand",
+     "value": "Vallejo paints"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "9bbe84a2",
+   "gold_value": "level 150",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "keyboard",
+     "value": "new"
+    },
+    {
+     "entity": "user",
+     "attribute": "apex_play_frequency",
+     "value": "a lot"
+    },
+    {
+     "entity": "user",
+     "attribute": "apex_level_goal",
+     "value": "reach level 100 before the end of the year"
+    },
+    {
+     "entity": "user",
+     "attribute": "interested_mouse",
+     "value": "SteelSeries Rival 600"
+    },
+    {
+     "entity": "user",
+     "attribute": "preferred_headset",
+     "value": "HyperX Cloud II"
+    },
+    {
+     "entity": "user",
+     "attribute": "heard_hyperx_cloud_ii_surround_sound_issue",
+     "value": "surround sound can be a bit wonky in some games"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "10e09553",
+   "gold_value": "9",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "activity",
+     "value": "getting back into fishing and hunting"
+    },
+    {
+     "entity": "user",
+     "attribute": "goal",
+     "value": "keep track of gear and experiences"
+    },
+    {
+     "entity": "user",
+     "attribute": "tree_stand_consideration",
+     "value": "getting a tree stand for deer hunting this season"
+    },
+    {
+     "entity": "user",
+     "attribute": "largemouth_bass_caught",
+     "value": "7"
+    },
+    {
+     "entity": "user",
+     "attribute": "fishing_trip_location",
+     "value": "Lake Michigan"
+    },
+    {
+     "entity": "user",
+     "attribute": "fishing_trip_companion",
+     "value": "Alex"
+    },
+    {
+     "entity": "user",
+     "attribute": "fishing_trip_date",
+     "value": "7/10"
+    },
+    {
+     "entity": "user",
+     "attribute": "learning_topic",
+     "value": "tree stand setup and placement"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "dad224aa",
+   "gold_value": "7:30 am",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "weekend_morning_routine_goal",
+     "value": "consistent morning routine"
+    },
+    {
+     "entity": "user",
+     "attribute": "weekend_sleep_preference",
+     "value": "likes sleeping in a bit later on weekends"
+    },
+    {
+     "entity": "user",
+     "attribute": "saturday_wake_time",
+     "value": "8:30 am"
+    },
+    {
+     "entity": "user",
+     "attribute": "saturday_jog_duration",
+     "value": "30-minute jog"
+    },
+    {
+     "entity": "user",
+     "attribute": "sunday_exercise_interest",
+     "value": "yoga or stretching"
+    },
+    {
+     "entity": "user",
+     "attribute": "desk_sitting",
+     "value": "a week of sitting at a desk"
+    },
+    {
+     "entity": "user",
+     "attribute": "reading_habit_goal",
+     "value": "read more before bed each night"
+    },
+    {
+     "entity": "user",
+     "attribute": "book_interest",
+     "value": "entrepreneurship"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "ba61f0b9",
+   "gold_value": "6",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "former_manager",
+     "value": "Rachel"
+    },
+    {
+     "entity": "user",
+     "attribute": "former_manager_team_size",
+     "value": "10"
+    },
+    {
+     "entity": "user",
+     "attribute": "former_manager_team_women",
+     "value": "half"
+    },
+    {
+     "entity": "user",
+     "attribute": "seminar_women_executive_positions",
+     "value": "25%"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "42ec0761",
+   "gold_value": "Yes",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "backup_files",
+     "value": "working files"
+    },
+    {
+     "entity": "user",
+     "attribute": "device",
+     "value": "laptop"
+    },
+    {
+     "entity": "user",
+     "attribute": "backup_need",
+     "value": "automatic backups"
+    },
+    {
+     "entity": "user",
+     "attribute": "backup_method",
+     "value": "cloud backup service"
+    },
+    {
+     "entity": "user",
+     "attribute": "backup_service",
+     "value": "Google Drive"
+    },
+    {
+     "entity": "user",
+     "attribute": "google_drive_usage",
+     "value": "already use it for other things"
+    },
+    {
+     "entity": "user",
+     "attribute": "google_drive_storage_plan",
+     "value": "100 GB plan"
+    },
+    {
+     "entity": "user",
+     "attribute": "laptop_upgrade",
+     "value": "RAM"
+    },
+    {
+     "entity": "user",
+     "attribute": "screwdriver_status",
+     "value": "misplaced the small screwdriver I use for that"
+    },
+    {
+     "entity": "user",
+     "attribute": "screwdriver_purpose",
+     "value": "opening up my laptop to upgrade the RAM"
+    },
+    {
+     "entity": "user",
+     "attribute": "screwdriver_purchase_plan",
+     "value": "pick one up next time I'm out"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_store_visit",
+     "value": "electronics store near my place"
+    },
+    {
+     "entity": "user",
+     "attribute": "electronics_store_inventory",
+     "value": "variety of tools and accessories"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "5c40ec5b",
+   "gold_value": "We've met up twice.",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "attended_book_reading",
+     "value": "by a local author"
+    },
+    {
+     "entity": "user",
+     "attribute": "met_person",
+     "value": "John, a retired English teacher"
+    },
+    {
+     "entity": "user",
+     "attribute": "john_suggested",
+     "value": "classic novels I haven't read yet"
+    },
+    {
+     "entity": "user",
+     "attribute": "interested_in_fiction",
+     "value": "indie fiction"
+    },
+    {
+     "entity": "user",
+     "attribute": "interested_in_book",
+     "value": "The Particular Sadness of Lemon Cake"
+    },
+    {
+     "entity": "user",
+     "attribute": "heard_about",
+     "value": "magical realism"
+    },
+    {
+     "entity": "user",
+     "attribute": "met_person_alex",
+     "value": "Alex from Germany"
+    },
+    {
+     "entity": "user",
+     "attribute": "met_alex_place",
+     "value": "music festival"
+    },
+    {
+     "entity": "user",
+     "attribute": "met_alex_time",
+     "value": "a few weeks ago"
+    },
+    {
+     "entity": "user",
+     "attribute": "shared_interest_with_alex",
+     "value": "indie rock music"
+    },
+    {
+     "entity": "user",
+     "attribute": "alex_visit_plan",
+     "value": "coming to my city for work soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "plan_to_meet",
+     "value": "Alex"
+    },
+    {
+     "entity": "user",
+     "attribute": "curious_about",
+     "value": "the music festival where I met Alex"
+    },
+    {
+     "entity": "user",
+     "attribute": "wants_recommendations_for",
+     "value": "indie rock bands or musicians"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "c6853660",
+   "gold_value": "two cups per morning",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "morning_routine_goal",
+     "value": "make morning routine more efficient"
+    },
+    {
+     "entity": "user",
+     "attribute": "coffee_roast",
+     "value": "darker roast"
+    },
+    {
+     "entity": "user",
+     "attribute": "morning_coffee_limit",
+     "value": "one cup"
+    },
+    {
+     "entity": "user",
+     "attribute": "brewing_method",
+     "value": "French press"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_brewing_method",
+     "value": "drip coffee maker"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_purchase",
+     "value": "milk frother"
+    },
+    {
+     "entity": "user",
+     "attribute": "latte_goal",
+     "value": "improve latte game"
+    },
+    {
+     "entity": "user",
+     "attribute": "foam_result",
+     "value": "struggling to get the foam right with current setup"
+    },
+    {
+     "entity": "user",
+     "attribute": "sweetener",
+     "value": "stevia"
+    },
+    {
+     "entity": "user",
+     "attribute": "stevia_aftertaste_opinion",
+     "value": "not a huge fan"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "26bdc477",
+   "gold_value": "five",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "camera",
+     "value": "Canon EOS 80D"
+    },
+    {
+     "entity": "user",
+     "attribute": "tripod_need",
+     "value": "new, sturdy, reliable"
+    },
+    {
+     "entity": "user",
+     "attribute": "tripod_consideration",
+     "value": "Really Right Stuff tripod"
+    },
+    {
+     "entity": "user",
+     "attribute": "camera_adventures",
+     "value": "quite a few, including three trips to Yellowstone, Yosemite, and the Grand Canyon"
+    },
+    {
+     "entity": "user",
+     "attribute": "cloud_storage_consideration",
+     "value": "Google Photos or Adobe Creative Cloud"
+    },
+    {
+     "entity": "user",
+     "attribute": "professional_photo_storage_choice",
+     "value": "Adobe Creative Cloud"
+    },
+    {
+     "entity": "user",
+     "attribute": "personal_photo_storage_choice",
+     "value": "Google Photos"
+    },
+    {
+     "entity": "user",
+     "attribute": "editing_apps_experimented_with",
+     "value": "Lightroom and Photoshop"
+    },
+    {
+     "entity": "user",
+     "attribute": "likes_editing_results",
+     "value": "yes"
+    },
+    {
+     "entity": "user",
+     "attribute": "files_to_edit_and_store",
+     "value": "a lot"
+    },
+    {
+     "entity": "user",
+     "attribute": "storage_capacity_plan",
+     "value": "1TB"
+    },
+    {
+     "entity": "user",
+     "attribute": "photography_work",
+     "value": "professional"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "0977f2af",
+   "gold_value": "Air Fryer",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "meal_planning",
+     "value": "planning meals for the week"
+    },
+    {
+     "entity": "user",
+     "attribute": "lunch_preference",
+     "value": "healthy lunch ideas that can be reheated"
+    },
+    {
+     "entity": "user",
+     "attribute": "new_kitchen_gadget",
+     "value": "Instant Pot"
+    },
+    {
+     "entity": "user",
+     "attribute": "interested_recipe",
+     "value": "Korean Chicken Stew"
+    },
+    {
+     "entity": "user",
+     "attribute": "gochujang_experience",
+     "value": "hasn't cooked with gochujang before"
+    },
+    {
+     "entity": "user",
+     "attribute": "spiciness_concern",
+     "value": "level of spiciness of Korean Chicken Stew with recommended amount of gochujang and chili flakes"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "89941a94",
+   "gold_value": "Yes (road bike plus newly purchased hybrid bike)",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "location",
+     "value": "San Francisco Bay Area"
+    },
+    {
+     "entity": "user",
+     "attribute": "owned_bike",
+     "value": "road bike"
+    },
+    {
+     "entity": "user",
+     "attribute": "owned_bike",
+     "value": "mountain bike"
+    },
+    {
+     "entity": "user",
+     "attribute": "owned_bike",
+     "value": "commuter bike"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_ride_distance",
+     "value": "50-mile"
+    },
+    {
+     "entity": "user",
+     "attribute": "planned_ride_timing",
+     "value": "this weekend"
+    },
+    {
+     "entity": "user",
+     "attribute": "road_bike_mileage",
+     "value": "2,000 miles"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_century_ride",
+     "value": "soon"
+    },
+    {
+     "entity": "user",
+     "attribute": "considering_wheel_upgrade",
+     "value": "carbon fiber wheels for road bike"
+    }
+   ],
+   "hit": false
+  },
+  {
+   "question_id": "07741c45",
+   "gold_value": "in a shoe rack in my closet",
+   "facts": [
+    {
+     "entity": "user",
+     "attribute": "looking_for_sandals",
+     "value": "good quality sandals with sturdy straps"
+    },
+    {
+     "entity": "user",
+     "attribute": "sandal_brands_heard_of",
+     "value": "Teva and Merrell"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_sneakers_storage_location",
+     "value": "under my bed"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_sneakers_condition",
+     "value": "starting to smell"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_sneakers_service_plan",
+     "value": "drop them off at the cobbler this weekend to get polished and conditioned"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_dress_shoes_donation_place",
+     "value": "local charity thrift store"
+    },
+    {
+     "entity": "user",
+     "attribute": "old_dress_shoes_donation_time",
+     "value": "this Saturday"
+    },
+    {
+     "entity": "user",
+     "attribute": "shoe_collection_inventory_plan",
+     "value": "take inventory of my shoe collection and see what else I can get rid of"
+    },
+    {
+     "entity": "user",
+     "attribute": "hidden_shoe_pairs",
+     "value": "a few pairs hidden away in my closet that I haven't worn in ages"
+    }
+   ],
+   "hit": false
+  }
+ ]
+}
