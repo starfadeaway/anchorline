@@ -175,7 +175,7 @@ input,
   background: linear-gradient(180deg, var(--neon), rgba(0, 212, 255, 0.15));
   transition: height .4s ease;
 }
-.group-table, .group-table .ant-table { width: 100%; }
+.group-table, .group-table .ant-table, .group-table .ant-table-container, .group-table table { width: 100% !important; }
 .group-table .ant-table { font-size: 12px; }
 
 /* 记忆饼图（纯 CSS，无图表库） */
