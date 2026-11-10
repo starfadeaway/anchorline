@@ -542,7 +542,7 @@ def delete_session(session_id: str, db: Session = Depends(get_db)) -> dict[str, 
 
 @app.post("/chat/stream")
 def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingResponse:
-    """SSE：先逐条推 tool 事件，最后推 answer；出错推 error 事件而不是断开无声。"""
+    """SSE：tool 事件 → token 事件（逐块推送最终答案，前端打字机）→ final；出错推 error 事件。"""
 
     def _gen():
         try:
@@ -551,7 +551,26 @@ def chat_stream(req: ChatRequest, db: Session = Depends(get_db)) -> StreamingRes
                 yield "event: tool\ndata: " + json.dumps(tc, ensure_ascii=False) + "\n\n"
             finals = [m for m in out["messages"] if m.get("role") == "assistant" and (m.get("content") or "").strip()]
             answer = finals[-1]["content"] if finals else ""
-            yield "event: final\ndata: " + json.dumps({"answer": answer, "stop_reason": out.get("stop_reason", ""), "steps": out["steps"]}, ensure_ascii=False) + "\n\n"
+            # 伪流式：答案已生成后按小块推送（不是模型逐 token；前端可逐字显示，避免长时间空白）
+            for i in range(0, len(answer), 4):
+                chunk = answer[i:i + 4]
+                yield "event: token\ndata: " + json.dumps({"text": chunk}, ensure_ascii=False) + "\n\n"
+            final_payload = {
+                "answer": answer,
+                "stop_reason": out.get("stop_reason", ""),
+                "steps": out["steps"],
+                "trace_id": out.get("trace_id"),
+                "session_id": out.get("session_id"),
+                "tool_calls": _extract_tool_calls(out),
+                "meta": {
+                    "model": req.model,
+                    "duration_ms": out.get("duration_ms"),
+                    "total_tokens": out.get("total_tokens"),
+                    "tool_errors": out.get("tool_errors", 0),
+                    "run_id": str(out.get("trace_id") or ""),
+                },
+            }
+            yield "event: final\ndata: " + json.dumps(final_payload, ensure_ascii=False) + "\n\n"
         except Exception as exc:
             log.exception("chat stream failed")
             yield "event: error\ndata: " + json.dumps({"detail": f"{type(exc).__name__}: 生成失败"}, ensure_ascii=False) + "\n\n"

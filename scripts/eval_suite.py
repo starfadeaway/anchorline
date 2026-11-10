@@ -2,8 +2,8 @@
 """评测回归 / 稳定性对比：同一臂两次运行的单题翻转率与汇总。
 
 用法：
-  .venv\\Scripts\\python.exe scripts\\eval_suite.py --arm b --a data\\eval\\b_arm_154_v2.json --b data\\eval\\b_arm_154_v3.json
-  .venv\\Scripts\\python.exe scripts\\eval_suite.py --arm d --a data\\eval\\d_arm_154_v2.json --b data\\eval\\d_arm_154_v3.json
+  .venv\\Scripts\\python.exe scripts\\eval_suite.py --arm b --a data\\eval\\b_arm_154_run2.json --b data\\eval\\b_arm_154_run3.json
+  .venv\\Scripts\\python.exe scripts\\eval_suite.py --arm d --a data\\eval\\d_arm_154_run2.json --b data\\eval\\d_arm_154_run3.json
 """
 from __future__ import annotations
 

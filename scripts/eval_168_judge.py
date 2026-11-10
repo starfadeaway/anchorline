@@ -7,7 +7,7 @@
   3. 合并已有的 154 题确定性结果（b_arm_154_v2/d_arm_154_v2）；
   4. 输出 168 题两臂准确率、配对差、置换检验、judge prompt sha256。
 
-输出：data/eval/arm_168.json
+输出：data/eval/arm_168_run2.json
       reports/m3_168.md
 """
 from __future__ import annotations
@@ -31,10 +31,10 @@ from anchorline.evaluation.gotchas_judge import judge_gotchas, prompt_sha256  # 
 from anchorline.llm import embedding_client, judge_client, reader_client  # noqa: E402
 from anchorline.retrieval.store import open_table  # noqa: E402
 
-OUT_JSON = os.path.join(ROOT, "data", "eval", "arm_168.json")
+OUT_JSON = os.path.join(ROOT, "data", "eval", "arm_168_run2.json")
 OUT_MD = os.path.join(ROOT, "reports", "m3_168.md")
-B_154 = os.path.join(ROOT, "data", "eval", "b_arm_154_v2.json")
-D_154 = os.path.join(ROOT, "data", "eval", "d_arm_154_v2.json")
+B_154 = os.path.join(ROOT, "data", "eval", "b_arm_154_run2.json")
+D_154 = os.path.join(ROOT, "data", "eval", "d_arm_154_run2.json")
 
 
 def sign_flip_pvalue(diffs: np.ndarray, n_perm: int = 10000, seed: int = 0) -> float:

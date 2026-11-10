@@ -9,7 +9,7 @@
   C1 vs D → 压缩（完整轨迹下）
 
 用法：
-  .venv\\Scripts\\python.exe scripts\\eval_2x2.py --b data\\eval\\b_arm_154_v3.json --c1 data\\eval\\c1_arm_154.json --c2 data\\eval\\c2_arm_154.json --d data\\eval\\d_arm_154_v3.json
+  .venv\\Scripts\\python.exe scripts\\eval_2x2.py --b data\\eval\\b_arm_154_run3.json --c1 data\\eval\\c1_arm_154.json --c2 data\\eval\\c2_arm_154.json --d data\\eval\\d_arm_154_run3.json
 """
 from __future__ import annotations
 
@@ -59,10 +59,10 @@ def compare(name_a: str, a: dict[str, float], name_b: str, b: dict[str, float]) 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--b", default=os.path.join(ROOT, "data", "eval", "b_arm_154_v3.json"))
+    ap.add_argument("--b", default=os.path.join(ROOT, "data", "eval", "b_arm_154_run3.json"))
     ap.add_argument("--c1", default=os.path.join(ROOT, "data", "eval", "c1_arm_154.json"))
     ap.add_argument("--c2", default=os.path.join(ROOT, "data", "eval", "c2_arm_154.json"))
-    ap.add_argument("--d", default=os.path.join(ROOT, "data", "eval", "d_arm_154_v3.json"))
+    ap.add_argument("--d", default=os.path.join(ROOT, "data", "eval", "d_arm_154_run3.json"))
     args = ap.parse_args()
 
     for name, path in (("B", args.b), ("C1", args.c1), ("C2", args.c2), ("D", args.d)):

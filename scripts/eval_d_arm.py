@@ -30,7 +30,7 @@ from anchorline.retrieval.store import open_table  # noqa: E402
 
 TABLE = "v2_web_states_d"
 OUT_JSON = os.path.join(ROOT, "data", "eval", "d_arm_20.json")
-OUT_MD = os.path.join(ROOT, "docs", "d_arm_pilot.md")
+OUT_MD = os.path.join(ROOT, "reports", "d_arm_pilot.md")
 B_PILOT = os.path.join(ROOT, "data", "eval", "aa_pilot.json")
 
 

@@ -131,18 +131,63 @@ export default function ChatPage() {
     setInput("");
     setBusy(true);
     setError("");
+    // 先插入空的 assistant 占位，token 事件到达时逐字填充（打字机效果）
+    const withPlaceholder = [...next, { role: "assistant" as const, content: "", created_at: new Date().toISOString() }];
+    setMessages(withPlaceholder);
     try {
-      const resp = await api.chat(next, { model, sessionId: active });
-      setMessages([
-        ...next,
-        { role: "assistant", content: resp.answer || "(空回答)", created_at: new Date().toISOString() },
-      ]);
-      setTrace(resp);
-      if (!active && resp.session_id) setActive(resp.session_id);
+      const resp = await fetch("/api/chat/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next, max_steps: 8, model, session_id: active }),
+      });
+      if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let acc = "";
+      let final: ChatResp | null = null;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let sep = buf.indexOf("\n\n");
+        while (sep >= 0) {
+          const block = buf.slice(0, sep);
+          buf = buf.slice(sep + 2);
+          const ev = /^event: (.+)$/m.exec(block)?.[1];
+          const dataRaw = /^data: (.+)$/m.exec(block)?.[1];
+          if (ev && dataRaw) {
+            const data = JSON.parse(dataRaw) as Record<string, unknown>;
+            if (ev === "token") {
+              acc += String(data.text ?? "");
+              setMessages([...next, { role: "assistant", content: acc, created_at: new Date().toISOString() }]);
+            } else if (ev === "final") {
+              final = data as unknown as ChatResp;
+            } else if (ev === "error") {
+              throw new Error(String(data.detail ?? "生成失败"));
+            }
+          }
+          sep = buf.indexOf("\n\n");
+        }
+      }
+      if (!final) throw new Error("流提前结束（没有 final 事件）");
+      setMessages([...next, { role: "assistant", content: final.answer || acc || "(空回答)", created_at: new Date().toISOString() }]);
+      setTrace(final);
+      if (!active && final.session_id) setActive(final.session_id);
       void loadSessions();
     } catch (e) {
-      setError(String(e));
-      message.error(`发送失败：${String(e)}`);
+      // 流式失败回退非流式（不重复占位消息）
+      try {
+        const resp = await api.chat(next, { model, sessionId: active });
+        setMessages([...next, { role: "assistant", content: resp.answer || "(空回答)", created_at: new Date().toISOString() }]);
+        setTrace(resp);
+        if (!active && resp.session_id) setActive(resp.session_id);
+        void loadSessions();
+      } catch (e2) {
+        setMessages(next);
+        setError(String(e2));
+        message.error(`发送失败：${String(e2)}`);
+      }
     } finally {
       setBusy(false);
     }

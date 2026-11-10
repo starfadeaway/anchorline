@@ -17,12 +17,12 @@ EVAL = os.path.join(ROOT, "data", "eval")
 
 # (名称, 文件, 准确率字段)
 ARMS = [
-    ("B 154 v2", "b_arm_154_v2.json", "accuracy"),
-    ("B 154 v3", "b_arm_154_v3.json", "accuracy"),
-    ("D 154 v2", "d_arm_154_v2.json", "d_accuracy"),
-    ("D 154 v3", "d_arm_154_v3.json", "d_accuracy"),
-    ("168 v2 (B/D)", "arm_168.json", None),
-    ("168 v3 (B/D)", "arm_168_v3.json", None),
+    ("B 154 v2", "b_arm_154_run2.json", "accuracy"),
+    ("B 154 v3", "b_arm_154_run3.json", "accuracy"),
+    ("D 154 v2", "d_arm_154_run2.json", "d_accuracy"),
+    ("D 154 v3", "d_arm_154_run3.json", "d_accuracy"),
+    ("168 v2 (B/D)", "arm_168_run2.json", None),
+    ("168 v3 (B/D)", "arm_168_run3.json", None),
 ]
 
 

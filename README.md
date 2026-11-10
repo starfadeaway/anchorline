@@ -114,9 +114,9 @@ docker compose up -d --build
 .venv\Scripts\python.exe scripts\rebuild_facts_index.py
 
 # V2 评测（B / C2 / D / 168）
-.venv\Scripts\python.exe scripts\aa_pilot.py --limit 154 --n 1 --out data\eval\b_arm_154_v2.json
+.venv\Scripts\python.exe scripts\aa_pilot.py --limit 154 --n 1 --out data\eval\b_arm_154_run2.json
 .venv\Scripts\python.exe scripts\eval_c2_arm.py --limit 154
-.venv\Scripts\python.exe scripts\eval_d_arm.py --limit 154 --n 1 --table v2_web_states_d --b-ref data\eval\b_arm_154_v2.json --out data\eval\d_arm_154_v2.json
+.venv\Scripts\python.exe scripts\eval_d_arm.py --limit 154 --n 1 --table v2_web_states_d --b-ref data\eval\b_arm_154_run2.json --out data\eval\d_arm_154_run2.json
 .venv\Scripts\python.exe scripts\eval_168_judge.py
 
 # LoreKeeper 数据集桥接（页面级 Recall/MRR）

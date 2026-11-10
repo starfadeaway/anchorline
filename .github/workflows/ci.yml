@@ -50,5 +50,59 @@ jobs:
       - name: Eval artifacts check
         run: python scripts/eval_regression.py
 
-  # e2e 需要 MySQL + API（含真实 key），不在 CI 跑；本地：
-  #   启动 API（uvicorn）后 cd frontend && npm run e2e
+  e2e:
+    # 前端 e2e：MySQL service + 本地 API（不调模型，不需要 provider key）+ Playwright
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: anchorline
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Configure env
+        run: |
+          printf '%s\n' \
+            ANCHORLINE_MYSQL_HOST=127.0.0.1 \
+            ANCHORLINE_MYSQL_PORT=3306 \
+            ANCHORLINE_MYSQL_DATABASE=anchorline \
+            ANCHORLINE_MYSQL_USER=root \
+            ANCHORLINE_MYSQL_PASSWORD=root \
+            ANCHORLINE_DEEPSEEK_API_KEY=dummy-for-e2e \
+            ANCHORLINE_SILICONFLOW_API_KEY=dummy-for-e2e \
+            ANCHORLINE_LOREKEEPER_ENABLED=false > .env
+      - name: Migrate
+        run: alembic upgrade head
+      - name: Start API
+        run: |
+          nohup uvicorn anchorline.api.main:app --host 127.0.0.1 --port 8000 >/tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && break; sleep 2; done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Install Playwright
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Run e2e
+        working-directory: frontend
+        run: npm run e2e
+
+  # 本地：启动 API（uvicorn）后 cd frontend && npm run e2e

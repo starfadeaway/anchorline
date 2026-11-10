@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """B 臂错题诊断：为什么 154 题里 B 会错？
 
-从 `b_arm_154_v2.json` 取 B 的错题（mean=0），抽 N 道重跑 B 臂，保存：
+从 `b_arm_154_run2.json` 取 B 的错题（mean=0），抽 N 道重跑 B 臂，保存：
   - answer 全文、判分、与 gold 的 token F1；
   - top-6 命中轨迹（traj_id / center / similarity / goal），判断是否「检索没命中」。
 
@@ -33,7 +33,7 @@ from anchorline.evaluation.v1_judge import token_f1  # noqa: E402
 from anchorline.llm import embedding_client, reader_client  # noqa: E402
 from anchorline.retrieval.store import open_table  # noqa: E402
 
-B_REF = os.path.join(ROOT, "data", "eval", "b_arm_154_v2.json")
+B_REF = os.path.join(ROOT, "data", "eval", "b_arm_154_run2.json")
 OUT_JSON = os.path.join(ROOT, "data", "eval", "b_diag.json")
 OUT_MD = os.path.join(ROOT, "docs", "b_arm_diagnosis.md")
 

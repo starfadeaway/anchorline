@@ -26,7 +26,7 @@ from anchorline.retrieval.store import open_table  # noqa: E402
 
 OUT_JSON = os.path.join(ROOT, "data", "eval", "c2_arm_154.json")
 OUT_MD = os.path.join(ROOT, "reports", "c2_arm_154.md")
-B_REF = os.path.join(ROOT, "data", "eval", "b_arm_154_v2.json")
+B_REF = os.path.join(ROOT, "data", "eval", "b_arm_154_run2.json")
 
 
 def sign_flip_pvalue(diffs: np.ndarray, n_perm: int = 10000, seed: int = 0) -> float:

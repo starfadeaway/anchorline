@@ -2,7 +2,7 @@
 
 > 目的：同一臂（B 官方基线 / D 完整轨迹+L0）重复跑一次，看聚合准确率与单题翻转，判断结论是否被采样噪声支配。
 > 口径：154 题确定性判分（无 judge）、reader deepseek-flash、embedding Qwen3-Embedding-8B、4k 预算、top-6、temperature=1.0、n=1/题。
-> 数据：`data/eval/b_arm_154_v2.json`、`b_arm_154_v3.json`、`d_arm_154_v2.json`、`d_arm_154_v3.json`。
+> 数据：`data/eval/b_arm_154_run2.json`、`b_arm_154_run3.json`、`d_arm_154_run2.json`、`d_arm_154_run3.json`。
 
 ## 1. 聚合准确率
 
@@ -41,6 +41,6 @@
 ## 4. 复现
 
 ```powershell
-.venv\Scripts\python.exe scripts\eval_suite.py --arm b --a data\eval\b_arm_154_v2.json --b data\eval\b_arm_154_v3.json
-.venv\Scripts\python.exe scripts\eval_suite.py --arm d --a data\eval\d_arm_154_v2.json --b data\eval\d_arm_154_v3.json
+.venv\Scripts\python.exe scripts\eval_suite.py --arm b --a data\eval\b_arm_154_run2.json --b data\eval\b_arm_154_run3.json
+.venv\Scripts\python.exe scripts\eval_suite.py --arm d --a data\eval\d_arm_154_run2.json --b data\eval\d_arm_154_run3.json
 ```

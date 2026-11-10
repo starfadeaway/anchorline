@@ -54,15 +54,15 @@
 
 ```powershell
 # B（154）
-.venv\Scripts\python.exe scripts\aa_pilot.py --limit 154 --n 1 --out data\eval\b_arm_154_v2.json
+.venv\Scripts\python.exe scripts\aa_pilot.py --limit 154 --n 1 --out data\eval\b_arm_154_run2.json
 # C2（154）
 .venv\Scripts\python.exe scripts\eval_c2_arm.py --limit 154
 # D 单 state（154）
 .venv\Scripts\python.exe scripts\eval_d_arm.py --limit 154 --n 1 --table v2_web_states_d `
-  --b-ref data\eval\b_arm_154_v2.json --out data\eval\d_arm_154_v2.json --md-out docs\d_arm_154_v2.md
+  --b-ref data\eval\b_arm_154_run2.json --out data\eval\d_arm_154_run2.json --md-out docs\d_arm_154_v2.md
 # D 邻居（154）
 .venv\Scripts\python.exe scripts\eval_d_arm.py --limit 154 --n 1 --table v2_web_states_d_neighbor `
-  --b-ref data\eval\b_arm_154_v2.json --out data\eval\d_arm_154_neighbor.json --md-out docs\d_arm_154_neighbor.md
+  --b-ref data\eval\b_arm_154_run2.json --out data\eval\d_arm_154_neighbor.json --md-out docs\d_arm_154_neighbor.md
 # 168（154 + 14 judge）
 .venv\Scripts\python.exe scripts\eval_168_judge.py
 ```
