@@ -175,7 +175,7 @@ input,
   background: linear-gradient(180deg, var(--neon), rgba(0, 212, 255, 0.15));
   transition: height .4s ease;
 }
-.group-table, .group-table .ant-table, .group-table .ant-table-container, .group-table table { width: 100% !important; }
+.group-table, .group-table .ant-table, .group-table .ant-table-container, .group-table table { width: 100% !important; max-width: 880px; }
 .group-table .ant-table { font-size: 12px; }
 .group-table table { table-layout: fixed; }
 .group-table td, .group-table th { word-break: break-word; overflow-wrap: anywhere; }
