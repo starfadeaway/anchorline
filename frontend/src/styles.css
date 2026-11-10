@@ -446,3 +446,7 @@ input,
 .msg-body pre { padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, .25); overflow: auto; }
 .msg-body blockquote { margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--line); color: var(--weak); }
 .msg-thinking { color: var(--weak); font-style: italic; }
+
+/* 记忆表格：单元格裁剪，缩放/窄屏下按钮不越界 */
+.group-table td, .group-table th { overflow: hidden; }
+.group-table .ant-dropdown-trigger { vertical-align: middle; }

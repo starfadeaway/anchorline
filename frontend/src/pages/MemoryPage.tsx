@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Checkbox, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
-import { DownloadOutlined } from "@ant-design/icons";
+import { Alert, Button, Card, Checkbox, Collapse, Drawer, Dropdown, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
+import { DownloadOutlined, MoreOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
 import { topicOfText } from "../topics";
 
@@ -155,6 +155,33 @@ export default function MemoryPage() {
   const stale = visible - current;
   const maxTokens = Math.max(1, ...traces.map((t) => t.used_tokens));
 
+  const invalidateFact = (r: Fact) =>
+    Modal.confirm({
+      title: "把这条记忆标记为失效？",
+      content: "不会删除记录；只是标记为「已失效」，历史仍可查看、可追溯。",
+      okText: "标记失效",
+      cancelText: "取消",
+      onOk: async () => {
+        await api.invalidate(r.id);
+        message.success("已标记失效（历史保留）");
+        void load();
+      },
+    });
+
+  const deleteFact = (r: Fact) =>
+    Modal.confirm({
+      title: "彻底删除这条记忆？",
+      content: "物理删除，不可恢复（用于控制存储量）。若只想停用请用「失效」。",
+      okText: "删除",
+      okButtonProps: { danger: true },
+      cancelText: "取消",
+      onOk: async () => {
+        await api.deleteFact(r.id);
+        message.success("已删除");
+        void load();
+      },
+    });
+
   const submitAdd = async () => {
     try {
       const v = await form.validateFields();
@@ -213,52 +240,30 @@ export default function MemoryPage() {
     },
     {
       title: "操作",
-      width: "17%",
+      width: "8%",
       render: (_: unknown, r: Fact) => (
-        <Space>
-          <Button size="small" onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}>历史</Button>
-          <Button
-            size="small"
-            danger
-            disabled={!!r.valid_to}
-            onClick={() =>
-              Modal.confirm({
-                title: "把这条记忆标记为失效？",
-                content: "不会删除记录；只是标记为「已失效」，历史仍可查看、可追溯。",
-                okText: "标记失效",
-                cancelText: "取消",
-                onOk: async () => {
-                  await api.invalidate(r.id);
-                  message.success("已标记失效（历史保留）");
-                  void load();
-                },
-              })
-            }
-          >
-            失效
-          </Button>
-          <Button
-            size="small"
-            danger
-            type="text"
-            onClick={() =>
-              Modal.confirm({
-                title: "彻底删除这条记忆？",
-                content: "物理删除，不可恢复（用于控制存储量）。若只想停用请用「失效」。",
-                okText: "删除",
-                okButtonProps: { danger: true },
-                cancelText: "取消",
-                onOk: async () => {
-                  await api.deleteFact(r.id);
-                  message.success("已删除");
-                  void load();
-                },
-              })
-            }
-          >
-            删除
-          </Button>
-        </Space>
+        <Dropdown
+          trigger={["click"]}
+          menu={{
+            items: [
+              { key: "history", label: "历史" },
+              { key: "invalidate", label: "标记失效", disabled: !!r.valid_to },
+              { type: "divider" },
+              { key: "delete", label: "删除", danger: true },
+            ],
+            onClick: ({ key }) => {
+              if (key === "history") {
+                api.history(r.id).then(setHistory).catch((e) => message.error(String(e)));
+              } else if (key === "invalidate") {
+                invalidateFact(r);
+              } else if (key === "delete") {
+                deleteFact(r);
+              }
+            },
+          }}
+        >
+          <Button size="small" icon={<MoreOutlined />} />
+        </Dropdown>
       ),
     },
   ];
