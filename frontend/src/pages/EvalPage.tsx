@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Card, Table, Tabs, Tag, Typography, message } from "antd";
-import { api, type EvalArm, type LoreKeeperBridge, type TraceRow } from "../api";
+import { api, type EvalArm, type LoreKeeperBridge, type ReviewSummary, type TraceRow } from "../api";
 
 const { Paragraph, Text } = Typography;
 
-/** 评测页：臂对比（含说明）+ Trace 浏览 + LoreKeeper 桥接实验。 */
+/** 评测页：臂对比（含说明）+ Trace 浏览 + LoreKeeper 桥接 + 审核裁决。 */
 export default function EvalPage() {
   const [rows, setRows] = useState<EvalArm[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
   const [bridge, setBridge] = useState<LoreKeeperBridge | null>(null);
+  const [review, setReview] = useState<ReviewSummary | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function EvalPage() {
       .then((data: TraceRow[]) => setTraces(data))
       .catch(() => setTraces([]));
     api.lorekeeperBridge().then(setBridge).catch(() => setBridge(null));
+    api.reviewSummary().then(setReview).catch(() => setReview(null));
   }, []);
 
   const maxAcc = useMemo(() => Math.max(...rows.map((r) => r.accuracy), 0.01), [rows]);
@@ -159,6 +161,35 @@ export default function EvalPage() {
               </>
             ) : (
               <Paragraph type="secondary">暂无桥接结果（先跑 scripts/lorekeeper_bridge.py）。</Paragraph>
+            ),
+          },
+          {
+            key: "review",
+            label: "审核裁决",
+            children: review ? (
+              <>
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 12 }}
+                  message={`审核裁决金标：${review.n} 条（累计失效 ${review.invalidated_total} 条事实）`}
+                  description="裁决由人工在「审核」页选择保留项 + 原因后写入 review_decisions；这里只读展示，可导出用于冲突专项评测。"
+                />
+                <Table
+                  rowKey="kept_fact_id"
+                  size="small"
+                  dataSource={review.recent}
+                  pagination={false}
+                  columns={[
+                    { title: "实体", dataIndex: "entity_id", width: 160 },
+                    { title: "保留", dataIndex: "kept_fact_id", width: 120, render: (v: string) => <Text code>{v.slice(0, 8)}</Text> },
+                    { title: "原因", dataIndex: "reason", ellipsis: true },
+                    { title: "时间", dataIndex: "created_at", width: 180, render: (v: string) => (v ? new Date(v).toLocaleString() : "—") },
+                  ]}
+                />
+              </>
+            ) : (
+              <Paragraph type="secondary">暂无裁决记录（去「审核」页裁决冲突，记录会出现在这里）。</Paragraph>
             ),
           },
         ]}

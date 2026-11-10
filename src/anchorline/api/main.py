@@ -891,6 +891,31 @@ def eval_lorekeeper() -> dict:
     return out
 
 
+@app.get("/eval/review-summary", response_model=dict)
+def eval_review_summary(db: Session = Depends(get_db)) -> dict:
+    """审核裁决金标汇总（供评测页展示；裁决记录本身在 /review/decisions）。"""
+    rows = list(db.scalars(select(ReviewDecision).order_by(ReviewDecision.created_at.desc()).limit(100)))
+    invalidated_total = 0
+    for r in rows:
+        try:
+            invalidated_total += len(json.loads(r.invalidated_fact_ids or "[]"))
+        except json.JSONDecodeError:
+            pass
+    return {
+        "n": len(rows),
+        "invalidated_total": invalidated_total,
+        "recent": [
+            {
+                "entity_id": r.entity_id,
+                "kept_fact_id": r.kept_fact_id,
+                "reason": r.reason or "",
+                "created_at": r.created_at.isoformat() if r.created_at else "",
+            }
+            for r in rows[:10]
+        ],
+    }
+
+
 @app.get("/eval/summary", response_model=list[EvalArmOut])
 def eval_summary() -> list[EvalArmOut]:
     """把 data/eval 下的结果汇总成臂级表；文件缺失/损坏只跳过，不抛 500。"""

@@ -123,6 +123,12 @@ export type ApiMetrics = {
   recent?: { ts: number; path: string; status: number; ms: number }[];
 };
 
+export type ReviewSummary = {
+  n: number;
+  invalidated_total: number;
+  recent: { entity_id: string; kept_fact_id: string; reason: string; created_at: string }[];
+};
+
 export type Msg = { role: "user" | "assistant"; content: string; created_at?: string };
 
 /** 统一的接口错误：status=0 表示网络/超时。 */
@@ -228,4 +234,5 @@ export const api = {
   deleteSession: (id: string) => json<{ deleted: string }>(`/api/sessions/${id}`, { method: "DELETE" }),
   evalSummary: () => json<EvalArm[]>("/api/eval/summary"),
   lorekeeperBridge: () => json<LoreKeeperBridge>("/api/eval/lorekeeper"),
+  reviewSummary: () => json<ReviewSummary>("/api/eval/review-summary"),
 };
