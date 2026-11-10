@@ -67,26 +67,44 @@ def main() -> int:
             store.write(entity_id=ENTITY, attribute=attr, value=value, valid_from=now - timedelta(days=days_ago))
         db.commit()
 
-        # 会话 + 消息
+        # 会话 + 消息（user 首条带 [demo] 标记用于幂等清理；assistant 写自然回复，不带头缀）
         session_ids = []
         scripts = {
-            "跑步": ["[demo] 我最近在练 5K，想突破 23 分钟", "[demo] 我目前 PB 是 23:50，目标是 23:00"],
-            "游泳": ["[demo] 我 200 米自由泳最好成绩是 2 分 15 秒", "[demo] 想练到 2 分 05 秒"],
-            "乒乓球": ["[demo] 我打乒乓球已经连胜 5 个对手了", "[demo] 打算找水平更高的球友练"],
-            "饮食": ["[demo] 我口味清淡，少油少盐", "[demo] 平时喜欢自己做饭"],
-            "工作": ["[demo] 我在做 Anchorline 记忆层这个项目", "[demo] 也在桥接 LoreKeeper 知识库"],
-            "旅行": ["[demo] 十一打算去云南玩", "[demo] 还没定具体路线"],
+            "跑步": [
+                ("user", "[demo] 我最近在练 5K，想突破 23 分钟"),
+                ("assistant", "记下了：你目前 5K PB 是 23:50，目标是 23:00。建议先用 5:00–5:05/km 的配速做 4×800 米间歇，每周两次，中间留一天轻松跑恢复；先把 23:30 当第一个小目标。"),
+            ],
+            "游泳": [
+                ("user", "[demo] 我 200 米自由泳最好成绩是 2 分 15 秒"),
+                ("assistant", "收到，200 米自由泳 2:15 已经不错。想冲 2:05，核心是把划频稳定在 38–40 次/分、每 50 米控制在 32 秒左右；先练 8×50 米主项间歇，组间 20 秒。"),
+            ],
+            "乒乓球": [
+                ("user", "[demo] 我打乒乓球已经连胜 5 个对手了"),
+                ("assistant", "厉害，五连胜说明你的正手和发球在业余里已经够用。想继续涨球，可以找水平高半档的球友打，输几场比一直赢更能暴露脚步和接发球的问题。"),
+            ],
+            "饮食": [
+                ("user", "[demo] 我口味清淡，少油少盐"),
+                ("assistant", "明白，清淡少油少盐。那给你配餐时我会避开重口和油炸，优先蒸煮、凉拌；蛋白质用鸡胸/鱼虾/豆制品，主食可以粗细搭配。"),
+            ],
+            "工作": [
+                ("user", "[demo] 我在做 Anchorline 记忆层这个项目"),
+                ("assistant", "记住了：你在做 Anchorline 记忆层，同时在桥接 LoreKeeper 知识库。需要我帮你把「记忆写入 → 检索召回 → 冲突裁决」这条链路整理成可演示的步骤吗？"),
+            ],
+            "旅行": [
+                ("user", "[demo] 十一打算去云南玩"),
+                ("assistant", "好，十一去云南。这个时间人流大，建议提前订大理/丽江的住宿；如果只有 5 天，昆明—大理—丽江一线就够，别贪多。要路线的话我可以按你的天数排。"),
+            ],
         }
         for topic, msgs in scripts.items():
             s = ChatSession(domain="chat", topic=topic, created_at=now - timedelta(days=3))
             db.add(s)
             db.flush()
-            for i, content in enumerate(msgs):
-                db.add(Message(session_id=s.id, role="user" if i % 2 == 0 else "assistant", content=content))
+            for role, content in msgs:
+                db.add(Message(session_id=s.id, role=role, content=content))
             db.add(
                 Trace(
                     session_id=s.id,
-                    query=msgs[0][:200],
+                    query=msgs[0][1][:200],
                     budget_tokens=4000,
                     used_tokens=180,
                     layers="demo>seed;steps=1",
