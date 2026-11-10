@@ -58,6 +58,7 @@ def main() -> int:
     ap.add_argument("--md-out", default=None, help="报告 md 路径")
     ap.add_argument("--b-ref", default=None, help="B 臂结果 JSON（默认 data/eval/aa_pilot.json）")
     ap.add_argument("--table", default=TABLE, help="LanceDB 表名（默认 v2_web_states_d）")
+    ap.add_argument("--no-db", action="store_true", help="不写 MySQL eval_runs")
     args = ap.parse_args()
     out_json = args.out or OUT_JSON
     out_md = args.md_out or OUT_MD
@@ -146,6 +147,10 @@ def main() -> int:
 
     print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1, default=float))
     print("written:", out_json, out_md)
+    if not args.no_db:
+        from eval_db import write_eval_runs
+
+        write_eval_runs("D", results, Settings().deepseek_reader_model)
     return 0
 
 

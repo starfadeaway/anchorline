@@ -18,7 +18,8 @@ from sqlalchemy import delete, select  # noqa: E402
 
 from anchorline.db import session_factory  # noqa: E402
 from anchorline.memory.store import FactStore  # noqa: E402
-from anchorline.models import Fact, Message, ReviewDecision, Session as ChatSession, Trace  # noqa: E402
+from anchorline.models import Fact, Message, ReviewDecision, Trace  # noqa: E402
+from anchorline.models import Session as ChatSession
 
 ENTITY = "user:demo"
 TOPICS = ["跑步", "游泳", "乒乓球", "饮食", "工作", "旅行"]

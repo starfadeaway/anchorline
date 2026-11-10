@@ -43,3 +43,4 @@ ignore = ["E501"]  # 行宽交给 formatter
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["E402"]  # 测试里 sys.path 调整后的 import
+"scripts/*" = ["E402"]  # 脚本先 sys.path.insert 再 import anchorline

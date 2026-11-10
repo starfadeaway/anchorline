@@ -162,6 +162,12 @@ def main() -> int:
 
     print(json.dumps({k: v for k, v in summary.items() if k != "gotchas_rows"}, ensure_ascii=False, indent=1, default=float))
     print("written:", args.out, args.md_out)
+    from eval_db import write_eval_runs
+
+    b_rows = [{"question_id": q, "mean": b_scores[q]} for q in common]
+    d_rows = [{"question_id": q, "mean": d_scores[q]} for q in common]
+    write_eval_runs("B", b_rows, Settings().deepseek_reader_model, benchmark="v2-web-168")
+    write_eval_runs("D", d_rows, Settings().deepseek_reader_model, benchmark="v2-web-168")
     return 0
 
 

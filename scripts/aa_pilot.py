@@ -109,6 +109,9 @@ def main():
     print("=== A/A noise floor ===")
     print(json.dumps(summary["noise_floor"], ensure_ascii=False, indent=1))
     print("saved:", path)
+    from eval_db import write_eval_runs
+
+    write_eval_runs("B", results, Settings().deepseek_reader_model)
 
 
 if __name__ == "__main__":

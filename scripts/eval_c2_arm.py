@@ -99,6 +99,9 @@ def main() -> int:
 
     print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1, default=float))
     print("written:", OUT_JSON, OUT_MD)
+    from eval_db import write_eval_runs
+
+    write_eval_runs("C2", rows, Settings().deepseek_reader_model)
     return 0
 
 
