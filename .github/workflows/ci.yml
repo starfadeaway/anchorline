@@ -126,7 +126,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
       - name: Migrate (local MySQL)
-        run: alembic upgrade head
+        run: D:\Python3135\python.exe -m alembic upgrade head
       - name: Start API
         run: |
           $env:PYTHONPATH = "src"
