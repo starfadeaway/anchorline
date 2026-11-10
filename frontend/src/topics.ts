@@ -59,6 +59,8 @@ const CANON: [RegExp, string][] = [
 export function canonicalTopic(topic: string): string {
   const t = (topic || "").trim();
   if (!t) return TOPIC.other;
+  // 大模型/大肥鱼/DeepSeek 相关一律归「模型与配置」，优先于「饮食」等关键词
+  if (/大肥鱼|大模型|deepseek|minimax/i.test(t)) return TOPIC.model;
   for (const [re, name] of CANON) if (re.test(t)) return name;
   return topicOfText(t);
 }

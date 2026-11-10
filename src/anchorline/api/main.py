@@ -342,6 +342,13 @@ def _run_agent(
     reader = chat_client(model)
 
     query = next((m.get("content") or "" for m in reversed(messages) if m.get("role") == "user"), "")
+    # 统一系统约束：实体命名规范 + 不得“口头记住”（必须真的调用 memory_write）
+    base_hint = (
+        "你是 Anchorline 记忆助手。记忆实体规范：用户本人用 entity_id='user'；"
+        "用户的宠物用 'user.宠物名'（如 user.猫）；大模型/AI 工具用 '大模型.名称'（如 大模型.大肥鱼）；"
+        "不要把昵称直接当成独立实体。只有真正调用了 memory_write 之后，才能说「已记下/已保存」。"
+    )
+    messages = [{"role": "system", "content": base_hint}, *messages]
     # 回溯意图识别（产品链路）：retrospective 时注入系统提示 + 要求检索历史
     intent = "current"
     if query:
@@ -459,6 +466,9 @@ TOPIC_CANON = [
     ("健身", "健身记录"),
     ("身体", "身体数据"),
     ("模型", "模型与配置"),
+    ("大肥鱼", "模型与配置"),
+    ("deepseek", "模型与配置"),
+    ("minimax", "模型与配置"),
     ("配置", "模型与配置"),
     ("宠物", "宠物"),
     ("旅行", "旅行"),
@@ -482,18 +492,27 @@ def _canonical_topic(topic: str) -> str:
 
 
 def _gen_topic_bg(sid: str, text: str, model: str) -> None:
-    """后台生成会话主题（独立 DB session；不占用响应时间）。"""
-    if not sid or not text.strip():
+    """后台生成/更新会话主题（用最近几轮对话；不占用响应时间）。"""
+    if not sid:
         return
+    from sqlalchemy import select
+
     from anchorline.db import session_factory
+    from anchorline.models import Message as MsgModel
 
     db = session_factory()()
     try:
         row = db.get(ChatSession, sid)
-        if row is not None and not row.topic:
-            topic = _gen_topic(text[:400], model)
-            if topic:
-                row.topic = _canonical_topic(topic)
+        if row is None:
+            return
+        recent = list(db.scalars(select(MsgModel).where(MsgModel.session_id == sid).order_by(MsgModel.id.desc()).limit(6)).all())
+        recent.reverse()
+        convo = "\n".join(f"{m.role}: {m.content[:300]}" for m in recent) or text
+        topic = _gen_topic(convo[:900], model)
+        if topic:
+            new_topic = _canonical_topic(topic)
+            if new_topic != row.topic:
+                row.topic = new_topic
                 db.commit()
     except Exception:
         db.rollback()
@@ -734,7 +753,7 @@ def _gen_topic(text: str, model: str) -> str:
             [
                 {
                     "role": "system",
-                    "content": "你是会话主题分类器。用 2-4 个汉字概括用户这段话的主题（如：跑步、游泳、乒乓球、饮食、工作）。只输出主题词，不要标点、不要解释。",
+                    "content": "你是会话主题分类器。用 2-4 个汉字概括这段对话的主题（如：跑步、游泳、乒乓球、饮食、工作、模型与配置、宠物）。如果对话主体是大模型/DeepSeek 相关，输出「模型与配置」。只输出主题词，不要标点、不要解释。",
                 },
                 {"role": "user", "content": str(text)[:400]},
             ],

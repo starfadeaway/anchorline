@@ -25,8 +25,8 @@ function topicOf(title: string): string {
 function groupByTopic(sessions: ChatSession[]): [string, ChatSession[]][] {
   const m = new Map<string, ChatSession[]>();
   for (const s of sessions) {
-    // 统一词表：模型 topic 或标题关键词 → 规范分组（两页共用同一套命名）
-    const k = canonicalTopic(s.topic || s.title);
+    // 统一词表：topic + 标题一起判断（标题含"大肥鱼/大模型"时归「模型与配置」）
+    const k = canonicalTopic([s.topic, s.title].filter(Boolean).join(" "));
     m.set(k, [...(m.get(k) ?? []), s]);
   }
   return [...m.entries()];
@@ -107,6 +107,7 @@ export default function ChatPage() {
   });
 
   const loadSession = async (id: string) => {
+    setTrace(null); // 先清掉上一个会话的 trace，避免旧指标条先出现
     try {
       const rows = await api.sessionMessages(id);
       setActive(id);
@@ -136,6 +137,7 @@ export default function ChatPage() {
     setInput("");
     setBusy(true);
     setError("");
+    setTrace(null); // 新的一轮清掉旧 trace，等 final 到达再展示本轮指标
     // 先插入空的 assistant 占位，token 事件到达时逐字填充（打字机效果）
     const withPlaceholder = [...next, { role: "assistant" as const, content: "", created_at: new Date().toISOString() }];
     setMessages(withPlaceholder);
@@ -301,7 +303,7 @@ export default function ChatPage() {
                 </div>
               </div>
             ))}
-            {trace && (
+            {trace && messages.length > 0 && (
               <div className="metrics-bar">
                 <span>模型 <b>{trace.meta?.model ?? model}</b></span>
                 <span>步数 <b>{trace.steps > 0 ? trace.steps : "—"}</b></span>
