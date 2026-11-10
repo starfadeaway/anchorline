@@ -122,7 +122,6 @@ export default function ReviewPage() {
                       columns={conflictColumns(g.entity_id)}
                       pagination={false}
                       tableLayout="fixed"
-                      style={{ maxWidth: 920 }}
                     />
                     <Space style={{ marginTop: 10 }} wrap>
                       <Input
