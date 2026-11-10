@@ -116,6 +116,7 @@ jobs:
       ANCHORLINE_MYSQL_PORT: "3306"
       ANCHORLINE_MYSQL_DATABASE: "anchorline"
       ANCHORLINE_MYSQL_USER: "root"
+      ANCHORLINE_MYSQL_PASSWORD: "placeholder-local-password"
       ANCHORLINE_LOREKEEPER_ENABLED: "false"
       ANCHORLINE_DEEPSEEK_API_KEY: "dummy-for-e2e"
       ANCHORLINE_SILICONFLOW_API_KEY: "dummy-for-e2e"
