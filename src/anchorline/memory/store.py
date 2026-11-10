@@ -51,6 +51,23 @@ class FactStore:
         fact_type: str = "semantic",
         conflict_type: str | None = None,
     ) -> Fact:
+        # 规范实体：把属性误写成实体（user.乒乓球经历 且后缀=属性）时归回 user
+        if isinstance(entity_id, str) and entity_id.startswith("user.") and entity_id[5:] == attribute:
+            entity_id = "user"
+        # 去重：同一 (实体, 属性) 的当前值完全相同 → 直接返回已有，不重复写
+        same_current = list(
+            self.db.scalars(
+                select(Fact).where(
+                    Fact.entity_id == entity_id,
+                    Fact.attribute == attribute,
+                    Fact.valid_to.is_(None),
+                )
+            )
+        )
+        for f in same_current:
+            if f.value.strip() == value.strip():
+                return f
+
         existing = self.db.scalar(
             select(Fact).where(
                 Fact.entity_id == entity_id,
