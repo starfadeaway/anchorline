@@ -380,7 +380,9 @@ export default function MemoryPage() {
         <Text type="secondary">暂无记忆</Text>
       ) : (
         <Collapse
-          defaultActiveKey={groups.map(([t]) => t)}
+          // 懒渲染：默认只展开前 2 组；折叠的组不挂载（展开时才渲染），避免首屏渲染全部分组
+          destroyOnHidden
+          defaultActiveKey={groups.slice(0, 2).map(([t]) => t)}
           items={groups.map(([topic, rows], gi) => {
             const cur = rows.filter((f) => !f.valid_to).length;
             const st = rows.length - cur;
