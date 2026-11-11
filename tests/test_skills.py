@@ -150,3 +150,65 @@ def test_memory_write_without_active_skill(db):
     assert res.ok
     fact = db.query(__import__("anchorline.models", fromlist=["Fact"]).Fact).first()
     assert fact.skill_name is None
+
+
+def test_facts_endpoint_returns_skill_name(db):
+    """E9：写→读贯通——/memory/facts 的响应模型必须带 skill_name。"""
+    from anchorline.api.main import list_facts
+
+    store = FactStore(db)
+    tools = build_tools(store, "sess-read")
+    token = ACTIVE_SKILLS.set(["run_coach"])
+    try:
+        tools["memory_write"](entity_id="user", attribute="5K PB", value="23:50")
+    finally:
+        ACTIVE_SKILLS.reset(token)
+
+    rows = list_facts(limit=10, offset=0, db=db)
+    assert rows and rows[0].skill_name == "run_coach"
+
+
+def test_auto_activate_keyword_matrix(db):
+    """E13/E14/E15：中文常见问法要触发、负向词不触发、单字关键词不再被删。"""
+    assert create_custom(db, "diet_x", "饮食", "", "i", auto_activate=True, trigger_keywords="吃,吃什么,饮食")
+    assert set_skill(db, "diet_x", False)
+    assert [s.name for s in active_skills(db, "我今天吃什么比较好")] == ["diet_x"]
+    assert [s.name for s in active_skills(db, "这家公司太会吃苦了")] == ["diet_x"]  # 单字「吃」保留（误伤属可接受）
+    assert create_custom(db, "run_x", "跑步", "", "i", auto_activate=True, trigger_keywords="跑步,跑了")
+    assert set_skill(db, "run_x", False)
+    # run_coach 内置负向词只作用于内置技能；自定义 run_x 不受影响
+    assert [s.name for s in active_skills(db, "我今天跑了 5 公里")] == ["run_x"]
+
+
+def test_builtin_negative_keywords(db):
+    """内置技能：跑步机 / 功能失效 不应自动激活。"""
+    from anchorline.models import SkillToggle
+    from anchorline.skills import SKILL_BY_NAME
+
+    db.add(SkillToggle(name="run_coach", enabled=False, auto_activate=True, trigger_keywords=SKILL_BY_NAME["run_coach"].trigger_keywords))
+    db.add(SkillToggle(name="memory_hygiene", enabled=False, auto_activate=True, trigger_keywords=SKILL_BY_NAME["memory_hygiene"].trigger_keywords))
+    db.commit()
+    assert [s.name for s in active_skills(db, "我在跑步机上走了 30 分钟")] == []
+    assert [s.name for s in active_skills(db, "这个功能失效了")] == []
+    assert "run_coach" in [s.name for s in active_skills(db, "我今天跑了 5 公里")]
+
+
+def test_memory_context_truncation_marker(db):
+    """E18：超长 value 截断且带标记。"""
+    from datetime import datetime
+
+    from anchorline.models import Fact
+
+    db.add(Fact(entity_id="user", attribute="长文本", value="x" * 300, valid_from=datetime(2026, 1, 1), confidence=1.0))
+    db.commit()
+    ctx = memory_context(db, "user")
+    assert any("…(截断)" in c for c in ctx)
+
+
+def test_build_skills_hint_budget(db):
+    """E18：总量预算生效（超预算的技能不注入）。"""
+    assert create_custom(db, "big", "t", "", "y" * 200)
+    assert set_skill(db, "big", True)
+    sk = enabled_skills(db)
+    hint = build_skills_hint(db, sk, budget=50)
+    assert hint == ""

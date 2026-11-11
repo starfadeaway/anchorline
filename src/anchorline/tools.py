@@ -7,12 +7,15 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable
 
 from anchorline.memory.l3 import ContextItem, assemble
 from anchorline.memory.store import FactStore
+
+log = logging.getLogger("anchorline.tools")
 
 
 @dataclass(frozen=True)
@@ -99,7 +102,19 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
         from anchorline.skills.context import ACTIVE_SKILLS
 
         _active = ACTIVE_SKILLS.get() or []
-        skill_name = _active[0] if _active else None
+        skill_name = None
+        if _active:
+            # E10：多技能时优先按「绑定记忆实体与写入实体一致」归属，避免静默取第一个错挂
+            from anchorline.skills.store import list_skills
+
+            _skills = {s.name: s for s, _on, _src in list_skills(store.db)}
+            _matched = [n for n in _active if _skills.get(n) and _skills[n].memory_entity == entity_id]
+            if _matched:
+                skill_name = _matched[0]
+            elif len(_active) == 1:
+                skill_name = _active[0]
+            else:
+                log.warning("multiple active skills, fact not attributed: %s", _active)
         # 显式 supersedes 交给 FactStore.write 统一处理（同一事务里失效旧事实 + 建链）
         fact = store.write(
             entity_id=entity_id,

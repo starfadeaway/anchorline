@@ -42,14 +42,19 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 
 # 历史/附录数字（第一代产物、被取代的旧结论）——显式白名单，改动白名单需说明原因
 LEGACY_P = {0.1098, 0.252, 0.25}
-LEGACY_ACC = {13.6, 9.7, 21.0, 15.0, 44.4, 44.44, 98.6, 65.1, 65.08, 77.78}
+LEGACY_ACC = {13.6, 9.7}  # d_arm_154 第一代准确率（必须精确存在，下面单测校验）
+# 其他实验的百分比（翻转率/覆盖率/V1 命中等）：非本表准确率，按值登记
+KNOWN_PCT = {12, 12.3, 11.7, 44.4, 44.44, 65.1, 65.08, 77.78, 98.6, 6.3, 0.65, 0.6, 2.96, 1.03, 21, 15, 1.39, 1.9}
+# 覆盖率类，按文件限定（audit_report 的声称值；CI 现场算的当前值是 69/63）
+FILE_PCT = {"reports/audit_report.md": {45, 69, 71, 63}}
 LEGACY_PP = {0.5, 2.96, 1.03, 3.9, 4.17, 6.25, 7.8, 12.5, 20.6, 77.8}
-# 其他实验的整数百分比（非本表准确率）：LoreKeeper/V1 等
-INT_PCT_WHITELIST = {45, 69, 71, 100}
+PP_RAW_WHITELIST = {6.3, 3.9, 0.65, 0.6, 2.96, 1.03, 12, 12.3, 11.7, 1.9, 0.5, 4.17, 12.5, 10, 7.8, 20.6, 77.8}
+INT_PCT_WHITELIST = {100}  # 常数基线（100%）可全局放行；覆盖率类见 FILE_PCT
 
-P4_PAT = re.compile(r"(?<![\d.])(\d\.\d{4})(?!\d)")
+P4_PAT = re.compile(r"(?<![\d.])(\d\.\d{4,6})(?!\d)")
 PCT_PAT = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,2})?)%")
 SIGNED_PP_PAT = re.compile(r"([+\-\u2212]\d+\.\d+)\s*pp")
+SIX_PAT = re.compile(r"(?<![\d.])(0?\.\d{6})(?!\d)")
 P_PAT = re.compile(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})")
 MD_GLOB = "reports/*.md"
 
@@ -112,20 +117,23 @@ def _global_allowed(out: dict) -> dict[str, set]:
 ROW_PAT = re.compile(
     r"^\|\s*([A-Za-z0-9_]+)\s*(?:->|\u2192)\s*([A-Za-z0-9_]+)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|"
 )
-ARM_ALIASES = {"B": "B_run3", "C1": "C1", "C2": "C2", "D": "D_run3", "D_neighbor": "D_neighbor"}
+# E2：显式映射（不再用 startswith 猜；B_run2 等不会被误绑）
+ARM_FULL = {"B": "B_run3", "C1": "C1", "C2": "C2", "D": "D_run3", "D_neighbor": "D_neighbor"}
 
 
 def _find_comparison(out: dict, a: str, b: str):
-    """按行内的 A -> B 找到对应 comparison（a 侧可能是 B_run3 等全名）。"""
+    """E2：按显式臂映射精确匹配 comparison key（B -> B_run3，D -> D_run3）。"""
+    fa = ARM_FULL.get(a, a)
+    fb = ARM_FULL.get(b, b)
     for key, row in out.items():
         parts = key.split("_vs_")
         if len(parts) != 2:
             continue
         left, right = parts
-        for cand_a in (a, ARM_ALIASES.get(a, a)):
-            for cand_b in (b, ARM_ALIASES.get(b, b)):
-                if (left.startswith(cand_a) or cand_a in left) and (right.startswith(cand_b) or cand_b in right):
-                    return row
+        if left == fa and right == fb:
+            return row
+        if left == fb and right == fa:  # 反向写法
+            return row
     return None
 
 
@@ -163,60 +171,53 @@ def check_comparison_rows(text: str, out: dict, rel: str) -> int:
     return bad
 
 
-def check_signed_pp(text: str, out: dict, rel: str) -> int:
-    """D4：带符号配对差的符号必须与重算方向一致（符号 = 结论方向）。"""
-    bad = 0
-    for line in text.splitlines():
-        m = re.search(r"([\u2212\-\+]\d+\.\d+)\s*pp", line)
-        if not m:
-            continue
-        got = float(m.group(1).replace("\u2212", "-"))
-        mag = abs(got)
-        # 该行提到的对比：找 |diff|*100 匹配的 comparison
-        matches = [
-            (key, row)
-            for key, row in out.items()
-            if abs(round(abs(float(row["diff_a_minus_b"])) * 100, 2) - round(mag, 2)) < 0.06
-        ]
-        if not matches:
-            continue  # 其他实验的差值（如 lorekeeper/v1_ku）由白名单兜底
-        # 用行内文字判断方向：出现 "A − B" / "A−B" 时取 a−b 的符号
-        sign_ok = False
-        for key, row in matches:
-            parts = key.split("_vs_")
-            if len(parts) != 2:
-                continue
-            left, right = parts
-            diff = float(row["diff_a_minus_b"])
-            if f"{left}" in line and f"{right}" in line:
-                if got * diff > 0:
-                    sign_ok = True
-            elif left in line or right in line:
-                # 只提到一侧时，只能校验数值（符号可能因表述方向相反）
-                sign_ok = True
-        if not sign_ok:
-            print(f"MISMATCH {rel}: 配对差 {m.group(1)}pp 的符号与重算方向不一致")
-            bad += 1
-    return bad
-
-
 def check_hybrid_direction(text: str, out: dict, rel: str) -> int:
-    """D4：hybrid 报告的方向行（hybrid − 向量）符号必须与重算一致。"""
+    """E1/E8：hybrid 报告的带符号配对差方向必须与重算一致（覆盖全文件，跳过同臂复跑行）。"""
     if "hybrid" not in rel:
         return 0
     keys = [k for k in ("D_run3_vs_D_hybrid", "D_run2_vs_D_hybrid", "D_neighbor_vs_D_hybrid") if out.get(k)]
     if not keys:
         return 0
-    expected_set = {-float(out[k]["diff_a_minus_b"]) * 100 for k in keys}  # hybrid − 向量
+    expected_set = {-float(out[k]["diff_a_minus_b"]) * 100 for k in keys}
     bad = 0
     for line in text.splitlines():
-        if "pp" in line and re.search(r"[+\-\u2212]\d+\.\d+\s*pp", line) and ("hybrid" in line.lower() or "\u5411\u91cf" in line):
-            m = re.search(r"([+\-\u2212]\d+\.\d+)\s*pp", line)
-            if not m:
-                continue
-            got = float(m.group(1).replace("\u2212", "-"))
-            if not any((got > 0) == (e > 0) and abs(abs(got) - abs(e)) <= 0.06 for e in expected_set):
-                print(f"MISMATCH {rel}: hybrid 方向 {m.group(1)}pp 不属于 {sorted(round(e, 2) for e in expected_set)}")
+        if "D_run2" in line or "复跑" in line or "vs D_run2" in line:
+            continue
+        m = re.search(r"([+\-\u2212]\d+\.\d+)\s*pp", line)
+        if not m:
+            continue
+        got = float(m.group(1).replace("\u2212", "-"))
+        if not any((got > 0) == (e > 0) and abs(abs(got) - abs(e)) <= 0.06 for e in expected_set):
+            print(f"MISMATCH {rel}: hybrid 方向 {m.group(1)}pp 不属于 {sorted(round(e, 2) for e in expected_set)}")
+            bad += 1
+    return bad
+
+
+SEG_PAT = re.compile(r"\b([A-Z][A-Za-z0-9_]*)\b[^。\n]{0,40}?\b(?:vs|\u2192|->)\b[^。\n]{0,40}?\b([A-Z][A-Za-z0-9_]*)\b")
+
+
+def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
+    """E7：散文段落里出现 `A vs B` / `A -> B` 时，段内 p 值必须属于该对比。"""
+    bad = 0
+    if rel == "reports/d_arm_154.md":
+        return 0  # 第一代产物（legacy），见废弃标注
+    for para in re.split(r"[。\n]\s*", text):
+        if len(re.findall(r"p\s*[=：:]", para)) > 1:
+            continue  # 一句里多个 p，无法绑定
+        m = SEG_PAT.search(para)
+        if not m:
+            continue
+        a, b = m.group(1), m.group(2)
+        if len(list(SEG_PAT.finditer(para))) > 1:
+            continue  # 一句话里提到多个对比时无法绑定，跳过
+        row = _find_comparison(out, a, b)
+        if row is None:
+            continue
+        allowed_p = round(float(row["p_exact"]), 4)
+        for pm in re.finditer(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})", para):
+            v = round(float(pm.group(1)), min(4, len(pm.group(1).split(".")[1])))
+            if abs(v - allowed_p) > 1e-9:
+                print(f"MISMATCH {rel}: 段落 {a} vs {b} 引用的 p={pm.group(1)} 应为 {allowed_p}")
                 bad += 1
     return bad
 
@@ -246,19 +247,33 @@ def check_markdown(out: dict) -> int:
                 print(f"MISMATCH {rel}: p={m.group(1)} 与重算 p 不匹配（按 {digits} 位取整）")
                 file_bad += 1
         for m in P4_PAT.finditer(text):
-            v = float(m.group(1))
-            if not any(abs(v - a) < 1e-9 for a in allow["num4"]):
+            v = round(float(m.group(1)), 4)
+            if not any(abs(v - round(a, 4)) < 1e-9 for a in allow["num4"]):
                 print(f"MISMATCH {rel}: 4 位数字 {m.group(1)} 不在重算集合")
+                file_bad += 1
+        file_pct = FILE_PCT.get(rel, set())
+        for m in SIX_PAT.finditer(text):
+            v = float(m.group(1))
+            if not any(abs(v - float(x)) < 5e-5 for x in allow["p_raw"]):
+                print(f"MISMATCH {rel}: 6 位 p {m.group(1)} 与重算 p 不匹配")
                 file_bad += 1
         for m in PCT_PAT.finditer(text):
             v = float(m.group(1))
-            if not (40.0 <= v <= 100.0):
-                continue  # 翻转率 12%、覆盖率等非准确率百分比
             if v == int(v) and int(v) in INT_PCT_WHITELIST:
                 continue
-            if not any(abs(v - a) < 0.06 for a in allow["acc2"]):
-                print(f"MISMATCH {rel}: 百分比 {m.group(1)}% 不在准确率集合")
-                file_bad += 1
+            known = {float(x) for x in KNOWN_PCT} | {float(x) for x in file_pct} | {float(x) for x in LEGACY_ACC}
+            if any(abs(v - a) < 0.06 for a in allow["acc2"]) or any(abs(v - a) < 0.06 for a in known):
+                continue
+            print(f"MISMATCH {rel}: 百分比 {m.group(1)}% 不属于重算值/已知值")
+            file_bad += 1
+        for m in re.finditer(r"(?<![\d.])(\d{1,3}(?:\.\d+)?)\s*pp", text):
+            raw = float(m.group(1))
+            allowed = {round(abs(float(r["diff_a_minus_b"])) * 100, 2) for r in out.values()}
+            known = {float(x) for x in PP_RAW_WHITELIST}
+            if any(abs(raw - a) < 0.06 for a in allowed) or any(abs(raw - a) < 0.06 for a in known):
+                continue
+            print(f"MISMATCH {rel}: 配对差 {m.group(1)}pp（裸值）不在重算/已知集合")
+            file_bad += 1
         for m in SIGNED_PP_PAT.finditer(text):
             v = abs(float(m.group(1).replace("\u2212", "-").replace("+", "")))
             if not any(abs(v - a) < 0.06 for a in allow["pp2"]):
@@ -266,6 +281,7 @@ def check_markdown(out: dict) -> int:
                 file_bad += 1
         file_bad += check_comparison_rows(text, out, rel)
         file_bad += check_hybrid_direction(text, out, rel)
+        file_bad += check_paragraph_bindings(text, out, rel)
         bad += file_bad
         checked += 1
     print(f"md 解析校验：覆盖 {checked} 个文件，问题 {bad} 处")

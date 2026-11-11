@@ -36,7 +36,7 @@ frontend/                  # React 前端（聊天/记忆/评测/审核/报告/�
 migrations/                # Alembic（0001 初始 → 0014：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
 reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
-tests/                     # pytest（106 项）
+tests/                     # pytest（111 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
@@ -89,7 +89,7 @@ dataset/                   # 数据与核验产物（大文件不入库）
 # 2) 写进项目根 .env（不要提交）
 #    API_TOKEN=<上一步的输出>
 
-# 3) 重启后端（token 只在启动时读取）
+# 3) 无需重启：中间件每次请求都会重新读 .env，改完立即生效（如果你用 run_all 起的服务，也建议重启一次确认）
 .venv\Scripts\python.exe run_all.py
 ```
 

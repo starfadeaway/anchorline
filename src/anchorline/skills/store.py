@@ -197,30 +197,38 @@ def active_skills(db: Session, query: str, lorekeeper_enabled: bool | None = Non
         except Exception:
             lorekeeper_enabled = False
     q = (query or "").lower()
+    # E15：常用词误伤用负向词排除（中文没有词边界，靠上下文约束）
+    negative = {"run_coach": ["跑步机", "跑步鞋"], "memory_hygiene": ["功能失效", "链接失效"]}
     out: list[Skill] = []
     for s, on, _src in list_skills(db):
         if s.name == "kb_search" and not lorekeeper_enabled:
             continue
-        kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if len(k.strip()) >= 2]  # D8：忽略单字关键词
-        auto = bool(s.auto_activate and kws and any(k in q for k in kws))
+        kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if k.strip()]
+        hit = bool(kws and any(k in q for k in kws))
+        excluded = any(n in q for n in negative.get(s.name, []))
+        auto = bool(s.auto_activate and hit and not excluded)
         if on or auto:
             out.append(s)
     return out
 
 
-def build_skills_hint(db: Session, skills: list[Skill]) -> str:
-    """B5：把技能指令（含绑定记忆）拼成 system prompt 片段，便于单测。"""
+def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> str:
+    """B5/E18：把技能指令（含绑定记忆）拼成 system prompt 片段；总量受 budget 限制。"""
     if not skills:
         return ""
     lines = []
+    total = 0
     for sk in skills:
         line = f"- [{sk.name}] {sk.instructions}"
         if sk.memory_entity:
             facts = memory_context(db, sk.memory_entity)
             if facts:
                 line += f"（该技能绑定的记忆 {sk.memory_entity}：{'；'.join(facts)}）"
+        if total + len(line) > budget:
+            continue  # E18：超出总预算的技能不再注入，避免挤爆 system prompt
+        total += len(line)
         lines.append(line)
-    return "\n\n已启用的技能（按需使用）：\n" + "\n".join(lines)
+    return ("\n\n已启用的技能（按需使用）：\n" + "\n".join(lines)) if lines else ""
 
 
 def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:
@@ -237,7 +245,13 @@ def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:
             .limit(limit)
         )
     )
-    return [f"{f.attribute} = {f.value[:200]}" for f in rows]  # D13：单条 value 截断，避免挤爆 prompt
+    out = []
+    for f in rows:
+        v = f.value
+        if len(v) > 200:  # E18：截断加显式标记，避免模型把截断值当完整值
+            v = v[:197] + "…(截断)"
+        out.append(f"{f.attribute} = {v}")
+    return out
 
 
 def memory_fact_count(db: Session, entity_id: str) -> int:

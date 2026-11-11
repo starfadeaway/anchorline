@@ -147,6 +147,7 @@ class FactOut(BaseModel):
     conflict_type: str | None
     source_session_id: str | None = None
     source_message_id: int | None = None
+    skill_name: str | None = None
 
 
 @app.get("/memory/facts", response_model=list[FactOut])
@@ -180,6 +181,7 @@ def list_facts(
             conflict_type=f.conflict_type,
             source_session_id=f.source_session_id,
             source_message_id=f.source_message_id,
+            skill_name=f.skill_name,
         )
         for f in rows
     ]
@@ -206,6 +208,7 @@ def fact_history(fact_id: str, db: Session = Depends(get_db)) -> list[FactOut]:
             conflict_type=f.conflict_type,
             source_session_id=f.source_session_id,
             source_message_id=f.source_message_id,
+            skill_name=f.skill_name,
         )
         for f in rows
     ]
@@ -363,6 +366,7 @@ def _run_agent(
         "同一条信息不要重复写多次，更新时用 supersedes_id 指向旧事实。"
     )
     # 技能：手动开启 + 关键词自动激活；把指令与绑定记忆拼进 system prompt（不越过记忆边界）
+    _skill_ctx = None
     try:
         from anchorline.skills.context import ACTIVE_SKILLS
         from anchorline.skills.store import active_skills, build_skills_hint
@@ -647,6 +651,8 @@ def _gen_topic_bg(sid: str, text: str, model: str) -> None:
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest, background: BackgroundTasks, db: Session = Depends(get_db)) -> ChatResponse:
+    if _chat_rate_limited():
+        raise HTTPException(status_code=429, detail="请求过于频繁（30 次/分钟），请稍后重试")
     # 先确定会话（trace 需要 session_id，页面切换后 trace 也能按会话找回）
     sid = _ensure_session(db, req.session_id)
 
@@ -739,6 +745,8 @@ def session_messages(session_id: str, db: Session = Depends(get_db)) -> list[Mes
 
 @app.post("/sessions")
 def create_session(db: Session = Depends(get_db)) -> dict[str, str]:
+    if _chat_rate_limited():
+        raise HTTPException(status_code=429, detail="请求过于频繁（30 次/分钟），请稍后重试")
     s = ChatSession(domain="chat")
     db.add(s)
     db.commit()
@@ -811,6 +819,8 @@ def chat_stream(
     req: ChatRequest, background: BackgroundTasks, db: Session = Depends(get_db)
 ) -> StreamingResponse:
     """SSE：tool 事件 → token 事件（逐块推送最终答案，前端打字机）→ final；出错推 error 事件。"""
+    if _chat_rate_limited():
+        raise HTTPException(status_code=429, detail="请求过于频繁（30 次/分钟），请稍后重试")
 
     def _gen():
         sid = _ensure_session(db, req.session_id)
@@ -1248,10 +1258,10 @@ def _skill_out(db: Session, name: str) -> SkillOut:
 
 
 class SkillDraftOut(BaseModel):
-    name: str
-    title: str
-    description: str
-    instructions: str
+    name: str = Field(..., max_length=64)
+    title: str = Field(..., max_length=128)
+    description: str = Field(..., max_length=512)
+    instructions: str = Field(..., max_length=2000)
 
 
 class SkillGenerateIn(BaseModel):
@@ -1259,6 +1269,29 @@ class SkillGenerateIn(BaseModel):
 
 
 _GEN_TIMES: list[float] = []
+
+
+_CHAT_TIMES: list[float] = []
+_CHAT_LOCK = None
+
+
+def _chat_rate_limited(limit: int = 30) -> bool:
+    """E17：聊天/主题生成等真实 LLM 调用点的进程内限流（30 次/分钟，线程安全）。"""
+    import threading
+
+    global _CHAT_LOCK
+    if _CHAT_LOCK is None:
+        _CHAT_LOCK = threading.Lock()
+    import time
+
+    now = time.monotonic()
+    with _CHAT_LOCK:
+        while _CHAT_TIMES and now - _CHAT_TIMES[0] > 60:
+            _CHAT_TIMES.pop(0)
+        if len(_CHAT_TIMES) >= limit:
+            return True
+        _CHAT_TIMES.append(now)
+    return False
 
 
 def _gen_rate_limited() -> bool:
