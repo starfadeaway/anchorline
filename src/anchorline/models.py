@@ -147,5 +147,7 @@ class CustomSkill(Base):
     description: Mapped[str] = mapped_column(String(512), default="")
     instructions: Mapped[str] = mapped_column(Text)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # 可选：绑定的记忆实体（如 user / user.猫）；注入该技能时附上该实体的当前事实
+    memory_entity: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

@@ -20,7 +20,17 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
         (s, bool(toggles.get(s.name, False)), "builtin") for s in BUILTIN_SKILLS
     ]
     out.extend(
-        (Skill(name=r.name, title=r.title, description=r.description or "", instructions=r.instructions), bool(r.enabled), "custom")
+        (
+            Skill(
+                name=r.name,
+                title=r.title,
+                description=r.description or "",
+                instructions=r.instructions,
+                memory_entity=r.memory_entity,
+            ),
+            bool(r.enabled),
+            "custom",
+        )
         for r in _custom_rows(db)
     )
     return out
@@ -43,16 +53,32 @@ def set_skill(db: Session, name: str, enabled: bool) -> bool:
     return True
 
 
-def create_custom(db: Session, name: str, title: str, description: str, instructions: str) -> bool:
+def create_custom(db: Session, name: str, title: str, description: str, instructions: str, memory_entity: str | None = None) -> bool:
     """新建自定义技能；name 与内置/已有自定义冲突则失败。"""
     if name in SKILL_BY_NAME or db.scalar(select(CustomSkill).where(CustomSkill.name == name)) is not None:
         return False
-    db.add(CustomSkill(name=name, title=title, description=description, instructions=instructions, enabled=True))
+    db.add(
+        CustomSkill(
+            name=name,
+            title=title,
+            description=description,
+            instructions=instructions,
+            enabled=True,
+            memory_entity=memory_entity,
+        )
+    )
     db.commit()
     return True
 
 
-def update_custom(db: Session, name: str, title: str | None, description: str | None, instructions: str | None) -> bool:
+def update_custom(
+    db: Session,
+    name: str,
+    title: str | None,
+    description: str | None,
+    instructions: str | None,
+    memory_entity: str | None = None,
+) -> bool:
     row = db.scalar(select(CustomSkill).where(CustomSkill.name == name))
     if row is None:
         return False
@@ -62,6 +88,8 @@ def update_custom(db: Session, name: str, title: str | None, description: str | 
         row.description = description
     if instructions is not None:
         row.instructions = instructions
+    if memory_entity is not None:
+        row.memory_entity = memory_entity or None
     db.commit()
     return True
 
@@ -77,3 +105,30 @@ def delete_custom(db: Session, name: str) -> bool:
 
 def enabled_skills(db: Session) -> list[Skill]:
     return [s for s, on, _src in list_skills(db) if on]
+
+
+def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:
+    """技能绑定实体时，取该实体的当前事实（紧凑文本），用于注入。"""
+    from sqlalchemy import select
+
+    from anchorline.models import Fact
+
+    rows = list(
+        db.scalars(
+            select(Fact)
+            .where(Fact.entity_id == entity_id, Fact.valid_to.is_(None))
+            .order_by(Fact.valid_from.desc())
+            .limit(limit)
+        )
+    )
+    return [f"{f.attribute} = {f.value}" for f in rows]
+
+
+def memory_fact_count(db: Session, entity_id: str) -> int:
+    from sqlalchemy import func, select
+
+    from anchorline.models import Fact
+
+    return int(
+        db.scalar(select(func.count()).select_from(Fact).where(Fact.entity_id == entity_id, Fact.valid_to.is_(None))) or 0
+    )

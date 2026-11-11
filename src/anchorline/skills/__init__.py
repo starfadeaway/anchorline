@@ -15,6 +15,7 @@ class Skill:
     title: str
     description: str
     instructions: str
+    memory_entity: str | None = None
 
 
 BUILTIN_SKILLS: list[Skill] = [

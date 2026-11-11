@@ -6,11 +6,14 @@ from sqlalchemy.orm import Session
 
 from anchorline.models import Base
 from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME
+from anchorline.models import Fact
 from anchorline.skills.store import (
     create_custom,
     delete_custom,
     enabled_skills,
     list_skills,
+    memory_context,
+    memory_fact_count,
     set_skill,
     update_custom,
 )
@@ -70,3 +73,25 @@ def test_unknown_skill_rejected(db):
     assert not set_skill(db, "no_such_skill", True)
     assert not update_custom(db, "no_such_skill", "t", None, None)
     assert not delete_custom(db, "no_such_skill")
+
+
+def test_skill_memory_binding(db):
+    from datetime import datetime
+
+    db.add(Fact(entity_id="user", attribute="5K PB", value="23:50", valid_from=datetime(2026, 1, 1), confidence=1.0))
+    db.add(Fact(entity_id="user", attribute="饮食偏好", value="清淡", valid_from=datetime(2026, 1, 2), confidence=1.0))
+    db.commit()
+    assert create_custom(db, "run_coach_my", "我的教练", "", "指令", memory_entity="user")
+    sk = next(s for s, _, src in list_skills(db) if src == "custom")
+    assert sk.memory_entity == "user"
+    assert memory_fact_count(db, "user") == 2
+    ctx = memory_context(db, "user")
+    assert any("5K PB" in c for c in ctx) and any("饮食偏好" in c for c in ctx)
+
+
+def test_update_memory_entity(db):
+    assert create_custom(db, "s1", "t", "", "i")
+    assert update_custom(db, "s1", None, None, None, memory_entity="user.猫")
+    assert next(s for s, _, src in list_skills(db) if src == "custom").memory_entity == "user.猫"
+    assert update_custom(db, "s1", None, None, None, memory_entity="")
+    assert next(s for s, _, src in list_skills(db) if src == "custom").memory_entity is None

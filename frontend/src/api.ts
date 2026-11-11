@@ -79,7 +79,15 @@ export type EvalArm = {
   note?: string;
 };
 
-export type SkillInfo = { name: string; title: string; description: string; enabled: boolean; source: "builtin" | "custom" };
+export type SkillInfo = {
+  name: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+  source: "builtin" | "custom";
+  memory_entity?: string | null;
+  memory_fact_count?: number;
+};
 
 export type SettingsOut = {
   version: string;
@@ -206,7 +214,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ description }),
     }),
-  createSkill: (body: { name: string; title: string; description: string; instructions: string }) =>
+  createSkill: (body: { name: string; title: string; description: string; instructions: string; memory_entity?: string }) =>
     json<SkillInfo>("/api/skills", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -214,7 +222,7 @@ export const api = {
     }),
   updateSkill: (
     name: string,
-    body: { enabled?: boolean; title?: string; description?: string; instructions?: string },
+    body: { enabled?: boolean; title?: string; description?: string; instructions?: string; memory_entity?: string },
   ) =>
     json<SkillInfo>(`/api/skills/${name}`, {
       method: "PUT",

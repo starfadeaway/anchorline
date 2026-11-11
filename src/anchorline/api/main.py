@@ -366,9 +366,19 @@ def _run_agent(
     try:
         from anchorline.skills.store import enabled_skills
 
+        from anchorline.skills.store import memory_context
+
         skills = enabled_skills(db)
         if skills:
-            base_hint += "\n\n已启用的技能（按需使用）：\n" + "\n".join(f"- {s.instructions}" for s in skills)
+            lines = []
+            for s in skills:
+                line = f"- {s.instructions}"
+                if s.memory_entity:
+                    facts = memory_context(db, s.memory_entity)
+                    if facts:
+                        line += f"（该技能绑定的记忆 {s.memory_entity}：{'；'.join(facts)}）"
+                lines.append(line)
+            base_hint += "\n\n已启用的技能（按需使用）：\n" + "\n".join(lines)
     except Exception:
         log.warning("load skills failed", exc_info=True)
 
@@ -1183,6 +1193,8 @@ class SkillOut(BaseModel):
     description: str
     enabled: bool
     source: str = "builtin"  # builtin / custom
+    memory_entity: str | None = None  # 绑定的记忆实体
+    memory_fact_count: int = 0  # 该实体当前事实数
 
 
 class SkillCreateIn(BaseModel):
@@ -1190,6 +1202,7 @@ class SkillCreateIn(BaseModel):
     title: str
     description: str = ""
     instructions: str
+    memory_entity: str = ""
 
 
 class SkillUpdateIn(BaseModel):
@@ -1197,16 +1210,26 @@ class SkillUpdateIn(BaseModel):
     title: str | None = None
     description: str | None = None
     instructions: str | None = None
+    memory_entity: str | None = None
 
 
 def _skill_out(db: Session, name: str) -> SkillOut:
-    from anchorline.skills.store import list_skills
+    from anchorline.skills.store import list_skills, memory_fact_count
 
     hit = next((row for row in list_skills(db) if row[0].name == name), None)
     if hit is None:
         raise HTTPException(status_code=404, detail="unknown skill")
     s, on, src = hit
-    return SkillOut(name=s.name, title=s.title, description=s.description, enabled=on, source=src)
+    count = memory_fact_count(db, s.memory_entity) if s.memory_entity else 0
+    return SkillOut(
+        name=s.name,
+        title=s.title,
+        description=s.description,
+        enabled=on,
+        source=src,
+        memory_entity=s.memory_entity,
+        memory_fact_count=count,
+    )
 
 
 class SkillDraftOut(BaseModel):
@@ -1274,7 +1297,31 @@ def generate_skill(body: SkillGenerateIn) -> SkillDraftOut:
 def list_skills_endpoint(db: Session = Depends(get_db)) -> list[SkillOut]:
     from anchorline.skills.store import list_skills
 
-    return [SkillOut(name=s.name, title=s.title, description=s.description, enabled=on, source=src) for s, on, src in list_skills(db)]
+    out: list[SkillOut] = []
+    for s, on, src in list_skills(db):
+        count = _facts_count(db, s.memory_entity) if s.memory_entity else 0
+        out.append(
+            SkillOut(
+                name=s.name,
+                title=s.title,
+                description=s.description,
+                enabled=on,
+                source=src,
+                memory_entity=s.memory_entity,
+                memory_fact_count=count,
+            )
+        )
+    return out
+
+
+def _facts_count(db: Session, entity_id: str) -> int:
+    from sqlalchemy import func, select
+
+    from anchorline.models import Fact
+
+    return int(
+        db.scalar(select(func.count()).select_from(Fact).where(Fact.entity_id == entity_id, Fact.valid_to.is_(None))) or 0
+    )
 
 
 @app.post("/skills", response_model=SkillOut)
@@ -1287,7 +1334,10 @@ def create_skill(body: SkillCreateIn, db: Session = Depends(get_db)) -> SkillOut
         raise HTTPException(status_code=400, detail="name 必须是 2-33 位小写字母/数字/下划线，且以字母开头")
     if not body.instructions.strip():
         raise HTTPException(status_code=400, detail="instructions 不能为空")
-    if not create_custom(db, body.name, body.title.strip() or body.name, body.description.strip(), body.instructions.strip()):
+    entity = body.memory_entity.strip() or None
+    if entity is not None and not _facts_count(db, entity):
+        log.warning("skill memory entity has no current facts: %s", entity)
+    if not create_custom(db, body.name, body.title.strip() or body.name, body.description.strip(), body.instructions.strip(), entity):
         raise HTTPException(status_code=409, detail="name 已存在（内置或自定义技能同名）")
     return _skill_out(db, body.name)
 
@@ -1296,8 +1346,8 @@ def create_skill(body: SkillCreateIn, db: Session = Depends(get_db)) -> SkillOut
 def update_skill(name: str, body: SkillUpdateIn, db: Session = Depends(get_db)) -> SkillOut:
     from anchorline.skills.store import set_skill, update_custom
 
-    if body.title is not None or body.description is not None or body.instructions is not None:
-        if not update_custom(db, name, body.title, body.description, body.instructions):
+    if body.title is not None or body.description is not None or body.instructions is not None or body.memory_entity is not None:
+        if not update_custom(db, name, body.title, body.description, body.instructions, body.memory_entity):
             raise HTTPException(status_code=400, detail="只有自定义技能可以编辑内容（内置技能只能开关）")
     if body.enabled is not None:
         if not set_skill(db, name, body.enabled):

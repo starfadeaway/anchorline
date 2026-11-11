@@ -5,7 +5,7 @@ import { api, type SkillInfo } from "../api";
 
 const { Paragraph, Text } = Typography;
 
-type Template = { label: string; name: string; title: string; description: string; instructions: string };
+type Template = { label: string; name: string; title: string; description: string; instructions: string; memory_entity?: string };
 
 /** 预置模板：用户可直接选用，也可以基于通用模板自己写，或让系统按描述生成。 */
 const TEMPLATES: Template[] = [
@@ -36,6 +36,7 @@ const TEMPLATES: Template[] = [
     title: "旅行规划",
     description: "按记忆里的旅行计划给行程建议",
     instructions: "用户问旅行/行程时：先检索记忆里的目的地、天数、预算；给出按天行程；不要编造未记录的偏好。",
+    memory_entity: "user",
   },
   {
     label: "写作润色",
@@ -90,13 +91,19 @@ export default function SkillsPage() {
   }, []);
 
   const openCreate = () => {
-    form.setFieldsValue({ name: "", title: "", description: "", instructions: "" });
+    form.setFieldsValue({ name: "", title: "", description: "", instructions: "", memory_entity: "" });
     setGenDesc("");
     setEdit({ mode: "create" });
   };
 
   const openEdit = (sk: SkillInfo) => {
-    form.setFieldsValue({ name: sk.name, title: sk.title, description: sk.description, instructions: "" });
+    form.setFieldsValue({
+      name: sk.name,
+      title: sk.title,
+      description: sk.description,
+      instructions: "",
+      memory_entity: sk.memory_entity ?? "",
+    });
     setGenDesc("");
     setEdit({ mode: "edit", name: sk.name });
   };
@@ -104,7 +111,13 @@ export default function SkillsPage() {
   const applyTemplate = (label: string) => {
     const t = TEMPLATES.find((x) => x.label === label);
     if (!t) return;
-    form.setFieldsValue({ name: t.name, title: t.title, description: t.description, instructions: t.instructions });
+    form.setFieldsValue({
+      name: t.name,
+      title: t.title,
+      description: t.description,
+      instructions: t.instructions,
+      memory_entity: t.memory_entity ?? "",
+    });
     message.success(`已填入模板「${t.label}」，可继续修改`);
   };
 
@@ -129,10 +142,21 @@ export default function SkillsPage() {
     const v = await form.validateFields();
     try {
       if (edit?.mode === "create") {
-        await api.createSkill({ name: v.name.trim(), title: v.title.trim(), description: v.description?.trim() ?? "", instructions: v.instructions.trim() });
+        await api.createSkill({
+          name: v.name.trim(),
+          title: v.title.trim(),
+          description: v.description?.trim() ?? "",
+          instructions: v.instructions.trim(),
+          memory_entity: (v.memory_entity ?? "").trim(),
+        });
         message.success("技能已创建并默认开启");
       } else if (edit?.mode === "edit" && edit.name) {
-        await api.updateSkill(edit.name, { title: v.title.trim(), description: v.description?.trim() ?? "", instructions: v.instructions.trim() });
+        await api.updateSkill(edit.name, {
+          title: v.title.trim(),
+          description: v.description?.trim() ?? "",
+          instructions: v.instructions.trim(),
+          memory_entity: (v.memory_entity ?? "").trim(),
+        });
         message.success("技能已更新");
       }
       setEdit(null);
@@ -152,6 +176,19 @@ export default function SkillsPage() {
       render: (v: string) => <Tag color={v === "custom" ? "purple" : "blue"}>{v === "custom" ? "自定义" : "内置"}</Tag>,
     },
     { title: "描述", dataIndex: "description", ellipsis: true },
+    {
+      title: "关联记忆",
+      dataIndex: "memory_entity",
+      width: 170,
+      render: (_: unknown, r: SkillInfo) =>
+        r.memory_entity ? (
+          <Text code title={`该技能注入时会附上 ${r.memory_entity} 的当前事实`}>
+            {r.memory_entity}（{r.memory_fact_count ?? 0} 条）
+          </Text>
+        ) : (
+          <Text type="secondary">未绑定</Text>
+        ),
+    },
     {
       title: "开关",
       dataIndex: "enabled",
@@ -224,6 +261,7 @@ export default function SkillsPage() {
             <div>· 技能 = <b>提示模块</b>：开启后聊天时把技能指令拼进 system prompt（不引入外部工具、不越过记忆边界）。</div>
             <div>· 三种做法：<b>选一个模板</b>快速改 → <b>描述功能让系统自动生成草稿</b> → 或手写 instructions。</div>
             <div>· instructions 建议写清四件事：什么时候用 / 先检索记忆里的什么 / 怎么组织回答 / 不要做什么。</div>
+            <div>· <b>关联记忆（可选）</b>：绑定一个实体（如 user）后，该实体的当前事实会自动附在技能指令后面一起注入——技能就能直接用到你的 PB、偏好等记忆。</div>
           </div>
         }
       />
@@ -286,6 +324,13 @@ export default function SkillsPage() {
           </Form.Item>
           <Form.Item name="description" label="描述">
             <Input placeholder="一句话说明这个技能做什么（列表里展示）" />
+          </Form.Item>
+          <Form.Item
+            name="memory_entity"
+            label="关联记忆实体（可选）"
+            extra="绑定的实体当前事实会自动附在技能指令后（如 user / user.猫）；留空则不绑定"
+          >
+            <Input placeholder="如 user" />
           </Form.Item>
           <Form.Item
             name="instructions"
