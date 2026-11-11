@@ -31,8 +31,8 @@ from anchorline.retrieval.hybrid import rrf_fuse, tokenize  # noqa: E402
 from anchorline.retrieval.store import open_table  # noqa: E402
 
 TABLE = "v2_web_states_d"
-OUT_JSON = os.path.join(ROOT, "data", "eval", "d_arm_154_hybrid.json")
-OUT_MD = os.path.join(ROOT, "reports", "d_arm_154_hybrid.md")
+OUT_JSON = os.path.join(ROOT, "data", "eval", "_hybrid_draft.json")
+OUT_MD = os.path.join(ROOT, "reports", "_hybrid_draft.md")
 REF = os.path.join(ROOT, "data", "eval", "d_arm_154_run3.json")
 
 
@@ -142,6 +142,7 @@ def main() -> int:
         f.write("\n".join(lines))
     print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1, default=float))
     print("written:", args.out, args.md_out)
+    print("提示：默认写到 draft 产物，不会覆盖正式报告/CI 输入；要更新正式产物请显式 --out/--md-out")
     return 0
 
 

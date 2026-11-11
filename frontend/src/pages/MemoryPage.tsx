@@ -1,4 +1,4 @@
-import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, Card, Checkbox, Collapse, Drawer, Dropdown, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
 import { DeleteOutlined, DownloadOutlined, EditOutlined, HistoryOutlined, StopOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
@@ -177,11 +177,20 @@ export default function MemoryPage() {
     );
   }, [filtered]);
 
-  // Y2：q 或分组数据变化时同步展开态（搜索=展开全部；常态=前 2 组）。
-  // 用户手动折叠不会触发这里（q/groups 未变），折叠按钮因此可正常使用。
+  // Z1：写操作后 groups 会变，但不应重置用户已调整的展开状态 —— 只在首次数据到达时给默认值。
+  const didInitKeys = useRef(false);
+  useEffect(() => {
+    if (!didInitKeys.current && groups.length) {
+      didInitKeys.current = true;
+      setActiveKeys(groups.slice(0, 2).map(([t]) => t));
+    }
+  }, [groups]);
+
+  // Y2：仅当搜索词变化时同步展开态（搜索=展开全部；清空=前 2 组）。手动折叠不再被覆盖。
   useEffect(() => {
     setActiveKeys(q.trim() ? groups.map(([t]) => t) : groups.slice(0, 2).map(([t]) => t));
-  }, [q, groups]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
   const visible = groups.reduce((n, [, rows]) => n + rows.length, 0);
   const current = groups.reduce((n, [, rows]) => n + rows.filter((f) => !f.valid_to).length, 0);

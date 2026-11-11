@@ -7,7 +7,7 @@
 |---|---|
 | D + 意图 准确率 | **0.6753** |
 | D 对照 准确率 | 0.6623 |
-| 配对差 | **+0.0130**（p=0.8109） |
+| 配对差 | **+0.0130**（p=0.8145） |
 | 判为 retrospective 的题 | **3 / 154** |
 
 ## 解读（诚实）
@@ -27,10 +27,3 @@
 | `e9bb843a` | retrospective | [0] |
 | `597645be` | retrospective | [0] |
 
-## 逐题（意图为 retrospective）
-
-| qid | intent | scores |
-|---|---|---|
-| `26a038ce` | retrospective | [1] |
-| `e9bb843a` | retrospective | [0] |
-| `597645be` | retrospective | [0] |

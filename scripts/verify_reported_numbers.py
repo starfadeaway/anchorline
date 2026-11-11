@@ -39,6 +39,34 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
     return out
 
 
+MD_ASSERTIONS = {
+    "reports/d_arm_154_hybrid.md": ["55.84%", "−10.4pp", "0.019520", "0.048767", "0.098371"],
+    "reports/m3_2x2.md": ["0.0385", "0.4869", "0.0336"],
+    "reports/m3_168.md": ["0.0186"],
+    "reports/m3_168_run3.md": ["0.0541"],
+    "reports/m3_d_intent.md": ["0.8145"],
+    "reports/stability_runs.md": ["0.0115", "0.0385"],
+    "reports/m3_summary.md": ["0.0115"],
+}
+
+
+def check_markdown() -> int:
+    """Z3：报告 .md 里的关键数字也要接受校验（此前只校验 JSON 重算值）。"""
+    bad = 0
+    for rel, needles in MD_ASSERTIONS.items():
+        path = os.path.join(ROOT, rel)
+        if not os.path.exists(path):
+            print(f"MISSING md: {rel}")
+            bad += 1
+            continue
+        text = open(path, encoding="utf-8").read()
+        for needle in needles:
+            if needle not in text:
+                print(f"MISMATCH md {rel}: 缺少 {needle}")
+                bad += 1
+    return bad
+
+
 def main() -> int:
     write = "--write" in sys.argv
     comparisons = {
@@ -110,10 +138,11 @@ def main() -> int:
             print(f"MISSING baseline: {name}")
             bad += 1
             continue
-        for key in ("n", "diff_a_minus_b", "p_exact"):
+        for key in ("n", "accuracy_a", "accuracy_b", "diff_a_minus_b", "p_exact"):
             if abs(float(ref[key]) - float(cur[key])) > 1e-4:
                 print(f"MISMATCH {name}.{key}: baseline={ref[key]} recomputed={cur[key]}")
                 bad += 1
+    bad += check_markdown()
     if bad:
         print(f"\n{bad} mismatch(es)：报告数字与重算不一致。")
         return 1
