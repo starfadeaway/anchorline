@@ -28,6 +28,10 @@ function AppRoot() {
     const onChange = () => {
       setNeon(readNeon());
       setMode(localStorage.getItem(MODE_KEY) || "dark");
+      const neon2 = localStorage.getItem("anchorline-theme2");
+      if (neon2 && document.documentElement.dataset.theme !== "light") {
+        document.documentElement.style.setProperty("--neon-2", neon2);
+      }
     };
     window.addEventListener("anchorline-theme-changed", onChange);
     window.addEventListener("storage", onChange);

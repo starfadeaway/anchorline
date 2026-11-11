@@ -13,8 +13,15 @@ const THEMES: { name: string; neon: string; neon2: string }[] = [
 ];
 
 export function applyTheme(neon: string, neon2: string): void {
-  document.documentElement.style.setProperty("--neon", neon);
-  document.documentElement.style.setProperty("--neon-2", neon2);
+  // X24：light 模式由 styles.css 的浅色变量负责（内联覆盖会导致浅底亮字）；dark 才写内联
+  const light = document.documentElement.dataset.theme === "light";
+  if (light) {
+    document.documentElement.style.removeProperty("--neon");
+    document.documentElement.style.removeProperty("--neon-2");
+  } else {
+    document.documentElement.style.setProperty("--neon", neon);
+    document.documentElement.style.setProperty("--neon-2", neon2);
+  }
 }
 
 /** 设置页：运行配置（只读）+ 主题色切换（本地保存）。 */
@@ -39,6 +46,8 @@ export default function SettingsPage() {
   const pick = (neon: string, neon2: string) => {
     setColor(neon);
     localStorage.setItem(THEME_KEY, neon);
+    // X23：副色也保存，避免只记住主色
+    localStorage.setItem("anchorline-theme2", neon2);
     applyTheme(neon, neon2);
     window.dispatchEvent(new Event("anchorline-theme-changed"));
     message.success("主题色已应用");
@@ -46,6 +55,7 @@ export default function SettingsPage() {
 
   const restore = () => {
     localStorage.removeItem(THEME_KEY);
+    localStorage.removeItem("anchorline-theme2");
     applyTheme("#00d4ff", "#7c5cff");
     window.dispatchEvent(new Event("anchorline-theme-changed"));
     setColor("#00d4ff");

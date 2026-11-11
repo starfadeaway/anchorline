@@ -93,6 +93,7 @@ export default function ChatPage() {
     trace_id: row.id,
     session_id: sessionId,
     meta: {
+      model: "（历史记录未存模型）",
       duration_ms: null,
       total_tokens: row.used_tokens,
       tool_errors: 0,

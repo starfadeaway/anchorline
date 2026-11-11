@@ -95,10 +95,12 @@ def main() -> int:
                 ("assistant", "好，十一去云南。这个时间人流大，建议提前订大理/丽江的住宿；如果只有 5 天，昆明—大理—丽江一线就够，别贪多。要路线的话我可以按你的天数排。"),
             ],
         }
+        sessions_by_topic: dict[str, str] = {}
         for topic, msgs in scripts.items():
             s = ChatSession(domain="chat", topic=topic, created_at=now - timedelta(days=3))
             db.add(s)
             db.flush()
+            sessions_by_topic[topic] = s.id
             for role, content in msgs:
                 db.add(Message(session_id=s.id, role=role, content=content))
             db.add(
@@ -133,9 +135,15 @@ def main() -> int:
             )
         # 演示冲突（3 组）：直接用 ORM 造 current 事实（绕过 write 的自动失效），
         # 2 组自动裁决（进“裁决历史”），1 组留作待裁决（审核页可操作）
-        def make_pair(attr_a: str, value_a: str, attr_b: str, value_b: str, days: int):
-            a = Fact(entity_id=ENTITY, attribute=attr_a, value=value_a, valid_from=now - timedelta(days=days))
-            b = Fact(entity_id=ENTITY, attribute=attr_b, value=value_b, valid_from=now - timedelta(days=max(0, days - 2)))
+        def make_pair(attr_a: str, value_a: str, attr_b: str, value_b: str, days: int, source: str | None = None):
+            a = Fact(
+                entity_id=ENTITY, attribute=attr_a, value=value_a,
+                valid_from=now - timedelta(days=days), source_session_id=source,
+            )
+            b = Fact(
+                entity_id=ENTITY, attribute=attr_b, value=value_b,
+                valid_from=now - timedelta(days=max(0, days - 2)), source_session_id=source,
+            )
             db.add_all([a, b])
             db.flush()
             return a, b
@@ -154,11 +162,11 @@ def main() -> int:
                 )
             )
 
-        a1, b1 = make_pair("跑步 配速", "5:30/km", "跑步 目标配速", "5:00/km", 20)
+        a1, b1 = make_pair("跑步 配速", "5:30/km", "跑步 目标配速", "5:00/km", 20, sessions_by_topic.get("跑步"))
         decide(a1, [b1], "demo: 保留实测配速，目标配速作废")
-        a2, b2 = make_pair("饮食 偏好", "清淡少油", "饮食 禁忌", "不吃辣", 15)
+        a2, b2 = make_pair("饮食 偏好", "清淡少油", "饮食 禁忌", "不吃辣", 15, sessions_by_topic.get("饮食"))
         decide(b2, [a2], "demo: 保留禁忌（更严格）")
-        make_pair("工作 项目", "Anchorline 记忆层", "工作 目标", "写完 M3 主实验", 5)  # 留待裁决
+        make_pair("工作 项目", "Anchorline 记忆层", "工作 目标", "写完 M3 主实验", 5, sessions_by_topic.get("工作"))  # 留待裁决
 
         db.commit()
         print(f"seeded: facts(user:demo) + {len(session_ids)} sessions + traces + 3 conflicts (2 decided, 1 pending)")
