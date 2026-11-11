@@ -72,6 +72,56 @@ dataset/                   # 数据与核验产物（大文件不入库）
 - **报告数字和 JSON 产物对不上？** 跑 `python scripts/verify_reported_numbers.py`（CI 也用它）。
 - **记忆页首次进入慢？** 分组默认只展开前 2 组（懒渲染）；展开更多组会按需渲染。
 
+## API Token 鉴权（可选）
+
+> 定位：**后端的门禁密码**（共享密钥），不是用户账号系统。默认关闭；本地自用不用管。
+
+**它保护什么**：设置 `API_TOKEN` 后，除 `/health`、`/docs`、`/openapi.json`、`/redoc` 外，
+所有 API 都要求请求头 `X-API-Token: <token>`（也接受 `Authorization: Bearer <token>`），否则 401。
+前端在「设置」页填同一个 token 后，会把请求自动带上该头（只存浏览器 localStorage）。
+
+### 启用步骤
+
+```powershell
+# 1) 生成一串随机密码（这就是"项目密码"）
+.venv\Scripts\python.exe -c "import secrets; print(secrets.token_urlsafe(24))"
+
+# 2) 写进项目根 .env（不要提交）
+#    API_TOKEN=<上一步的输出>
+
+# 3) 重启后端（token 只在启动时读取）
+.venv\Scripts\python.exe run_all.py
+```
+
+然后打开「设置」页 → API Token → 填入同一串 → 保存 → 刷新。
+
+### 验证
+
+```powershell
+curl.exe -i http://127.0.0.1:8000/skills
+# → 401（缺少 token）
+curl.exe -H "X-API-Token: <token>" http://127.0.0.1:8000/skills
+# → 200
+curl.exe http://127.0.0.1:8000/health
+# → 200（health 永远免鉴权，方便探活）
+```
+
+### 典型场景：局域网给同事演示
+
+1. 设好 `API_TOKEN` 并重启；
+2. 前端对外监听：`cd frontend; npm run dev -- --host 0.0.0.0`（并在防火墙放行 5173）；
+3. 同事打开 `http://<你的局域网IP>:5173`：页面能打开，但数据加载 401；
+4. 把 token 发给同事 → 他在「设置」页填入 → 刷新即正常；
+5. 演完把 `.env` 里的 `API_TOKEN` 换成新串（或删掉）→ 重启 → 旧 token 立即失效。
+
+### 边界与注意
+
+- 一个 token 通行所有请求：没有账号、多用户或细粒度权限；
+- token 明文存储（`.env` + 浏览器 localStorage），**`.env` 已在 `.gitignore`，不要提交**；
+- 暴露公网时请放在 **HTTPS 反向代理**后面，否则 token 明文过网；
+- 换浏览器/清缓存后需重新在设置页填写；
+- 不是加密、不做限流——它只是"能不能调用 API"的开关。
+
 ## 快速开始
 
 ```powershell
