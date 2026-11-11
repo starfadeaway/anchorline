@@ -201,15 +201,16 @@ def active_skills(db: Session, query: str, lorekeeper_enabled: bool | None = Non
         except Exception:
             lorekeeper_enabled = False
     q = (query or "").lower()
-    # E15：常用词误伤用负向词排除（中文没有词边界，靠上下文约束）
-    negative = {"run_coach": ["跑步机", "跑步鞋"], "memory_hygiene": ["功能失效", "链接失效"]}
+    # E15/G9：负向词优先取技能定义（内置技能可配），自定义技能无此列时为空
+    fallback_negative = {"run_coach": ["跑步机", "跑步鞋"], "memory_hygiene": ["功能失效", "链接失效"]}
     out: list[Skill] = []
     for s, on, _src in list_skills(db):
         if s.name == "kb_search" and not lorekeeper_enabled:
             continue
         kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if k.strip()]
         hit = bool(kws and any(k in q for k in kws))
-        excluded = any(n in q for n in negative.get(s.name, []))
+        negs = [n.strip() for n in (s.negative_keywords or "").split(",") if n.strip()] or fallback_negative.get(s.name, [])
+        excluded = any(n in q for n in negs)
         auto = bool(s.auto_activate and hit and not excluded)
         if on or auto:
             out.append(s)
@@ -222,6 +223,7 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
         return ""
     lines = []
     total = 0
+    dropped: list[str] = []  # G12：被预算丢弃的技能要写进 hint（用户/模型可见）
     for sk in skills:
         line = f"- [{sk.name}] {sk.instructions}"
         if sk.memory_entity:
@@ -229,11 +231,15 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
             if facts:
                 line += f"（该技能绑定的记忆 {sk.memory_entity}：{'；'.join(facts)}）"
         if total + len(line) > budget:
+            dropped.append(sk.name)
             log.warning("skill %s skipped: prompt budget %s exceeded (used %s)", sk.name, budget, total)
             continue  # E18：超出总预算的技能不再注入，避免挤爆 system prompt
         total += len(line)
         lines.append(line)
-    return ("\n\n已启用的技能（按需使用）：\n" + "\n".join(lines)) if lines else ""
+    if not lines:
+        return ""
+    note = f"\n（因预算未注入：{', '.join(dropped)}）" if dropped else ""
+    return "\n\n已启用的技能（按需使用）：\n" + "\n".join(lines) + note
 
 
 def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:

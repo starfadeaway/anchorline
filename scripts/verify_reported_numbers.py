@@ -44,11 +44,11 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 LEGACY_P = {0.1098, 0.252, 0.25}
 LEGACY_ACC = {13.6, 9.7}  # d_arm_154 第一代准确率（必须精确存在，下面单测校验）
 # 其他实验的百分比（翻转率/覆盖率/V1 命中等）：非本表准确率，按值登记
-KNOWN_PCT = {12, 12.3, 11.7, 44.4, 44.44, 65.1, 65.08, 77.78, 98.6, 6.3, 0.65, 0.6, 2.96, 1.03, 21, 15, 1.39, 1.9}
+KNOWN_PCT = {12, 12.3, 11.7, 44.4, 44.44, 65.1, 65.08, 77.78, 98.6, 21, 15, 1.39, 1.9, 6.3}  # 6.3 在 aa_pilot 里以 % 形式出现  # 只放百分比，不混 pp
 # 覆盖率类，按文件限定（audit_report 的声称值；CI 现场算的当前值是 69/63）
 FILE_PCT = {"reports/audit_report.md": {45, 69, 71, 63}}
 LEGACY_PP = {0.5, 2.96, 1.03, 3.9, 4.17, 6.25, 7.8, 12.5, 20.6, 77.8}
-PP_RAW_WHITELIST = {6.3, 3.9, 0.65, 0.6, 2.96, 1.03, 12, 12.3, 11.7, 1.9, 0.5, 4.17, 12.5, 10, 7.8, 20.6, 77.8}
+PP_RAW_WHITELIST = {6.3, 3.9, 0.65, 0.6, 2.96, 1.03, 0.5, 4.17, 12.5, 10, 7.8, 20.6, 77.8}  # 只放 pp 值，不混百分比
 INT_PCT_WHITELIST = {100}  # 常数基线（100%）可全局放行；覆盖率类见 FILE_PCT
 
 P4_PAT = re.compile(r"(?<![\d.])(\d\.\d{4,6})(?!\d)")
@@ -117,14 +117,37 @@ def _global_allowed(out: dict) -> dict[str, set]:
 ROW_PAT = re.compile(
     r"^\|\s*([A-Za-z0-9_]+)\s*(?:->|\u2192)\s*([A-Za-z0-9_]+)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|"
 )
-# E2：显式映射（不再用 startswith 猜；B_run2 等不会被误绑）
+# E2/G4：按文件映射（不同报告的臂名可能指不同代次；legacy 报告在方向检查里整体豁免）
 ARM_FULL = {"B": "B_run3", "C1": "C1", "C2": "C2", "D": "D_run3", "D_neighbor": "D_neighbor"}
+ARM_BY_FILE = {
+    "reports/m3_summary.md": {"B": "B_run2", "D": "D_run2", "C1": "C1", "C2": "C2", "D_neighbor": "D_neighbor"},
+}
+LEGACY_REPORTS = {"reports/d_arm_154.md"}  # 第一代产物（有废弃标注），方向检查豁免
+# G7：单主题报告的 p 值可以绑定到文件级对比（句子不必写出臂名）
+FILE_P_BINDINGS = {
+    "reports/m3_d_intent.md": ["D_run3_vs_D_intent"],
+}
 
 
-def _find_comparison(out: dict, a: str, b: str):
-    """E2：按显式臂映射精确匹配 comparison key（B -> B_run3，D -> D_run3）。"""
-    fa = ARM_FULL.get(a, a)
-    fb = ARM_FULL.get(b, b)
+def check_file_p_binding(text: str, out: dict, rel: str) -> int:
+    keys = FILE_P_BINDINGS.get(rel)
+    if not keys:
+        return 0
+    allowed = {round(float(out[k]["p_exact"]), 4) for k in keys if out.get(k)}
+    bad = 0
+    for m in re.finditer(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})", text):
+        v = round(float(m.group(1)), min(4, len(m.group(1).split(".")[1])))
+        if not any(abs(v - a) < 1e-9 for a in allowed):
+            print(f"MISMATCH {rel}: 文件级 p={m.group(1)} 不属于 {sorted(allowed)}")
+            bad += 1
+    return bad
+
+
+def _find_comparison(out: dict, a: str, b: str, rel: str = ""):
+    """E2/G4：按文件+显式臂映射精确匹配 comparison key。"""
+    mapping = ARM_BY_FILE.get(rel, ARM_FULL)
+    fa = mapping.get(a, a)
+    fb = mapping.get(b, b)
     for key, row in out.items():
         parts = key.split("_vs_")
         if len(parts) != 2:
@@ -145,7 +168,7 @@ def check_comparison_rows(text: str, out: dict, rel: str) -> int:
         if not m:
             continue
         a, b, acc_col, _n, pp_col, p_col = m.groups()
-        row = _find_comparison(out, a, b)
+        row = _find_comparison(out, a, b, rel)
         if row is None:
             continue
         acc_a, acc_b = float(row["accuracy_a"]), float(row["accuracy_b"])
@@ -193,7 +216,8 @@ def check_hybrid_direction(text: str, out: dict, rel: str) -> int:
     return bad
 
 
-SEG_PAT = re.compile(r"\b([A-Z][A-Za-z0-9_]*)\s*(?:vs\b|\u2192|->)\s*([A-Z][A-Za-z0-9_]*)")
+_SEG_GAP = r"[\d\.\s\*%（）()／/,，:：;；—\-]{0,24}?"
+SEG_PAT = re.compile(r"\b([A-Z][A-Za-z0-9_]*)\b" + _SEG_GAP + r"(?:vs\b|\u2192|->)" + _SEG_GAP + r"\b([A-Z][A-Za-z0-9_]*)\b")
 
 
 def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
@@ -210,7 +234,7 @@ def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
             if not prev:
                 continue
             _, a, b = prev[-1]
-            row = _find_comparison(out, a, b)
+            row = _find_comparison(out, a, b, rel)
             if row is None:
                 continue
             allowed_p = round(float(row["p_exact"]), 4)
@@ -229,6 +253,8 @@ def _direction_diff(row: dict, forward: bool) -> float:
 
 def check_direction_all(text: str, out: dict, rel: str) -> int:
     """F1：所有报告里带方向标记的行，其带符号 pp 的符号/数值必须与该方向一致。"""
+    if rel in LEGACY_REPORTS:
+        return 0
     bad = 0
     for line in text.splitlines():
         segs = [(m.start(), m.group(1), m.group(2)) for m in SEG_PAT.finditer(line)]
@@ -239,7 +265,7 @@ def check_direction_all(text: str, out: dict, rel: str) -> int:
             if not prev:
                 continue
             _, a, b = prev[-1]
-            row = _find_comparison(out, a, b)
+            row = _find_comparison(out, a, b, rel)
             if row is None:
                 continue
             exps = {_direction_diff(row, forward=True)}  # 报告已统一「后者 − 前者」，只接受 forward
@@ -337,6 +363,7 @@ def check_markdown(out: dict) -> int:
         file_bad += check_hybrid_diff_row(text, out, rel)
         file_bad += check_paragraph_bindings(text, out, rel)
         file_bad += check_direction_all(text, out, rel)
+        file_bad += check_file_p_binding(text, out, rel)
         bad += file_bad
         checked += 1
     print(f"md 解析校验：覆盖 {checked} 个文件，问题 {bad} 处")
@@ -356,6 +383,8 @@ def main() -> int:
         "D_run3_vs_D_neighbor": ("d_arm_154_run3.json", "d_arm_154_neighbor.json"),
         "D_run3_vs_D_hybrid": ("d_arm_154_run3.json", "d_arm_154_hybrid.json"),
         "D_run3_vs_D_intent": ("d_arm_154_run3.json", "d_arm_154_intent.json"),
+        "D_run3_vs_D_run2": ("d_arm_154_run3.json", "d_arm_154_run2.json"),
+        "B_run3_vs_B_run2": ("b_arm_154_run3.json", "b_arm_154_run2.json"),
         "D_run2_vs_D_hybrid": ("d_arm_154_run2.json", "d_arm_154_hybrid.json"),
         "D_neighbor_vs_D_hybrid": ("d_arm_154_neighbor.json", "d_arm_154_hybrid.json"),
     }

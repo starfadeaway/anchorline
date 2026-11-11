@@ -153,7 +153,11 @@ export default function ChatPage() {
         },
         body: JSON.stringify({ messages: next, max_steps: 8, model, session_id: active }),
       });
-      if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
+      if (!resp.ok || !resp.body) {
+        const err = new Error(`HTTP ${resp.status}`) as Error & { status?: number };
+        err.status = resp.status; // G11：结构化状态码，避免用字符串匹配判断 429
+        throw err;
+      }
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
@@ -199,7 +203,7 @@ export default function ChatPage() {
         rafId = null;
       }
       // F7：429（限流）不回退——非流式请求也必然被限流，只会多打一次失败请求
-      if (String(e).includes("429")) {
+      if ((e as Error & { status?: number }).status === 429) {
         setMessages(next);
         setError(`请求过于频繁：${String(e)}`);
         message.error(`请求过于频繁：${String(e)}`);

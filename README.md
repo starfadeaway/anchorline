@@ -36,7 +36,7 @@ frontend/                  # React 前端（聊天/记忆/评测/审核/报告/�
 migrations/                # Alembic（0001 初始 → 0014：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
 reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
-tests/                     # pytest（111 项）
+tests/                     # pytest（116 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
@@ -120,7 +120,7 @@ curl.exe http://127.0.0.1:8000/health
 - token 明文存储（`.env` + 浏览器 localStorage），**`.env` 已在 `.gitignore`，不要提交**；
 - 暴露公网时请放在 **HTTPS 反向代理**后面，否则 token 明文过网；
 - 换浏览器/清缓存后需重新在设置页填写；
-- 不是加密、不做限流——它只是"能不能调用 API"的开关。
+- 不是加密；**限流是进程内的**（聊天/生成约 30 次/分钟；多进程/多副本部署时限额按副本数放大，重启清零）——它只是"能不能调用 API"的开关与轻量护栏。
 
 ## 快速开始
 

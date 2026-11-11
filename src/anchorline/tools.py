@@ -109,12 +109,13 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
 
             _skills = {s.name: s for s, _on, _src in list_skills(store.db)}
             _matched = [n for n in _active if _skills.get(n) and _skills[n].memory_entity == entity_id]
-            if _matched:
+            if len(_matched) == 1:
                 skill_name = _matched[0]
-            elif len(_active) == 1:
+            elif len(_active) == 1 and _skills.get(_active[0]) is not None and not _skills[_active[0]].memory_entity:
+                # G13：单技能兜底只用于「未绑定实体」的技能；绑定了别的实体则不归属
                 skill_name = _active[0]
             else:
-                log.warning("multiple active skills, fact not attributed: %s", _active)
+                log.warning("active skills not attributable to entity %s: %s", entity_id, _active)
         # 显式 supersedes 交给 FactStore.write 统一处理（同一事务里失效旧事实 + 建链）
         fact = store.write(
             entity_id=entity_id,

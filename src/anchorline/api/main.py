@@ -1290,16 +1290,20 @@ def _chat_rate_limited(limit: int = 30) -> bool:
     return False
 
 
+_GEN_LOCK = threading.Lock()  # G10：与 _CHAT 一致，避免 check-then-append 竞态
+
+
 def _gen_rate_limited() -> bool:
     """D10：/skills/generate 是真实 LLM 调用，做简单进程内限流（10 次/分钟）。"""
     import time
 
     now = time.monotonic()
-    while _GEN_TIMES and now - _GEN_TIMES[0] > 60:
-        _GEN_TIMES.pop(0)
-    if len(_GEN_TIMES) >= 10:
-        return True
-    _GEN_TIMES.append(now)
+    with _GEN_LOCK:
+        while _GEN_TIMES and now - _GEN_TIMES[0] > 60:
+            _GEN_TIMES.pop(0)
+        if len(_GEN_TIMES) >= 10:
+            return True
+        _GEN_TIMES.append(now)
     return False
 
 
