@@ -7,6 +7,8 @@
 """
 from __future__ import annotations
 
+import threading
+
 import json
 import logging
 import os
@@ -1272,16 +1274,11 @@ _GEN_TIMES: list[float] = []
 
 
 _CHAT_TIMES: list[float] = []
-_CHAT_LOCK = None
+_CHAT_LOCK = threading.Lock()  # F6：模块加载即创建，避免惰性初始化的双建竞态
 
 
 def _chat_rate_limited(limit: int = 30) -> bool:
     """E17：聊天/主题生成等真实 LLM 调用点的进程内限流（30 次/分钟，线程安全）。"""
-    import threading
-
-    global _CHAT_LOCK
-    if _CHAT_LOCK is None:
-        _CHAT_LOCK = threading.Lock()
     import time
 
     now = time.monotonic()

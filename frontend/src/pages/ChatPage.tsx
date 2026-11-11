@@ -198,8 +198,12 @@ export default function ChatPage() {
         window.cancelAnimationFrame(rafId);
         rafId = null;
       }
-      // X21：已经收到部分内容时不再回退非流式（否则模型调两次、trace 双写、token 翻倍）
-      if (acc) {
+      // F7：429（限流）不回退——非流式请求也必然被限流，只会多打一次失败请求
+      if (String(e).includes("429")) {
+        setMessages(next);
+        setError(`请求过于频繁：${String(e)}`);
+        message.error(`请求过于频繁：${String(e)}`);
+      } else if (acc) {
         setMessages([...next, { role: "assistant", content: acc, created_at: new Date().toISOString() }]);
         setError(`流式中断：${String(e)}（已保留收到的内容，不会重新生成）`);
         message.error(`流式中断：${String(e)}`);

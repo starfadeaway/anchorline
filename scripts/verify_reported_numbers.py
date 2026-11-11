@@ -181,8 +181,8 @@ def check_hybrid_direction(text: str, out: dict, rel: str) -> int:
     expected_set = {-float(out[k]["diff_a_minus_b"]) * 100 for k in keys}
     bad = 0
     for line in text.splitlines():
-        if "D_run2" in line or "复跑" in line or "vs D_run2" in line:
-            continue
+        if ("复跑" in line or "vs D_run2" in line) and "+1.30pp" in line:
+            continue  # 只放过同臂复跑的这个具体值，不再整行跳过
         m = re.search(r"([+\-\u2212]\d+\.\d+)\s*pp", line)
         if not m:
             continue
@@ -193,7 +193,7 @@ def check_hybrid_direction(text: str, out: dict, rel: str) -> int:
     return bad
 
 
-SEG_PAT = re.compile(r"\b([A-Z][A-Za-z0-9_]*)\b[^。\n]{0,40}?\b(?:vs|\u2192|->)\b[^。\n]{0,40}?\b([A-Z][A-Za-z0-9_]*)\b")
+SEG_PAT = re.compile(r"\b([A-Z][A-Za-z0-9_]*)\s*(?:vs\b|\u2192|->)\s*([A-Z][A-Za-z0-9_]*)")
 
 
 def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
@@ -202,23 +202,76 @@ def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
     if rel == "reports/d_arm_154.md":
         return 0  # 第一代产物（legacy），见废弃标注
     for para in re.split(r"[。\n]\s*", text):
-        if len(re.findall(r"p\s*[=：:]", para)) > 1:
-            continue  # 一句里多个 p，无法绑定
-        m = SEG_PAT.search(para)
-        if not m:
+        segs = [(m.start(), m.group(1), m.group(2)) for m in SEG_PAT.finditer(para)]
+        if not segs:
             continue
-        a, b = m.group(1), m.group(2)
-        if len(list(SEG_PAT.finditer(para))) > 1:
-            continue  # 一句话里提到多个对比时无法绑定，跳过
-        row = _find_comparison(out, a, b)
-        if row is None:
-            continue
-        allowed_p = round(float(row["p_exact"]), 4)
         for pm in re.finditer(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})", para):
+            prev = [s for s in segs if s[0] < pm.start()]
+            if not prev:
+                continue
+            _, a, b = prev[-1]
+            row = _find_comparison(out, a, b)
+            if row is None:
+                continue
+            allowed_p = round(float(row["p_exact"]), 4)
             v = round(float(pm.group(1)), min(4, len(pm.group(1).split(".")[1])))
             if abs(v - allowed_p) > 1e-9:
                 print(f"MISMATCH {rel}: 段落 {a} vs {b} 引用的 p={pm.group(1)} 应为 {allowed_p}")
                 bad += 1
+    return bad
+
+
+def _direction_diff(row: dict, forward: bool) -> float:
+    """返回 forward=True 时 (Y − X) 的百分点，False 时 (X − Y)。"""
+    du = float(row["diff_a_minus_b"]) * 100  # a − b
+    return -du if forward else du
+
+
+def check_direction_all(text: str, out: dict, rel: str) -> int:
+    """F1：所有报告里带方向标记的行，其带符号 pp 的符号/数值必须与该方向一致。"""
+    bad = 0
+    for line in text.splitlines():
+        segs = [(m.start(), m.group(1), m.group(2)) for m in SEG_PAT.finditer(line)]
+        if not segs:
+            continue
+        for pm in re.finditer(r"([+\-\u2212]\d+\.\d+)\s*pp", line):
+            prev = [s for s in segs if s[0] < pm.start()]
+            if not prev:
+                continue
+            _, a, b = prev[-1]
+            row = _find_comparison(out, a, b)
+            if row is None:
+                continue
+            exps = {_direction_diff(row, forward=True)}  # 报告已统一「后者 − 前者」，只接受 forward
+            got = float(pm.group(1).replace("\u2212", "-"))
+            if ("复跑" in line or "vs D_run2" in line) and abs(got - 1.3) < 0.06:
+                continue
+            if not any((got > 0) == (e > 0) and abs(abs(got) - abs(e)) <= 0.06 for e in exps):
+                print(f"MISMATCH {rel}: 方向 {a}->{b} 的 {pm.group(1)}pp 不属于 {sorted(round(e, 2) for e in exps)}")
+                bad += 1
+    return bad
+
+
+def check_hybrid_diff_row(text: str, out: dict, rel: str) -> int:
+    """F1(a)：hybrid 报告的「配对差（hybrid − 向量）」行数字（无 pp）也要校验方向。"""
+    if "hybrid" not in rel:
+        return 0
+    row = out.get("D_run3_vs_D_hybrid")
+    if row is None:
+        return 0
+    expected = -float(row["diff_a_minus_b"]) * 100
+    bad = 0
+    for line in text.splitlines():
+        if "配对差" not in line or "hybrid" not in line.lower():
+            continue
+        m = re.search(r"([+\-\u2212]\d+\.\d+)", line)
+        if not m:
+            continue
+        got = float(m.group(1).replace("\u2212", "-"))
+        scale = 0.01 if abs(got) <= 1.0 else 1.0
+        if (got > 0) != (expected > 0) or abs(abs(got) / scale - abs(expected)) > 0.06:
+            print(f"MISMATCH {rel}: 配对差行 {m.group(1)} 应为 {expected:+.2f}")
+            bad += 1
     return bad
 
 
@@ -281,7 +334,9 @@ def check_markdown(out: dict) -> int:
                 file_bad += 1
         file_bad += check_comparison_rows(text, out, rel)
         file_bad += check_hybrid_direction(text, out, rel)
+        file_bad += check_hybrid_diff_row(text, out, rel)
         file_bad += check_paragraph_bindings(text, out, rel)
+        file_bad += check_direction_all(text, out, rel)
         bad += file_bad
         checked += 1
     print(f"md 解析校验：覆盖 {checked} 个文件，问题 {bad} 处")

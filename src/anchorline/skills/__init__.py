@@ -30,7 +30,7 @@ BUILTIN_SKILLS: list[Skill] = [
     ),
     Skill(
         name="diet_plan",
-        trigger_keywords="吃,吃什么,吃啥,饮食,配餐,忌口,咖啡,吃饭",
+        trigger_keywords="吃什么,吃啥,饮食,配餐,忌口,咖啡,吃饭",
         title="饮食规划",
         description="按饮食偏好 / 禁忌给配餐建议",
         instructions=('用户问吃什么、配餐、忌口时使用。先检索记忆里的饮食偏好、禁忌、过敏与目标（减脂/增肌）；再给具体搭配（早/午/晚 + 加餐），避开明确禁忌。不要推荐用户明确不吃/过敏的食物；不确定时先问。明确标注「通用建议」而非医疗建议。'),
@@ -44,7 +44,7 @@ BUILTIN_SKILLS: list[Skill] = [
     ),
     Skill(
         name="memory_hygiene",
-        trigger_keywords="冲突,冗余,记忆整理,失效,过期",
+        trigger_keywords="冲突,冗余,记忆整理,失效",
         title="记忆整理",
         description="冲突 / 冗余事实的记忆卫生建议",
         instructions=('用户提到记忆冲突、旧值、冗余、测试数据或「怎么整理记忆」时使用。先检索相关实体的当前值与历史，指出哪条是当前值、哪条已失效、是否还有多条并存；建议用 supersede 标记失效而不是删除；不确定实体归属时先问。不要擅自删除用户记忆。'),

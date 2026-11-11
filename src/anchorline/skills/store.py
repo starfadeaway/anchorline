@@ -2,10 +2,14 @@
 """技能存取：内置（BUILTIN_SKILLS）+ 用户自定义（custom_skills 表）。"""
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from anchorline.models import CustomSkill, SkillToggle
+
+log = logging.getLogger("anchorline.skills")
 from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME, Skill
 
 
@@ -225,6 +229,7 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
             if facts:
                 line += f"（该技能绑定的记忆 {sk.memory_entity}：{'；'.join(facts)}）"
         if total + len(line) > budget:
+            log.warning("skill %s skipped: prompt budget %s exceeded (used %s)", sk.name, budget, total)
             continue  # E18：超出总预算的技能不再注入，避免挤爆 system prompt
         total += len(line)
         lines.append(line)
