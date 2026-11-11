@@ -34,7 +34,7 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
                     memory_entity=(row.memory_entity if row is not None else None) or s.memory_entity,
                     auto_activate=bool(row.auto_activate) if row is not None else s.auto_activate,
                     trigger_keywords=(row.trigger_keywords if row is not None and row.trigger_keywords else s.trigger_keywords),
-                    negative_keywords=(row.negative_keywords if row is not None and row.negative_keywords else s.negative_keywords),
+                    negative_keywords=(row.negative_keywords if row is not None else s.negative_keywords),  # K9：空串=用户显式清空
                 ),
                 bool(row.enabled) if row is not None else False,
                 "builtin",
@@ -208,7 +208,7 @@ def _negative_hit(q: str, word: str) -> bool:
         if idx == -1:
             return False
         nxt = q[idx + len(word) : idx + len(word) + 1]
-        if nxt not in _FOOD_SUFFIX:
+        if not (word.startswith("吃") and nxt in _FOOD_SUFFIX):
             return True
         start = idx + 1
 
@@ -254,23 +254,25 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
     if not skills:
         return ""
     HEADER = "\n\n已启用的技能（按需使用）：\n"
-    lines: list[str] = []
-    dropped: list[str] = []
-    note = ""
+    entries: list[tuple[str, str]] = []  # (技能名, 行文本)
     for sk in skills:
         line = f"- [{sk.name}] {sk.instructions}"
         if sk.memory_entity:
             facts = memory_context(db, sk.memory_entity)
             if facts:
                 line += f"（该技能绑定的记忆 {sk.memory_entity}：{'；'.join(facts)}）"
-        # J10：预算按「头部 + 已收 + 本条 + 当前 note」实时计算，超了就丢本条
-        candidate_note = f"\n（因预算未注入：{', '.join([*dropped, sk.name])}）"
-        if len(HEADER) + sum(len(x) + 1 for x in lines) + len(line) + len(candidate_note) > budget:
-            dropped.append(sk.name)
-            log.warning("skill %s skipped: prompt budget %s exceeded", sk.name, budget)
-            note = candidate_note
-            continue
-        lines.append(line)
+        entries.append((sk.name, line))
+    # K2：预算按「最终拼出的字符串」真实计算——从末尾逐条丢弃，直到符合（note 随丢弃变化）
+    dropped: list[str] = []
+    while True:
+        note = f"\n（因预算未注入：{', '.join(dropped)}）" if dropped else ""
+        body = HEADER + "\n".join(line for _n, line in entries) + note
+        if len(body) <= budget or not entries:
+            break
+        name, _line = entries.pop()
+        dropped.insert(0, name)
+        log.warning("skill %s skipped: prompt budget %s exceeded", name, budget)
+    lines = [line for _n, line in entries]
     if not lines:
         return note
     if dropped:

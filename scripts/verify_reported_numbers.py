@@ -41,7 +41,7 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 
 
 # 历史/附录数字（第一代产物、被取代的旧结论）——显式白名单，改动白名单需说明原因
-LEGACY_P = {0.1098, 0.252, 0.25, 0.21898}  # c2_arm_154.json 自报的 C2 vs B_run2 p
+LEGACY_P = {0.1098, 0.252, 0.25}
 LEGACY_ACC = {13.6, 9.7}  # d_arm_154 第一代准确率（必须精确存在，下面单测校验）
 # 其他实验的百分比（翻转率/覆盖率/V1 命中等）：非本表准确率，按值登记
 KNOWN_PCT = {12, 12.3, 11.7, 44.4, 44.44, 65.1, 65.08, 77.78, 98.6, 21, 15, 1.39, 1.9, 6.3}  # 6.3 在 aa_pilot 里以 % 形式出现  # 只放百分比，不混 pp
@@ -55,7 +55,7 @@ P4_PAT = re.compile(r"(?<![\d.])(\d\.\d{4,6})(?!\d)")
 PCT_PAT = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,2})?)%")
 SIGNED_PP_PAT = re.compile(r"([+\-\u2212]\d+\.\d+)\s*pp")
 SIX_PAT = re.compile(r"(?<![\d.])(0?\.\d{6})(?!\d)")
-P_PAT = re.compile(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})")
+P_PAT = re.compile(r"p\s*[=：:]\s*\**\s*((?:0?|1)\.\d{1,6}|[01]\.0)")
 MD_GLOB = "reports/*.md"
 
 
@@ -120,12 +120,13 @@ ROW_PAT = re.compile(
 # E2/G4：按文件映射（不同报告的臂名可能指不同代次；legacy 报告在方向检查里整体豁免）
 ARM_FULL = {"B": "B_run3", "C1": "C1", "C2": "C2", "D": "D_run3", "D_neighbor": "D_neighbor"}
 ARM_BY_FILE = {
-    "reports/m3_summary.md": {"B": "B_run2", "D": "D_run2", "C1": "C1", "C2": "C2", "D_neighbor": "D_neighbor"},
+    # m3_summary 默认 run3；run2 对照用显式臂名（B_run2 → C2）
 }
 LEGACY_REPORTS = {"reports/d_arm_154.md"}  # 第一代产物（有废弃标注），方向检查豁免
 # G7：单主题报告的 p 值可以绑定到文件级对比（句子不必写出臂名）
 FILE_P_BINDINGS = {
     "reports/m3_d_intent.md": ["D_run3_vs_D_intent", "D_run3_vs_D_run2"],  # H5：两处 p 恰好同为 0.8145
+    "reports/m3_c1.md": ["B_run3_vs_C1", "C1_vs_D_run3", "C1_vs_D_neighbor"],
 }
 
 
@@ -143,10 +144,10 @@ def check_file_p_binding(text: str, out: dict, rel: str) -> int:
     return bad
 
 
-def _find_comparison(out: dict, a: str, b: str, rel: str = "", prefer_run2: bool = False):
-    """E2/G4/J6：按文件+显式臂映射精确匹配 comparison key（句子带 run2 标记时优先 run2 变体）。"""
-    run2_map = {"B": "B_run2", "D": "D_run2", "C1": "C1", "C2": "C2", "D_neighbor": "D_neighbor"}
-    candidates = ([run2_map] if prefer_run2 else []) + [ARM_BY_FILE.get(rel, {}), ARM_FULL]
+def _find_comparison(out: dict, a: str, b: str, rel: str = ""):
+    """E2/G4/K6：显式臂名（B_run2/D_run2）优先，其次文件映射，最后默认（run3）。"""
+    run2_map = {"B_run2": "B_run2", "D_run2": "D_run2"}
+    candidates = ([run2_map] if (a in run2_map or b in run2_map) else []) + [ARM_BY_FILE.get(rel, {}), ARM_FULL]
     for mapping in candidates:
         fa = mapping.get(a, a)
         fb = mapping.get(b, b)
@@ -229,12 +230,12 @@ def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
         segs = [(m.start(), m.group(1), m.group(2)) for m in SEG_PAT.finditer(para)]
         if not segs:
             continue
-        for pm in re.finditer(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})", para):
-            prev = [s for s in segs if s[0] < pm.start()]
+        for pm in re.finditer(r"p\s*[=：:]\s*\**\s*((?:0?|1)\.\d{1,6}|[01]\.0)", para):
+            prev = [s for s in segs if s[0] <= pm.start() and pm.start() - s[0] <= 40]
             if not prev:
                 continue
             _, a, b = prev[-1]
-            row = _find_comparison(out, a, b, rel, prefer_run2=("run2" in para.lower()))
+            row = _find_comparison(out, a, b, rel)
             if row is None:
                 continue
             allowed_p = round(float(row["p_exact"]), 4)
@@ -257,22 +258,31 @@ def check_direction_all(text: str, out: dict, rel: str) -> int:
         return 0
     bad = 0
     for line in text.splitlines():
-        segs = [(m.start(), m.group(1), m.group(2)) for m in SEG_PAT.finditer(line)]
+        segs = [(m.end(), m.group(1), m.group(2)) for m in SEG_PAT.finditer(line)]
         if not segs:
             continue
-        for pm in re.finditer(r"([+\-\u2212]\d+\.\d+)\s*pp", line):
-            prev = [s for s in segs if s[0] < pm.start()]
+        pps = list(re.finditer(r"([+\-\u2212]?\d+(?:\.\d+)?)\s*pp", line))
+        for pm in pps:
+            if pm.group(1)[0] not in "+-" and len(pps) > 1:
+                continue  # 裸 pp 且一行多个差值时无法确定归属，跳过
+            prev = [s for s in segs if s[0] <= pm.start() and pm.start() - s[0] <= 40]
             if not prev:
                 continue
             _, a, b = prev[-1]
-            row = _find_comparison(out, a, b, rel, prefer_run2=("run2" in line.lower()))
+            row = _find_comparison(out, a, b, rel)
             if row is None:
                 continue
             exps = {_direction_diff(row, forward=True)}  # 报告已统一「后者 − 前者」，只接受 forward
-            got = float(pm.group(1).replace("\u2212", "-"))
+            raw_txt = pm.group(1).replace("\u2212", "-")
+            got = float(raw_txt)
             if ("复跑" in line or "vs D_run2" in line) and abs(got - 1.3) < 0.06:
                 continue
-            if not any((got > 0) == (e > 0) and abs(abs(got) - abs(e)) <= 0.06 for e in exps):
+            # K5：裸 pp（无符号）只校验绝对值；带符号时同时校验方向
+            if raw_txt[0] not in "+-":
+                ok = any(abs(abs(got) - abs(e)) <= 0.06 for e in exps)
+            else:
+                ok = any((got > 0) == (e > 0) and abs(abs(got) - abs(e)) <= 0.06 for e in exps)
+            if not ok:
                 print(f"MISMATCH {rel}: 方向 {a}->{b} 的 {pm.group(1)}pp 不属于 {sorted(round(e, 2) for e in exps)}")
                 bad += 1
     return bad

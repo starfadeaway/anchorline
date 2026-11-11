@@ -30,10 +30,10 @@ def test_baseline_is_green(sandbox):
 
 
 def test_direction_flip_caught(sandbox):
-    p = sandbox / "reports" / "m3_2x2.md"
+    p = sandbox / "reports" / "m3_summary.md"
     text = p.read_text(encoding="utf-8")
-    assert "**+10.39pp，p=0.0195**" in text
-    p.write_text(text.replace("**+10.39pp，p=0.0195**", "**−10.39pp，p=0.0195**", 1), encoding="utf-8")
+    assert "−1.95pp" in text
+    p.write_text(text.replace("−1.95pp", "+1.95pp", 1), encoding="utf-8")
     assert _verify() == 1
 
 
