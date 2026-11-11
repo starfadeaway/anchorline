@@ -409,7 +409,7 @@ export default function SkillsPage() {
             label="负向词（可选，命中则不激活）"
             extra="逗号分隔的字面词（不执行正则），命中则不自动激活；如 跑步机,跑步鞋。手动开启的技能不受负向词影响。"
           >
-            <Input placeholder="如 跑步机|跑步鞋" maxLength={256} />
+            <Input placeholder="如 跑步机,跑步鞋" maxLength={256} />
           </Form.Item>
           <Form.Item
             name="instructions"

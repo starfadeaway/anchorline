@@ -140,7 +140,8 @@ class SkillToggle(Base):
     memory_entity: Mapped[str | None] = mapped_column(String(128), nullable=True)
     auto_activate: Mapped[bool] = mapped_column(Boolean, default=False)
     trigger_keywords: Mapped[str] = mapped_column(String(256), default="")
-    negative_keywords: Mapped[str] = mapped_column(String(256), default="")
+    # NULL = 用内置默认；"" = 用户显式清空；非空 = 覆盖（L1 三态）
+    negative_keywords: Mapped[str | None] = mapped_column(String(256), nullable=True)
     # 内置技能的描述/指令覆盖（允许用户改长、改清楚；为空则用内置定义）
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -162,6 +163,6 @@ class CustomSkill(Base):
     # 主题命中时自动启用（不依赖手动开关）
     auto_activate: Mapped[bool] = mapped_column(Boolean, default=False)
     trigger_keywords: Mapped[str] = mapped_column(String(256), default="")
-    negative_keywords: Mapped[str] = mapped_column(String(256), default="")
+    negative_keywords: Mapped[str | None] = mapped_column(String(256), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

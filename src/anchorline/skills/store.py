@@ -34,7 +34,7 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
                     memory_entity=(row.memory_entity if row is not None else None) or s.memory_entity,
                     auto_activate=bool(row.auto_activate) if row is not None else s.auto_activate,
                     trigger_keywords=(row.trigger_keywords if row is not None and row.trigger_keywords else s.trigger_keywords),
-                    negative_keywords=(row.negative_keywords if row is not None else s.negative_keywords),  # K9：空串=用户显式清空
+                    negative_keywords=(s.negative_keywords if row is None or row.negative_keywords is None else row.negative_keywords),  # L1：NULL=默认，""=显式清空
                 ),
                 bool(row.enabled) if row is not None else False,
                 "builtin",
@@ -262,7 +262,7 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
             if facts:
                 line += f"（该技能绑定的记忆 {sk.memory_entity}：{'；'.join(facts)}）"
         entries.append((sk.name, line))
-    # K2：预算按「最终拼出的字符串」真实计算——从末尾逐条丢弃，直到符合（note 随丢弃变化）
+    # K2/L2：预算按「最终拼出的字符串」真实计算；note 自身也受预算约束（超了截断）
     dropped: list[str] = []
     while True:
         note = f"\n（因预算未注入：{', '.join(dropped)}）" if dropped else ""
@@ -272,6 +272,11 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
         name, _line = entries.pop()
         dropped.insert(0, name)
         log.warning("skill %s skipped: prompt budget %s exceeded", name, budget)
+    if not entries and dropped:
+        # 全部被丢弃时，note 也不能超预算
+        note = f"（因预算未注入：{', '.join(dropped)}）"
+        if len(note) > budget:
+            note = note[: max(0, budget - 1)] + "…"
     lines = [line for _n, line in entries]
     if not lines:
         return note

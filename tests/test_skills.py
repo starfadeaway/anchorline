@@ -286,3 +286,34 @@ def test_negative_word_吃苦_range(db):
     db.commit()
     assert active_skills(db, "这家公司太会吃苦了") == []
     assert [s.name for s in active_skills(db, "我今天吃什么")] == ["diet_plan"]
+
+
+def test_negative_keywords_three_state(db):
+    """L1：NULL=用内置默认；只点开关不能清空负向词。"""
+    from anchorline.models import SkillToggle
+    from anchorline.skills import SKILL_BY_NAME
+
+    row = SkillToggle(
+        name="diet_plan",
+        enabled=False,
+        auto_activate=True,
+        trigger_keywords=SKILL_BY_NAME["diet_plan"].trigger_keywords,
+        negative_keywords=None,  # 用户没碰过负向词
+    )
+    db.add(row)
+    db.commit()
+    assert [s.name for s in active_skills(db, "今天吃了苦")] == []  # 内置负向词仍生效
+    assert [s.name for s in active_skills(db, "今天吃什么")] == ["diet_plan"]
+    # 显式清空后才能激活
+    row.negative_keywords = ""
+    db.commit()
+    assert [s.name for s in active_skills(db, "今天吃了苦")] == ["diet_plan"]
+
+
+def test_budget_note_truncated(db):
+    """L2：全部丢弃时 note 也不能超预算。"""
+    for i in range(5):
+        create_custom(db, f"s{i}", "t", "", "x" * 60)
+        set_skill(db, f"s{i}", True)
+    hint = build_skills_hint(db, enabled_skills(db), budget=50)
+    assert len(hint) <= 50
