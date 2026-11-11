@@ -9,6 +9,8 @@ export type Fact = {
   supersedes_id: string | null;
   fact_type: string;
   conflict_type: string | null;
+  source_session_id?: string | null;
+  source_message_id?: number | null;
 };
 
 export type ToolCall = { name: string; arguments: string };

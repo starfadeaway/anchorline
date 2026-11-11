@@ -79,7 +79,9 @@ export default function ReviewPage() {
       width: "13%",
       render: (v?: string | null) =>
         v ? (
-          <Text code>{v.slice(0, 8)}</Text>
+          <Text code title={`完整会话 id：${v}（可在「记忆」页搜索该 id 找到对应事实）`}>
+            {v.slice(0, 8)}
+          </Text>
         ) : (
           <Text type="secondary">—</Text>
         ),
@@ -111,6 +113,7 @@ export default function ReviewPage() {
     <Card title="审核（冲突裁决）" extra={<Button onClick={() => void load()}>刷新</Button>}>
       <Paragraph type="secondary">
         规则：同一实体下「属性关键词重叠」的多个当前值进入审核队列。裁决 = 选一条保留、其余标记失效（不删除），并记录原因与操作者，形成可追溯的金标。
+        来源会话 id 可在「记忆」页搜索框里直接搜到对应事实（Hover 缩写可看完整 id）。
       </Paragraph>
       {error && <Alert type="error" showIcon message="加载失败" description={error} style={{ marginBottom: 12 }} />}
 

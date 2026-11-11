@@ -114,6 +114,7 @@ export default function MemoryPage() {
   const [q, setQ] = useState("");
   const [history, setHistory] = useState<Fact[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [activeKeys, setActiveKeys] = useState<string[]>([]);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportSelected, setExportSelected] = useState<string[]>([]);
   const [forgetOpen, setForgetOpen] = useState(false);
@@ -154,7 +155,7 @@ export default function MemoryPage() {
     // 同时匹配实体/属性/值/主题名（支持搜"跑步""球类"命中整组）
     return base.filter((f) => {
       const topic = topicOfFact(f);
-      const hay = `${f.entity_id} ${f.attribute} ${f.value} ${topic}`.toLowerCase();
+      const hay = `${f.entity_id} ${f.attribute} ${f.value} ${topic} ${f.source_session_id ?? ""} ${f.source_message_id ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
   }, [deferredFacts, q]);
@@ -347,7 +348,7 @@ export default function MemoryPage() {
       title="记忆浏览器"
       extra={
         <Space>
-          <Input.Search placeholder="按实体/属性/值过滤" allowClear onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
+          <Input.Search placeholder="按实体/属性/值/来源会话 id 过滤" allowClear onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
           <Button type="primary" onClick={() => setAddOpen(true)}>新增事实</Button>
           <Dropdown
             menu={{
@@ -437,9 +438,10 @@ export default function MemoryPage() {
         <Text type="secondary">暂无记忆</Text>
       ) : (
         <Collapse
-          // 懒渲染：默认只展开前 2 组；折叠的组不挂载（展开时才渲染），避免首屏渲染全部分组
+          // 懒渲染：默认只展开前 2 组；搜索时自动展开所有匹配组（否则搜到了却看不见）
           destroyOnHidden
-          defaultActiveKey={groups.slice(0, 2).map(([t]) => t)}
+          activeKey={q.trim() ? groups.map(([t]) => t) : activeKeys.length ? activeKeys : groups.slice(0, 2).map(([t]) => t)}
+          onChange={(keys) => setActiveKeys(keys as string[])}
           items={groups.map(([topic, rows], gi) => {
             const cur = rows.filter((f) => !f.valid_to).length;
             const st = rows.length - cur;
