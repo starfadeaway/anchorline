@@ -4,9 +4,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from anchorline.models import Base
+from anchorline.models import Base, Fact
 from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME
-from anchorline.models import Fact
 from anchorline.skills.store import (
     create_custom,
     delete_custom,

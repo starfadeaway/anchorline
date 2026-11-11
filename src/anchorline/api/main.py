@@ -364,9 +364,7 @@ def _run_agent(
     )
     # 可开关技能：把启用技能的指令拼进 system prompt（只影响回答方式，不越过记忆边界）
     try:
-        from anchorline.skills.store import enabled_skills
-
-        from anchorline.skills.store import memory_context
+        from anchorline.skills.store import enabled_skills, memory_context
 
         skills = enabled_skills(db)
         if skills:
