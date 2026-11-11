@@ -200,6 +200,12 @@ export const api = {
   metrics: () => json<ApiMetrics>("/api/metrics"),
   settings: () => json<SettingsOut>("/api/settings", undefined, 10_000),
   listSkills: () => json<SkillInfo[]>("/api/skills"),
+  generateSkill: (description: string) =>
+    json<{ name: string; title: string; description: string; instructions: string }>("/api/skills/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description }),
+    }),
   createSkill: (body: { name: string; title: string; description: string; instructions: string }) =>
     json<SkillInfo>("/api/skills", {
       method: "POST",

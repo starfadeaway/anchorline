@@ -1209,6 +1209,67 @@ def _skill_out(db: Session, name: str) -> SkillOut:
     return SkillOut(name=s.name, title=s.title, description=s.description, enabled=on, source=src)
 
 
+class SkillDraftOut(BaseModel):
+    name: str
+    title: str
+    description: str
+    instructions: str
+
+
+class SkillGenerateIn(BaseModel):
+    description: str
+
+
+def _parse_skill_draft(raw: str) -> dict:
+    import json as _json
+
+    text = (raw or "").strip()
+    if text.startswith("```"):
+        text = text.strip("`")
+        if text.lower().startswith("json"):
+            text = text[4:].strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start < 0 or end <= start:
+        raise ValueError("model output has no JSON object")
+    return _json.loads(text[start : end + 1])
+
+
+@app.post("/skills/generate", response_model=SkillDraftOut)
+def generate_skill(body: SkillGenerateIn) -> SkillDraftOut:
+    """用户描述技能功能 → 用 reader 模型生成 name/title/description/instructions 草稿（不落库）。"""
+    if not (body.description or "").strip():
+        raise HTTPException(status_code=400, detail="请先描述技能功能")
+    prompt = (
+        "你是技能设计助手。根据用户描述，生成一个 skill 定义，只输出一个 JSON 对象（不要 markdown 代码块、不要解释）：\n"
+        '{"name": "...", "title": "...", "description": "...", "instructions": "..."}\n'
+        "要求：\n"
+        "- name：2-33 位小写字母/数字/下划线，以字母开头（英文语义化）；\n"
+        "- title：中文短标题；\n"
+        "- description：一句话说明（列表展示）；\n"
+        "- instructions：给聊天模型的系统指令，写清楚：什么时候用、先检索记忆里的什么、怎么组织回答、不要做什么（不要编造未记录的信息）。\n"
+        f"用户描述：{body.description.strip()}"
+    )
+    try:
+        client = chat_client("deepseek")
+        raw = client.complete([{"role": "user", "content": prompt}], temperature=0.3, max_tokens=900)
+        d = _parse_skill_draft(raw)
+    except Exception as exc:
+        log.warning("skill generate failed", exc_info=True)
+        raise HTTPException(status_code=502, detail="自动生成失败，请重试或手动填写") from exc
+    import re
+
+    name = str(d.get("name") or "").strip().lower()
+    if not re.fullmatch(r"[a-z][a-z0-9_]{1,32}", name):
+        name = "custom_skill"
+    return SkillDraftOut(
+        name=name,
+        title=str(d.get("title") or body.description.strip()[:20]).strip(),
+        description=str(d.get("description") or "").strip(),
+        instructions=str(d.get("instructions") or "").strip(),
+    )
+
+
 @app.get("/skills", response_model=list[SkillOut])
 def list_skills_endpoint(db: Session = Depends(get_db)) -> list[SkillOut]:
     from anchorline.skills.store import list_skills
