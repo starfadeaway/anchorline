@@ -8,9 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from anchorline.models import CustomSkill, SkillToggle
+from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME, Skill
 
 log = logging.getLogger("anchorline.skills")
-from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME, Skill
 
 
 def _custom_rows(db: Session) -> list[CustomSkill]:
