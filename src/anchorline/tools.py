@@ -108,7 +108,17 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
             from anchorline.skills.store import list_skills
 
             _skills = {s.name: s for s, _on, _src in list_skills(store.db)}
-            _matched = [n for n in _active if _skills.get(n) and _skills[n].memory_entity == entity_id]
+            _matched = []
+            for n in _active:
+                sk = _skills.get(n)
+                if sk is None or sk.memory_entity != entity_id:
+                    continue
+                if entity_id == "user" and not any(
+                    k.strip() and k.strip().lower() in attribute.lower()
+                    for k in (sk.trigger_keywords or "").split(",")
+                ):
+                    continue  # H4：通用实体不能仅凭 entity 相等就抢归属，需属性关键词命中
+                _matched.append(n)
             if len(_matched) == 1:
                 skill_name = _matched[0]
             elif len(_active) == 1 and _skills.get(_active[0]) is not None and not _skills[_active[0]].memory_entity:

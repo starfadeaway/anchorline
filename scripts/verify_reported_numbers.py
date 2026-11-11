@@ -125,7 +125,7 @@ ARM_BY_FILE = {
 LEGACY_REPORTS = {"reports/d_arm_154.md"}  # 第一代产物（有废弃标注），方向检查豁免
 # G7：单主题报告的 p 值可以绑定到文件级对比（句子不必写出臂名）
 FILE_P_BINDINGS = {
-    "reports/m3_d_intent.md": ["D_run3_vs_D_intent"],
+    "reports/m3_d_intent.md": ["D_run3_vs_D_intent", "D_run3_vs_D_run2"],  # H5：两处 p 恰好同为 0.8145
 }
 
 
@@ -145,18 +145,17 @@ def check_file_p_binding(text: str, out: dict, rel: str) -> int:
 
 def _find_comparison(out: dict, a: str, b: str, rel: str = ""):
     """E2/G4：按文件+显式臂映射精确匹配 comparison key。"""
-    mapping = ARM_BY_FILE.get(rel, ARM_FULL)
-    fa = mapping.get(a, a)
-    fb = mapping.get(b, b)
-    for key, row in out.items():
-        parts = key.split("_vs_")
-        if len(parts) != 2:
-            continue
-        left, right = parts
-        if left == fa and right == fb:
-            return row
-        if left == fb and right == fa:  # 反向写法
-            return row
+    # H1：同一文件可能混用两代（m3_summary：表格 run2、解读四行 run3）——先按文件映射，找不到回落默认
+    for mapping in (ARM_BY_FILE.get(rel, {}), ARM_FULL):
+        fa = mapping.get(a, a)
+        fb = mapping.get(b, b)
+        for key, row in out.items():
+            parts = key.split("_vs_")
+            if len(parts) != 2:
+                continue
+            left, right = parts
+            if (left == fa and right == fb) or (left == fb and right == fa):
+                return row
     return None
 
 

@@ -61,3 +61,27 @@ def test_six_digit_p_caught(sandbox):
     assert "0.019520" in text
     p.write_text(text.replace("0.019520", "0.099999", 1), encoding="utf-8")
     assert _verify() == 1
+
+
+def test_hybrid_direction_caught(sandbox):
+    p = sandbox / "reports" / "d_arm_154_hybrid.md"
+    text = p.read_text(encoding="utf-8")
+    assert "−10.39pp" in text
+    p.write_text(text.replace("−10.39pp", "+10.39pp", 1), encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_hybrid_diff_row_caught(sandbox):
+    p = sandbox / "reports" / "d_arm_154_hybrid.md"
+    text = p.read_text(encoding="utf-8")
+    assert "**−0.1039**" in text
+    p.write_text(text.replace("**−0.1039**", "**+0.1039**", 1), encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_file_p_binding_caught(sandbox):
+    p = sandbox / "reports" / "m3_d_intent.md"
+    text = p.read_text(encoding="utf-8")
+    assert "p=0.8145" in text
+    p.write_text(text.replace("p=0.8145", "p=0.0195", 1), encoding="utf-8")
+    assert _verify() == 1

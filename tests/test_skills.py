@@ -211,4 +211,13 @@ def test_build_skills_hint_budget(db):
     assert set_skill(db, "big", True)
     sk = enabled_skills(db)
     hint = build_skills_hint(db, sk, budget=50)
-    assert hint == ""
+    assert "big" in hint and "未注入" in hint  # H7：全部超预算时也要有提示
+
+
+def test_builtin_negative_keywords_wired(db):
+    """H3：内置技能定义里的 negative_keywords 必须经 list_skills 传出来（而不是永远走空/fallback）。"""
+    from anchorline.skills.store import list_skills
+
+    builtin = {s.name: s for s, _on, src in list_skills(db) if src == "builtin"}
+    assert builtin["run_coach"].negative_keywords == "跑步机,跑步鞋"
+    assert "吃苦" in builtin["diet_plan"].negative_keywords

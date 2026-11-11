@@ -34,6 +34,7 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
                     memory_entity=(row.memory_entity if row is not None else None) or s.memory_entity,
                     auto_activate=bool(row.auto_activate) if row is not None else s.auto_activate,
                     trigger_keywords=(row.trigger_keywords if row is not None and row.trigger_keywords else s.trigger_keywords),
+                    negative_keywords=s.negative_keywords,
                 ),
                 bool(row.enabled) if row is not None else False,
                 "builtin",
@@ -237,7 +238,7 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
         total += len(line)
         lines.append(line)
     if not lines:
-        return ""
+        return f"\n（因预算未注入：{', '.join(dropped)}）" if dropped else ""
     note = f"\n（因预算未注入：{', '.join(dropped)}）" if dropped else ""
     return "\n\n已启用的技能（按需使用）：\n" + "\n".join(lines) + note
 
