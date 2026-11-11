@@ -1352,10 +1352,8 @@ def create_skill(body: SkillCreateIn, db: Session = Depends(get_db)) -> SkillOut
 
 @app.put("/skills/{name}", response_model=SkillOut)
 def update_skill(name: str, body: SkillUpdateIn, db: Session = Depends(get_db)) -> SkillOut:
-    from anchorline.skills.store import set_skill, update_custom
-
     from anchorline.skills import SKILL_BY_NAME
-    from anchorline.skills.store import set_builtin_binding
+    from anchorline.skills.store import set_builtin_binding, set_skill, update_custom
 
     if name in SKILL_BY_NAME:
         # 内置技能：只能改绑定（关联记忆/自动激活/关键词），不能改标题/指令
