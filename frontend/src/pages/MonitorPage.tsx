@@ -64,7 +64,7 @@ export default function MonitorPage() {
         <Col span={4}><Card size="small"><Statistic title="会话数" value={sessions.length} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="消息数" value={totalMessages} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="trace（最近50）" value={traces.length} /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="平均 token" value={avgTokens} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="平均 token（估算 chars/4）" value={avgTokens} /></Card></Col>
       </Row>
 
       <Card size="small" title="运行配置" style={{ marginBottom: 12 }}>

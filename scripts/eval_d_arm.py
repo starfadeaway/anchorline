@@ -31,7 +31,7 @@ from anchorline.retrieval.store import open_table  # noqa: E402
 TABLE = "v2_web_states_d"
 OUT_JSON = os.path.join(ROOT, "data", "eval", "d_arm_20.json")
 OUT_MD = os.path.join(ROOT, "reports", "d_arm_pilot.md")
-B_PILOT = os.path.join(ROOT, "data", "eval", "aa_pilot.json")
+B_REF_DEFAULT = os.path.join(ROOT, "data", "eval", "b_arm_154_run3.json")
 
 
 def sign_flip_pvalue(diffs, n_perm: int = 10000, seed: int = 0) -> float:
@@ -51,13 +51,13 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default=None, help="结果 JSON 路径")
     ap.add_argument("--md-out", default=None, help="报告 md 路径")
-    ap.add_argument("--b-ref", default=None, help="B 臂结果 JSON（默认 data/eval/aa_pilot.json）")
+    ap.add_argument("--b-ref", default=None, help="B 臂结果 JSON（默认 data/eval/b_arm_154_run3.json）")
     ap.add_argument("--table", default=TABLE, help="LanceDB 表名（默认 v2_web_states_d）")
     ap.add_argument("--no-db", action="store_true", help="不写 MySQL eval_runs")
     args = ap.parse_args()
     out_json = args.out or OUT_JSON
     out_md = args.md_out or OUT_MD
-    b_ref = args.b_ref or B_PILOT
+    b_ref = args.b_ref or B_REF_DEFAULT
 
     # 与 B 臂共用同一抽样函数，保证同题
     sample = sample_deterministic(limit=args.limit, seed=args.seed)
@@ -85,6 +85,8 @@ def main() -> int:
         print(f"  [{i}/{len(sample)}] {q['id']} scores={scores} {time.time()-t0:.0f}s")
 
     b = json.load(open(b_ref, encoding="utf-8")) if os.path.exists(b_ref) else None
+    if b is not None and len(b.get("per_question", [])) != len(results):
+        print(f"[warn] B 参考题数 {len(b.get('per_question', []))} ≠ 本次结果题数 {len(results)}；配对只取交集")
     b_mean = {row["question_id"]: row["mean"] for row in (b or {}).get("per_question", [])}
 
     pairs = [(r["question_id"], r["mean"], b_mean[r["question_id"]])

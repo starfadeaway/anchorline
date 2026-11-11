@@ -19,6 +19,15 @@ log = logging.getLogger("anchorline.retrieval.facts_index")
 TABLE = "facts_index"
 
 
+def is_ready() -> bool:
+    """向量索引是否可用（表存在）；用于 /settings 如实展示。"""
+    try:
+        db = open_lancedb()
+        return TABLE in _tables(db)
+    except Exception:
+        return False
+
+
 def _tables(db) -> list[str]:
     """兼容 lancedb 新旧 API（list_tables / table_names）。"""
     try:

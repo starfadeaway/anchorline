@@ -331,7 +331,7 @@ export default function ChatPage() {
                 <span>工具 <b>{trace.tool_calls.length}</b></span>
                 <span>失败 <b>{trace.meta?.tool_errors ?? 0}</b></span>
                 <span>耗时 <b>{trace.meta?.duration_ms ?? "—"} ms</b></span>
-                <span>Token <b>{trace.meta?.total_tokens ?? "—"}</b></span>
+                <span>Token（估算） <b>{trace.meta?.total_tokens ?? "—"}</b></span>
                 <span>终止 <b>{trace.stop_reason || "—"}</b></span>
                 <span>Run <b>{trace.trace_id ?? "—"}</b></span>
               </div>
@@ -405,9 +405,9 @@ export default function ChatPage() {
       </div>
 
       <div className="env-bar">
-        <span><span className={`dot ${env?.db_ok ? "ok" : "bad"}`} /><em>索引</em> <b>{env?.db_ok ? "就绪" : "—"}</b></span>
-        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Embedding</em> <b>{env?.embedding_model ?? "—"}</b></span>
-        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Rerank</em> <b>{env?.rerank_model ?? "—"}</b></span>
+        <span><span className={`dot ${env?.index_ready ? "ok" : "bad"}`} /><em>索引</em> <b>{env?.index_ready ? "就绪" : (env ? "未建索引" : "—")}</b></span>
+        <span><span className={`dot ${env?.embedding_model ? "ok" : "bad"}`} /><em>Embedding</em> <b>{env?.embedding_model || "—"}</b></span>
+        <span><span className={`dot ${env?.rerank_model ? "ok" : "bad"}`} /><em>Rerank</em> <b>{env?.rerank_model || "—"}</b></span>
         <span><span className={`dot ${env?.db_ok ? "ok" : "bad"}`} /><em>MySQL</em> <b>{env?.db_ok ? "已连接" : "未连接"}</b></span>
         <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Reader</em> <b>{env?.reader_model ?? "—"}</b></span>
         <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Judge</em> <b>{env?.judge_model ?? "—"}</b></span>

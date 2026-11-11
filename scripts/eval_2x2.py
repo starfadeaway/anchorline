@@ -58,6 +58,8 @@ def compare(name_a: str, a: dict[str, float], name_b: str, b: dict[str, float]) 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default=OUT_JSON, help="结果 JSON 路径")
+    ap.add_argument("--md-out", default=OUT_MD, help="Markdown 路径")
     ap.add_argument("--b", default=os.path.join(ROOT, "data", "eval", "b_arm_154_run3.json"))
     ap.add_argument("--c1", default=os.path.join(ROOT, "data", "eval", "c1_arm_154.json"))
     ap.add_argument("--c2", default=os.path.join(ROOT, "data", "eval", "c2_arm_154.json"))
@@ -85,7 +87,7 @@ def main() -> int:
         },
         "contrasts": pairs,
     }
-    with open(OUT_JSON, "w", encoding="utf-8") as f:
+    with open(args.out, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1)
 
     lines = [
@@ -100,10 +102,10 @@ def main() -> int:
     lines += ["", "| 对比 | 方向 | n | 差 | p |", "|---|---|---|---|---|"]
     for p in pairs:
         lines.append(f"| {p['pair']} | {p['acc_a']:.4f} → {p['acc_b']:.4f} | {p['n']} | {p['diff']:+.4f} | {p['p']:.4f} |")
-    with open(OUT_MD, "w", encoding="utf-8") as f:
+    with open(args.md_out, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     print(json.dumps(summary, ensure_ascii=False, indent=1))
-    print("written:", OUT_JSON, OUT_MD)
+    print("written:", args.out, args.md_out)
     return 0
 
 

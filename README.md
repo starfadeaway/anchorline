@@ -18,7 +18,7 @@
 - **Anchorline = 会话/轨迹的记忆层**：事实级（entity / attribute / value），管冲突、回溯、预算。
 - **LoreKeeper = 游戏 wiki 的知识库**：chunk / 页面级检索问答。
 - 两者的桥接只复用 **检索组件**（BM25 / 向量 / RRF / rerank）在 LoreKeeper 数据集上做对照实验（见 `reports/lorekeeper_bridge.md`），**不是把两个项目合并**。
-- 聊天里的 `memory_search` 只查 Anchorline 的 facts；对 LoreKeeper 知识库的检索是 `kb_search`（规划中）。
+- 聊天里的 `memory_search` 只查 Anchorline 的 facts；对 LoreKeeper 知识库的检索是 `kb_search`（**已接入聊天工具与 MCP**；`LOREKEEPER_ENABLED=false` 可关闭）。
 
 ## 技术栈（已锁定）
 
@@ -35,7 +35,8 @@ src/anchorline/            # 记忆层（L0/L1/L2/L3）、检索（hybrid/facts_
 frontend/                  # React 前端（聊天/记忆/评测/审核/报告/监控/会话管理/设置）
 migrations/                # Alembic（0001 初始 → 0007：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode 等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
-tests/                     # pytest（90 项）
+reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
+tests/                     # pytest（93 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
@@ -62,6 +63,14 @@ dataset/                   # 数据与核验产物（大文件不入库）
 - **M3 评测（同 reader/embedding/判分/4k 预算）**：B 53.9% / C2 57.1% / D 64.9%（154 题，**run2 口径**；B/D 同批、C2 单批；D vs B **p=0.0115**，精确符号翻转）；168 题 run2 B 53.3% vs D 63.6%（p=0.0186）、run3 B 56.3% vs D 64.7%（**p=0.0541 边缘**）；重复运行单题翻转 ~12%，154 上 D>B 两次都显著 → `reports/stability_runs.md`；报告数字由 `scripts/verify_reported_numbers.py` 校验
 - **M3 2×2 因子**：B（a11y×官方切片）/ C2（a11y×L0+L3）/ C1（完整轨迹×官方切片）/ D（完整轨迹×L0+L3），配对检验 → `reports/m3_2x2.md`
 - **LoreKeeper 桥接实验**：48 题页面级召回——纯向量 R@1 0.8542；chunk 级 RRF 单用有害（0.7917）、**RRF+rerank 0.8958（+4.17pp）**；**页面级重排 0.9167**；chunk 级自动 gold 与换向量口径见 `reports/lorekeeper_bridge.md`
+
+## 常见问题
+
+- **前端能打开但接口全 500？** 先确认 MySQL 在跑（`run_all.py` 会预检；失败会直接退出并给提示）。
+- **`kb_search` 总是空？** 需要 `LOREKEEPER_ENABLED=true` 且 `LOREKEEPER_LANCE_DIR` 指向 LoreKeeper 的 LanceDB 目录；未配置时工具返回空是预期行为。
+- **开了 `API_TOKEN` 后页面 401？** 在「设置」页填入同一个 token（只存 localStorage）。
+- **报告数字和 JSON 产物对不上？** 跑 `python scripts/verify_reported_numbers.py`（CI 也用它）。
+- **记忆页首次进入慢？** 分组默认只展开前 2 组（懒渲染）；展开更多组会按需渲染。
 
 ## 快速开始
 

@@ -160,7 +160,7 @@ def list_facts(
     """记忆浏览器：分页列出事实（当前值与历史都返回，valid_to 为空才是当前值）。"""
     from sqlalchemy import select
 
-    stmt = select(Fact).order_by(Fact.created_at.desc()).limit(limit).offset(offset)
+    stmt = select(Fact).order_by(Fact.valid_from.desc(), Fact.created_at.desc()).limit(limit).offset(offset)
     if entity_id:
         stmt = stmt.where(Fact.entity_id == entity_id)
     if attribute:
@@ -1093,6 +1093,7 @@ class SettingsOut(BaseModel):
     embedding_model: str
     rerank_model: str
     budgets: list[int]
+    index_ready: bool = False  # 向量索引（LanceDB）是否可用
     # 聊天模式可切换的 provider（评测模式固定，见 m3_summary）
     minimax_model: str
     minimax_base_url: str
@@ -1157,6 +1158,15 @@ def patch_fact(fact_id: str, body: FactPatch, db: Session = Depends(get_db)) -> 
     return {"fact_id": fact.id}
 
 
+def _index_ready() -> bool:
+    try:
+        from anchorline.retrieval import facts_index
+
+        return facts_index.is_ready()
+    except Exception:
+        return False
+
+
 @app.get("/settings", response_model=SettingsOut)
 def settings_view(db: Session = Depends(get_db)) -> SettingsOut:
     """只读配置（脱敏）：模型名与预算，不含任何 key。"""
@@ -1176,6 +1186,7 @@ def settings_view(db: Session = Depends(get_db)) -> SettingsOut:
         embedding_model=s.siliconflow_embedding_model,
         rerank_model=s.siliconflow_rerank_model,
         budgets=[4000, 8000, 16000],
+        index_ready=_index_ready(),
         minimax_model=s.minimax_model,
         minimax_base_url=s.minimax_base_url,
         chat_models=["deepseek", "minimax"],

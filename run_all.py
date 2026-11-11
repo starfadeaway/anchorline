@@ -50,12 +50,26 @@ def _env_value(key: str, default: str = "") -> str:
     return default
 
 
+def _port_in_use(port: int) -> bool:
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.3)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="同时启动 Anchorline 前后端")
     ap.add_argument("--only", choices=["server", "client"], help="只启动其中一个")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--no-check-db", action="store_true", help="跳过 MySQL 连通性检查")
     args = ap.parse_args()
+
+    if _port_in_use(args.port):
+        print(f"[error] 端口 {args.port} 已被占用；请先停掉旧服务或换 --port")
+        raise SystemExit(1)
+    if args.only != "client" and _port_in_use(5173):
+        print("[warn] 前端端口 5173 已被占用（可能是旧的 vite）")
 
     if not args.no_check_db and args.only != "client":
         try:
@@ -75,7 +89,8 @@ def main() -> None:
             c.close()
             print("[check] MySQL 连接正常")
         except Exception:
-            print("[check] MySQL 连接失败：先启动 mysql80 服务（Start-Service mysql80）")
+            print("[check] MySQL 连接失败：先启动 MySQL 服务（例如 Start-Service mysql80，或用 mysqld 直接启动）")
+        raise SystemExit(1)
 
     procs: list[tuple[str, subprocess.Popen]] = []
     if args.only != "client":

@@ -53,7 +53,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <Card title="设置 / 运行配置" extra={<Button onClick={load}>重新检查</Button>}>
+    <Card title="设置 / 运行配置（只读）" extra={<Button onClick={load}>重新检查</Button>}>
       <Paragraph type="secondary">
         密钥只在本地 <Text code>.env</Text>，前端与接口都不返回 key；这里只展示模型名与预算。
       </Paragraph>
@@ -62,6 +62,7 @@ export default function SettingsPage() {
         <Descriptions bordered size="small" column={1}>
           <Descriptions.Item label="版本">{s.version}</Descriptions.Item>
           <Descriptions.Item label="数据库">{s.db_ok ? <Tag color="green">ok</Tag> : <Tag color="red">不可用</Tag>}</Descriptions.Item>
+          <Descriptions.Item label="向量索引">{s.index_ready ? <Tag color="green">就绪</Tag> : <Tag color="orange">未建索引（检索退回 BM25）</Tag>}</Descriptions.Item>
           <Descriptions.Item label="reader">{s.reader_model || "—"}</Descriptions.Item>
           <Descriptions.Item label="judge">{s.judge_model || "—"}</Descriptions.Item>
           <Descriptions.Item label="embedding">{s.embedding_model || "—"}</Descriptions.Item>

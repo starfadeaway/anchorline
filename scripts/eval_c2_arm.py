@@ -41,6 +41,8 @@ def sign_flip_pvalue(diffs, n_perm: int = 10000, seed: int = 0) -> float:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default=OUT_JSON, help="结果 JSON 路径")
+    ap.add_argument("--md-out", default=OUT_MD, help="Markdown 路径")
     ap.add_argument("--limit", type=int, default=154)
     ap.add_argument("--b-ref", default=B_REF)
     args = ap.parse_args()
@@ -78,7 +80,7 @@ def main() -> int:
         "per_question": rows,
         "elapsed_s": round(time.time() - t0, 1),
     }
-    with open(OUT_JSON, "w", encoding="utf-8") as f:
+    with open(args.out, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1, default=float)
 
     lines = [
@@ -93,11 +95,11 @@ def main() -> int:
         f"| 置换检验 p | **{summary['paired_permutation_pvalue']:.4f}** |\n",
         "> 这是 2×2 设计里「压缩层」的单变量对照：输入模态与检索都相同。",
     ]
-    with open(OUT_MD, "w", encoding="utf-8") as f:
+    with open(args.md_out, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
     print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1, default=float))
-    print("written:", OUT_JSON, OUT_MD)
+    print("written:", args.out, args.md_out)
     from eval_db import write_eval_runs
 
     write_eval_runs("C2", rows, Settings().deepseek_reader_model)
