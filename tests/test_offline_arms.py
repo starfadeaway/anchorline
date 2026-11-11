@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """T10：评测链路的离线单测（不调任何外部 API）。"""
+import os
 import random
+
+import pytest
 
 from anchorline.evaluation import pilot
 from anchorline.evaluation.reader import WEB_SYSTEM_PROMPT, build_messages
@@ -18,6 +21,10 @@ def test_build_messages_empty_context():
     assert "(empty)" in msgs[1]["content"]
 
 
+@pytest.mark.skipif(
+    not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dataset", "v2", "questions.jsonl")),
+    reason="dataset/ 未入库（fresh clone 无题池）",
+)
 def test_sample_deterministic_stable_and_no_global_rng_pollution():
     before = random.random()
     a = pilot.sample_deterministic(5, seed=42)
