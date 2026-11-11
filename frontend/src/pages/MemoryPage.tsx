@@ -1,6 +1,6 @@
 import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Checkbox, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Tooltip, Typography, message } from "antd";
-import { DeleteOutlined, DownloadOutlined, HistoryOutlined, StopOutlined } from "@ant-design/icons";
+import { Alert, Button, Card, Checkbox, Collapse, Drawer, Dropdown, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
+import { DeleteOutlined, DownloadOutlined, EditOutlined, HistoryOutlined, StopOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
 import { topicOfText } from "../topics";
 
@@ -21,12 +21,15 @@ function formatRelative(iso: string, now: Date): string {
   const abs = Math.abs(diff);
   const past = diff >= 0;
   const suffix = past ? "前" : "后";
+  const minutes = Math.floor(abs / 60_000);
+  const hours = Math.floor(abs / 3_600_000);
+  const days = Math.floor(abs / 86_400_000);
   if (abs < 60_000) return "刚刚";
-  if (abs < 3_600_000) return `${Math.round(abs / 60_000)} 分钟${suffix}`;
-  if (abs < 86_400_000) return `${Math.round(abs / 3_600_000)} 小时${suffix}`;
-  if (abs < 30 * 86_400_000) return `${Math.round(abs / 86_400_000)} 天${suffix}`;
-  if (abs < 365 * 86_400_000) return `${Math.round(abs / (30 * 86_400_000))} 个月${suffix}`;
-  return `${(abs / (365 * 86_400_000)).toFixed(1)} 年${suffix}`;
+  if (hours < 1) return `${minutes} 分钟${suffix}`;        // 59m59s → 59 分钟前（不再进位成 60）
+  if (days < 1) return `${hours} 小时${suffix}`;           // 23.5h → 23 小时前（不再进位成 24）
+  if (days < 30) return `${days} 天${suffix}`;
+  if (days < 365) return `${Math.floor(days / 30.44)} 个月${suffix}`;  // 364 天 → 11 个月
+  return `${(days / 365).toFixed(1)} 年${suffix}`;
 }
 
 function topicOfFact(f: Fact): string {
@@ -113,16 +116,22 @@ export default function MemoryPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportSelected, setExportSelected] = useState<string[]>([]);
+  const [forgetOpen, setForgetOpen] = useState(false);
+  const [forgetEntity, setForgetEntity] = useState("user");
+  const [forgetAttr, setForgetAttr] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
   const [error, setError] = useState("");
   const [form] = Form.useForm();
   const [hoverBar, setHoverBar] = useState<TraceRow | null>(null);
-  const [capacity, setCapacity] = useState<{ limit: number; total_current: number } | null>(null);
+  const [capacity, setCapacity] = useState<{ limit: number; total_current: number; total_all: number } | null>(null);
 
   const load = () =>
     Promise.all([api.facts(), api.capacity()])
       .then(([rows, c]) => {
         setFacts(rows);
-        setCapacity({ limit: c.limit, total_current: c.total_current });
+        setCapacity({ limit: c.limit, total_current: c.total_current, total_all: c.total_all ?? c.total_current });
         setError("");
       })
       .catch((e) => setError(String(e)));
@@ -183,6 +192,57 @@ export default function MemoryPage() {
         void load();
       },
     });
+
+  const purgeStale = () => {
+    const n = stale;
+    const g = groups.filter(([, rows]) => rows.some((f) => f.valid_to)).length;
+    Modal.confirm({
+      title: "清空所有已失效记忆？",
+      content: `将物理删除 ${n} 条失效记忆（涉及 ${g} 个分组）。此操作不可恢复；只想停用请用「失效」。`,
+      okText: `确认删除 ${n} 条`,
+      okButtonProps: { danger: true },
+      cancelText: "取消",
+      onOk: async () => {
+        const r = await api.purgeStaleFacts();
+        message.success(`已清理 ${r.deleted} 条失效记忆`);
+        void load();
+      },
+    });
+  };
+
+  const openEdit = (r: Fact) => {
+    setEditId(r.id);
+    setEditValue(r.value);
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editId) return;
+    try {
+      await api.patchFact(editId, { value: editValue });
+      message.success("已更新该事实的值（索引已同步）");
+      setEditOpen(false);
+      void load();
+    } catch (e) {
+      message.error(`更新失败：${String(e)}`);
+    }
+  };
+
+  const saveForget = async () => {
+    if (!forgetEntity.trim() || !forgetAttr.trim()) {
+      message.warning("实体和属性都要填");
+      return;
+    }
+    try {
+      await api.forget({ entity_id: forgetEntity.trim(), attribute: forgetAttr.trim() });
+      message.success("已把该实体+属性的当前值标记为失效（历史保留）");
+      setForgetOpen(false);
+      setForgetAttr("");
+      void load();
+    } catch (e) {
+      message.error(`忘记失败：${String(e)}`);
+    }
+  };
 
   const deleteFact = (r: Fact) =>
     Modal.confirm({
@@ -274,8 +334,9 @@ export default function MemoryPage() {
               color: "var(--neon)",
             }}
           />
+          <Button title="编辑值" icon={<EditOutlined />} onClick={() => openEdit(r)} />
           <Button title={r.valid_to ? "已失效" : "标记失效"} danger icon={<StopOutlined />} disabled={!!r.valid_to} onClick={() => invalidateFact(r)} />
-          <Button title="彻底删除" danger icon={<DeleteOutlined />} onClick={() => deleteFact(r)} />
+          <Button title="彻底删除（不可恢复）" type="text" icon={<DeleteOutlined />} onClick={() => deleteFact(r)} />
         </div>
       ),
     },
@@ -288,25 +349,21 @@ export default function MemoryPage() {
         <Space>
           <Input.Search placeholder="按实体/属性/值过滤" allowClear onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
           <Button type="primary" onClick={() => setAddOpen(true)}>新增事实</Button>
-          <Button
-            danger
-            onClick={() =>
-              Modal.confirm({
-                title: "清空所有已失效记忆？",
-                content: "物理删除所有 valid_to 已设置的旧值（当前值保留）。用于控制存储量。",
-                okText: "清空",
-                okButtonProps: { danger: true },
-                cancelText: "取消",
-                onOk: async () => {
-                  const r = await api.purgeStaleFacts();
-                  message.success(`已清理 ${r.deleted} 条失效记忆`);
-                  void load();
-                },
-              })
-            }
+          <Dropdown
+            menu={{
+              items: [
+                { key: "purge", label: `清空失效（${stale} 条，不可恢复）`, danger: true },
+                { type: "divider" },
+                { key: "forget", label: "忘记（按实体 + 属性）" },
+              ],
+              onClick: ({ key }: { key: string }) => {
+                if (key === "purge") purgeStale();
+                if (key === "forget") setForgetOpen(true);
+              },
+            }}
           >
-            清空失效
-          </Button>
+            <Button>维护</Button>
+          </Dropdown>
           <Button icon={<DownloadOutlined />} onClick={() => { setExportSelected(groups.map(([t]) => t)); setExportOpen(true); }}>导出 Markdown</Button>
           <Button onClick={() => void load()}>刷新</Button>
         </Space>
@@ -332,7 +389,7 @@ export default function MemoryPage() {
           showIcon
           style={{ marginBottom: 12 }}
           message={capacity.total_current >= capacity.limit * 0.9 ? "记忆容量接近上限" : "记忆容量正常"}
-          description={`当前值 ${capacity.total_current} 条 / 每实体上限 ${capacity.limit} 条。超出上限时自动归档最旧或最低置信度的值（标记失效，不删除、可追溯）。`}
+          description={`当前值 ${capacity.total_current} 条 / 事实总数 ${capacity.total_all} 条（含失效）；每实体上限 ${capacity.limit} 条。超出上限时自动归档最旧或最低置信度的值（标记失效，不删除、可追溯）。`}
         />
       )}
 
@@ -426,6 +483,19 @@ export default function MemoryPage() {
           }))}
         />
       </Drawer>
+
+      <Modal open={editOpen} onCancel={() => setEditOpen(false)} title="编辑事实的值" okText="保存" onOk={() => void saveEdit()}>
+        <Input.TextArea value={editValue} onChange={(e) => setEditValue(e.target.value)} autoSize={{ minRows: 2, maxRows: 6 }} />
+        <Text type="secondary" style={{ fontSize: 12 }}>只改值；历史链不变，保存后索引会同步。</Text>
+      </Modal>
+
+      <Modal open={forgetOpen} onCancel={() => setForgetOpen(false)} title="忘记：把实体+属性的当前值标记失效" okText="标记失效" onOk={() => void saveForget()}>
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Input addonBefore="实体" value={forgetEntity} onChange={(e) => setForgetEntity(e.target.value)} placeholder="user" />
+          <Input addonBefore="属性" value={forgetAttr} onChange={(e) => setForgetAttr(e.target.value)} placeholder="如 5K 最好成绩" />
+          <Text type="secondary" style={{ fontSize: 12 }}>不会物理删除；历史仍可在「历史」里追溯。</Text>
+        </Space>
+      </Modal>
 
       <Modal open={exportOpen} onCancel={() => setExportOpen(false)} title="选择要导出的分组" okText="导出选中" onOk={() => exportMarkdown(exportSelected)}>
         <Checkbox.Group

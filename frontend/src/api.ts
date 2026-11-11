@@ -93,6 +93,7 @@ export type SettingsOut = {
 export type Capacity = {
   limit: number;
   total_current: number;
+  total_all: number;
   entities: { entity_id: string; current: number; stale: number }[];
 };
 

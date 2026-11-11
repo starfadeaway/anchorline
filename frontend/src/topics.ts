@@ -23,13 +23,13 @@ export function topicOfText(text: string): string {
   const s = text.toLowerCase();
   if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(s)) return TOPIC.swim;
   if (/乒乓球|羽毛球|网球|篮球|足球|排球|台球|球类/.test(s)) return TOPIC.ball;
-  if (/5k|跑步|配速|半马|全马|\bpb\b|跑/.test(s)) return TOPIC.run;
+  if (/5k|跑步|晨跑|夜跑|赛跑|配速|半马|全马|\bpb\b/.test(s)) return TOPIC.run;
   if (/健身|骑行|瑜伽|增肌|力量训练/.test(s)) return TOPIC.fitness;
   if (/体重|身高|体脂|睡眠|心率|health/.test(s)) return TOPIC.health;
   if (/模型|model|大模型|大肥鱼|deepseek|minimax/i.test(s)) return TOPIC.model;
   if (/游戏|遗器|太空封印|崩铁|星穹|原神|绝区零|抽卡|角色|技能|副本|深渊|配队/.test(s)) return TOPIC.game;
-  if (/饮食|米饭|咖啡|早餐|午餐|晚餐|口味|吃|食物/.test(s)) return TOPIC.diet;
-  if (/宠物|猫|狗|鱼|豆豆|大肥鱼/.test(s)) return TOPIC.pet;
+  if (/饮食|米饭|咖啡|早餐|午餐|晚餐|口味|爱吃|喜欢吃|吃饭|吃素|吃肉|食物|食谱/.test(s)) return TOPIC.diet;
+  if (/宠物|猫|狗|豆豆|仓鼠|鹦鹉|兔子/.test(s)) return TOPIC.pet;
   if (/旅行|旅游|云南|大理|丽江|景点/.test(s)) return TOPIC.travel;
   if (/出差|成都|会议/.test(s)) return TOPIC.trip;
   if (/工作|项目|开发|实现|anchorline|lorekeeper/.test(s)) return TOPIC.work;

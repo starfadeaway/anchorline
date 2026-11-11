@@ -136,6 +136,12 @@ export default function ChatPage() {
     // 先插入空的 assistant 占位，token 事件到达时逐字填充（打字机效果）
     const withPlaceholder = [...next, { role: "assistant" as const, content: "", created_at: new Date().toISOString() }];
     setMessages(withPlaceholder);
+    let acc = "";
+    let rafId: number | null = null;
+    const flush = () => {
+      rafId = null;
+      setMessages([...next, { role: "assistant", content: acc, created_at: new Date().toISOString() }]);
+    };
     try {
       const token = window.localStorage.getItem("anchorline-token");
       const resp = await fetch("/api/chat/stream", {
@@ -166,7 +172,8 @@ export default function ChatPage() {
             const data = JSON.parse(dataRaw) as Record<string, unknown>;
             if (ev === "token") {
               acc += String(data.text ?? "");
-              setMessages([...next, { role: "assistant", content: acc, created_at: new Date().toISOString() }]);
+              // 每 token 全量重渲染会卡；用 rAF 合并到每帧一次（X22）
+              if (rafId === null) rafId = window.requestAnimationFrame(flush);
             } else if (ev === "final") {
               final = data as unknown as ChatResp;
             } else if (ev === "error") {
@@ -176,12 +183,26 @@ export default function ChatPage() {
           sep = buf.indexOf("\n\n");
         }
       }
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       if (!final) throw new Error("流提前结束（没有 final 事件）");
       setMessages([...next, { role: "assistant", content: final.answer || acc || "(空回答)", created_at: new Date().toISOString() }]);
       setTrace(final);
       if (!active && final.session_id) setActive(final.session_id);
       void loadSessions();
     } catch (e) {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      // X21：已经收到部分内容时不再回退非流式（否则模型调两次、trace 双写、token 翻倍）
+      if (acc) {
+        setMessages([...next, { role: "assistant", content: acc, created_at: new Date().toISOString() }]);
+        setError(`流式中断：${String(e)}（已保留收到的内容，不会重新生成）`);
+        message.error(`流式中断：${String(e)}`);
+      } else {
       // 流式失败回退非流式（不重复占位消息）
       try {
         const resp = await api.chat(next, { model, sessionId: active });
@@ -193,6 +214,7 @@ export default function ChatPage() {
         setMessages(next);
         setError(String(e2));
         message.error(`发送失败：${String(e2)}`);
+      }
       }
     } finally {
       setBusy(false);
@@ -323,7 +345,8 @@ export default function ChatPage() {
               placeholder="输入消息，Enter 发送，Shift+Enter 换行"
               onChange={(e) => setInput(e.target.value)}
               onPressEnter={(e) => {
-                if (!e.shiftKey) {
+                // 中文输入法选词期间的回车不是"发送"（X20）
+                if (!e.shiftKey && !(e.nativeEvent as KeyboardEvent).isComposing) {
                   e.preventDefault();
                   void send();
                 }

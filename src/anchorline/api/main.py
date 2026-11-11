@@ -153,7 +153,7 @@ class FactOut(BaseModel):
 def list_facts(
     entity_id: str | None = None,
     attribute: str | None = None,
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(default=200, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[FactOut]:
@@ -293,6 +293,7 @@ class CapacityEntity(BaseModel):
 class CapacityOut(BaseModel):
     limit: int
     total_current: int
+    total_all: int = 0
     entities: list[CapacityEntity]
 
 
@@ -317,6 +318,7 @@ def memory_capacity(db: Session = Depends(get_db)) -> CapacityOut:
     return CapacityOut(
         limit=limit,
         total_current=sum(v[0] for v in stats.values()),
+        total_all=sum(v[0] + v[1] for v in stats.values()),
         entities=[
             CapacityEntity(entity_id=e, current=v[0], stale=v[1])
             for e, v in sorted(stats.items(), key=lambda kv: -kv[1][0])
@@ -564,13 +566,13 @@ def _topic_of_text(text: str) -> str:
         (r"mcp|test|check", "测试数据"),
         (r"游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim", "游泳记录"),
         (r"乒乓球|羽毛球|网球|篮球|足球|排球|台球|球类", "球类运动"),
-        (r"5k|跑步|配速|半马|全马|\bpb\b|跑", "跑步记录"),
+        (r"5k|跑步|晨跑|夜跑|赛跑|配速|半马|全马|\bpb\b", "跑步记录"),
         (r"健身|骑行|瑜伽|增肌|力量训练", "健身记录"),
         (r"体重|身高|体脂|睡眠|心率|health", "身体数据"),
         (r"模型|model|大模型|大肥鱼|deepseek|minimax", "模型与配置"),
         (r"游戏|遗器|太空封印|崩铁|星穹|原神|绝区零|抽卡|角色|技能|副本|深渊|配队", "游戏"),
-        (r"饮食|米饭|咖啡|早餐|午餐|晚餐|口味|吃|食物", "饮食偏好"),
-        (r"宠物|猫|狗|鱼|豆豆|大肥鱼", "宠物"),
+        (r"饮食|米饭|咖啡|早餐|午餐|晚餐|口味|爱吃|喜欢吃|吃饭|吃素|吃肉|食物|食谱", "饮食偏好"),
+        (r"宠物|猫|狗|豆豆|仓鼠|鹦鹉|兔子", "宠物"),
         (r"旅行|旅游|云南|大理|丽江|景点", "旅行"),
         (r"出差|成都|会议", "出差"),
         (r"工作|项目|开发|实现|anchorline|lorekeeper", "工作"),
@@ -678,7 +680,7 @@ class MessageOut(BaseModel):
 
 
 @app.get("/sessions", response_model=list[SessionOut])
-def list_sessions(limit: int = Query(default=200, ge=1, le=500), db: Session = Depends(get_db)) -> list[SessionOut]:
+def list_sessions(limit: int = Query(default=200, ge=1, le=1000), db: Session = Depends(get_db)) -> list[SessionOut]:
     """聊天会话列表（左侧栏）；标题取首条 user 消息。"""
     rows = list(
         db.scalars(
@@ -766,7 +768,7 @@ def session_traces(session_id: str, db: Session = Depends(get_db)) -> list[Trace
 
 
 @app.get("/traces", response_model=list[TraceOut])
-def list_traces(limit: int = Query(default=20, ge=1, le=200), db: Session = Depends(get_db)) -> list[TraceOut]:
+def list_traces(limit: int = Query(default=20, ge=1, le=1000), db: Session = Depends(get_db)) -> list[TraceOut]:
     """全局最近 trace（记忆页画资源消耗图表用）。"""
     rows = list(db.scalars(select(Trace).order_by(Trace.id.desc()).limit(limit)))
     return [_trace_out(r) for r in rows]
@@ -1028,13 +1030,13 @@ def create_review_decision(body: ReviewDecisionIn, db: Session = Depends(get_db)
 
 
 @app.get("/review/decisions", response_model=list[ReviewDecisionOut])
-def list_review_decisions(limit: int = Query(default=50, ge=1, le=200), db: Session = Depends(get_db)) -> list[ReviewDecisionOut]:
+def list_review_decisions(limit: int = Query(default=200, ge=1, le=1000), db: Session = Depends(get_db)) -> list[ReviewDecisionOut]:
     rows = list(db.scalars(select(ReviewDecision).order_by(ReviewDecision.created_at.desc()).limit(limit)))
     return [_decision_out(d) for d in rows]
 
 
 @app.get("/review/conflicts", response_model=list[ConflictEntity])
-def review_conflicts(limit: int = Query(default=200, ge=1, le=500), db: Session = Depends(get_db)) -> list[ConflictEntity]:
+def review_conflicts(limit: int = Query(default=200, ge=1, le=1000), db: Session = Depends(get_db)) -> list[ConflictEntity]:
     """审核队列：同一实体下「属性关键词重叠」的多个当前值（疑似冲突），供人工裁决。"""
     rows = list(
         db.scalars(select(Fact).where(Fact.valid_to.is_(None)).order_by(Fact.entity_id, Fact.attribute))

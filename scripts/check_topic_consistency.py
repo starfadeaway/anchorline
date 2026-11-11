@@ -92,8 +92,23 @@ def front_canonical(topic: str) -> str:
     return front_topic_of_text(t)
 
 
+def read_topics_ts() -> str:
+    path = os.path.join(ROOT, "frontend", "src", "topics.ts")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"前端词表文件不存在：{path}")
+    return open(path, encoding="utf-8").read()
+
+
 def main() -> int:
     from anchorline.api.main import _canonical_topic
+
+    ts = read_topics_ts()
+    required = ["模型与配置", "游戏", "跑步记录", "游泳记录", "球类运动", "饮食偏好", "宠物", "旅行", "出差", "工作", "其他"]
+    missing = [x for x in required if x not in ts]
+    if missing:
+        print(f"topics.ts 缺少词表项：{missing}")
+        return 1
+    print(f"topics.ts 词表项齐全（{len(required)} 项）；开始前后端对照：")
 
     samples = [
         "跑步",

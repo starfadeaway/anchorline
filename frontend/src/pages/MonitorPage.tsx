@@ -12,10 +12,11 @@ export default function MonitorPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
   const [error, setError] = useState("");
+  const [metricsDown, setMetricsDown] = useState(false);
 
   useEffect(() => {
     api.health().then(setHealth).catch((e) => setError(String(e)));
-    api.metrics().then(setMetrics).catch(() => setMetrics(null));
+    api.metrics().then((m) => { setMetrics(m); setMetricsDown(false); }).catch(() => { setMetrics(null); setMetricsDown(true); });
     api.settings().then(setEnv).catch(() => setEnv(null));
     api.listSessions().then(setSessions).catch(() => setSessions([]));
     api
@@ -47,14 +48,19 @@ export default function MonitorPage() {
         <Text code>/sessions</Text> 与 <Text code>/traces</Text>。
       </Paragraph>
       {error && <Paragraph type="danger">{error}</Paragraph>}
+      {metricsDown && (
+        <Paragraph type="warning">
+          <b>指标接口不可用</b>：/metrics 请求失败，下方延迟/错误率/QPS 显示为「—」（不是 0）。监控数据缺失时不要把它当作“系统空闲”。
+        </Paragraph>
+      )}
       <Row gutter={[12, 12]} style={{ marginBottom: 14 }}>
         <Col span={4}><Card size="small"><Statistic title="服务" value={health?.status ?? "—"} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="数据库" value={health?.db ? "正常" : "异常"} /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="p50 延迟" value={metrics?.p50_ms ?? 0} suffix="ms" /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="p95 延迟" value={metrics?.p95_ms ?? 0} suffix="ms" /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="错误率" value={((metrics?.error_rate ?? 0) * 100).toFixed(2)} suffix="%" /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="QPS" value={metrics?.qps ?? 0} /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="采样请求" value={metrics?.n ?? 0} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="p50 延迟" value={metrics ? metrics.p50_ms : "—"} suffix={metrics ? "ms" : undefined} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="p95 延迟" value={metrics ? metrics.p95_ms : "—"} suffix={metrics ? "ms" : undefined} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="错误率" value={metrics ? (metrics.error_rate * 100).toFixed(2) : "—"} suffix={metrics ? "%" : undefined} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="QPS" value={metrics ? metrics.qps : "—"} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="采样请求" value={metrics ? metrics.n : "—"} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="会话数" value={sessions.length} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="消息数" value={totalMessages} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="trace（最近50）" value={traces.length} /></Card></Col>
