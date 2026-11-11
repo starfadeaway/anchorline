@@ -19,3 +19,10 @@
 
 - ADR-003 / ADR-004 ✅ 已落（2026-11-11）
 - ADR-000 ✅ MIT（`LICENSE` 已创建，可补 `NOTICE`）
+
+
+## 口径备注
+
+- **token 估算口径**：仓库里 chars/4 只是预算近似（不是模型 tokenizer）；	otal_tokens 等字段为字符数/4 的估计值。
+  报告里的「4k 预算」是名义值，三臂同口径比较成立，绝对值需用真实 tokenizer 复核（已知局限）。
+- **p 值口径**：scripts/eval_stats.py 的精确符号翻转（与 numpy 版本/seed 无关）；报告数字由 scripts/verify_reported_numbers.py 校验。

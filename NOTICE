@@ -1,0 +1,7 @@
+Anchorline
+Copyright (c) 2026 Anchorline contributors
+
+This product includes third-party software and data:
+- FastAPI, SQLAlchemy, Alembic, LangGraph, LanceDB, rank_bm25, jieba,
+  React, Ant Design, Vite, Playwright — under their respective licenses.
+- Datasets and their licenses: see docs/DATASET_LICENSES.md.
