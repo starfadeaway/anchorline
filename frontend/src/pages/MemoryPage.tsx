@@ -448,11 +448,26 @@ export default function MemoryPage() {
             return {
               key: topic,
               label: (
-                <Space size={10}>
+                <Space size={10} wrap>
                   <Text strong>{topic}</Text>
                   <Tag>{rows.length} 条</Tag>
                   <Tag color="green">{cur} 当前</Tag>
                   {st > 0 && <Tag>{st} 失效</Tag>}
+                  {(() => {
+                    // 每个分组右侧显示来源会话 id（去重；hover 看完整 id，可在搜索框用该 id 过滤）
+                    const sids = [...new Set(rows.map((f) => f.source_session_id).filter(Boolean) as string[])];
+                    if (sids.length === 0) return <Tag title="该组事实没有来源会话">无来源会话</Tag>;
+                    return (
+                      <>
+                        {sids.slice(0, 2).map((sid) => (
+                          <Tag key={sid} title={`完整会话 id：${sid}`} color="blue">
+                            会话 {sid.slice(0, 8)}
+                          </Tag>
+                        ))}
+                        {sids.length > 2 && <Tag title={sids.slice(2).map((s) => s.slice(0, 8)).join("、")}>+{sids.length - 2}</Tag>}
+                      </>
+                    );
+                  })()}
                 </Space>
               ),
               children: (
