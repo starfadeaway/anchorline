@@ -41,7 +41,10 @@ def test_ingest_dedupes_across_states_and_writes_trace(db):
     rows = db.query(Trace).all()
     assert len(rows) == 1
     assert rows[0].layers == "L0>L1"
-    assert rows[0].session_id == "abc12345"
+    # 摄入的是轨迹不是会话：session_id 留空，避免污染会话轨迹列表
+    assert rows[0].session_id is None
+    # 摄入阶段没有向模型注入上下文，used_tokens 记 0
+    assert rows[0].used_tokens == 0
 
 
 def test_ingest_empty_trajectory_is_safe(db):

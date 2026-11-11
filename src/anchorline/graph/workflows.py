@@ -50,10 +50,12 @@ def build_ingest_graph(db: Session):
 
     def persist(state: IngestState) -> dict:
         trace = Trace(
-            session_id=state["traj_id"][:32],
+            # 摄入的是轨迹（不是聊天会话）：session_id 留空，避免污染会话轨迹列表
+            session_id=None,
             query=f"ingest:{state['traj_id']}",
             budget_tokens=0,
-            used_tokens=len(state["l1_text"]) // 4,
+            # 摄入阶段没有向模型注入上下文；used_tokens 记 0（此前误记 L1 文本长度）
+            used_tokens=0,
             layers="L0>L1",
             injected_fact_ids=None,
         )

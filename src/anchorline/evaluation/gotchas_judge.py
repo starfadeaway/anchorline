@@ -87,12 +87,13 @@ def parse_binary_judgement(text: str) -> tuple[int, str] | None:
     return None
 
 
-def judge_gotchas(judge, question: str, reference_answer: str, answer: str) -> dict:
+def judge_gotchas(judge, question: str, reference_answer: str, answer: str, full_response: str | None = None) -> dict:
     """用 judge 客户端判一道 gotchas 题；返回 {label, reason, prompt_sha256}。
 
     judge 需有 `.complete(messages, max_tokens=...)` 方法（ChatClient）。
     """
-    messages = build_gotchas_messages(question, reference_answer, answer, answer)
+    # full_response = 模型完整输出（含推理）；answer = 提取后的最终答案。当前调用方只有最终答案时两者相同。
+    messages = build_gotchas_messages(question, reference_answer, full_response or answer, answer)
     text = judge.complete(messages, temperature=0.0, max_tokens=512)
     parsed = parse_binary_judgement(text)
     if parsed is None:

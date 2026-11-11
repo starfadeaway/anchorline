@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     # --- optional knowledge base (LoreKeeper bridge) ---
     # 打开后聊天 agent 多一个 kb_search 工具，查 LoreKeeper 的 chunk 索引；记忆仍走 memory_*
     lorekeeper_enabled: bool = True
-    lorekeeper_lance_dir: str = r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper\data\lance"
+    lorekeeper_lance_dir: str = ""  # 由 LOREKEEPER_LANCE_DIR 提供；空 = 知识库未配置
     lorekeeper_embed_model: str = "BAAI/bge-m3"
 
     @property

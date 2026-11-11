@@ -61,12 +61,16 @@ def main() -> None:
         try:
             import pymysql
 
+            sys.path.insert(0, str(ROOT / "src"))
+            from anchorline.config import Settings
+
+            s = Settings(_env_file=str(ROOT / ".env"))
             c = pymysql.connect(
-                host=_env_value("MYSQL_HOST", "127.0.0.1"),
-                port=int(_env_value("MYSQL_PORT", "3306")),
-                user=_env_value("MYSQL_USER", "root"),
-                password=_env_value("MYSQL_PASSWORD", ""),
-                database=_env_value("MYSQL_DATABASE", "anchorline"),
+                host=s.mysql_host,
+                port=s.mysql_port,
+                user=s.mysql_user,
+                password=s.mysql_password,
+                database=s.mysql_database,
             )
             c.close()
             print("[check] MySQL 连接正常")

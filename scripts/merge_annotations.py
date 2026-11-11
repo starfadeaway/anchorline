@@ -86,7 +86,9 @@ def main() -> int:
         "by_query_form": dict(cnt),
         "layer_1a_current": len(current),
         "layer_1b_retrospective": len(retro),
-        "layer_1c_abstention": 6,
+        "layer_1c_abstention": sum(1 for r in merged if r.get("is_abstention")),
+        "abstention_excluded_ids": [],  # 待补：1c 拒答变体从 78 题剔除，原清单未入库（技术债）
+        "abstention_note": "1c 的 6 道 _abs 变体被剔除，不在 72 行 gold 里；is_abstention 行数应为 0",
         "stale_value_placeholder_ids": placeholder,
         "stale_value_null_ids": null_stale,
         "stale_fact_rate_denominator": stale_eff,

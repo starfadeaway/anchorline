@@ -120,7 +120,7 @@ jobs:
       MYSQL_PORT: "3306"
       MYSQL_DATABASE: "anchorline"
       MYSQL_USER: "root"
-      MYSQL_PASSWORD: "placeholder-local-password"
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD || 'placeholder-local-password' }}
       LOREKEEPER_ENABLED: "false"
       DEEPSEEK_API_KEY: "dummy-for-e2e"
       SILICONFLOW_API_KEY: "dummy-for-e2e"

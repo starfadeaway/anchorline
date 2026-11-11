@@ -166,8 +166,14 @@ def main() -> int:
 
     b_rows = [{"question_id": q, "mean": b_scores[q]} for q in common]
     d_rows = [{"question_id": q, "mean": d_scores[q]} for q in common]
-    write_eval_runs("B", b_rows, Settings().deepseek_reader_model, benchmark="v2-web-168")
-    write_eval_runs("D", d_rows, Settings().deepseek_reader_model, benchmark="v2-web-168")
+    judge_kw = {
+        "benchmark": "v2-web-168",
+        "judge_model": summary.get("judge_model") or Settings().deepseek_judge_model,
+        "judge_prompt_sha256": summary.get("judge_prompt_sha256"),
+        "scoring_mode": "judge",
+    }
+    write_eval_runs("B", b_rows, Settings().deepseek_reader_model, **judge_kw)
+    write_eval_runs("D", d_rows, Settings().deepseek_reader_model, **judge_kw)
     return 0
 
 

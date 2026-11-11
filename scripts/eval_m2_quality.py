@@ -23,7 +23,7 @@ from anchorline.llm import reader_client  # noqa: E402
 KU = os.path.join(ROOT, "data", "annotations", "ku72.jsonl")
 MD_DIR = os.path.join(ROOT, "dataset", "v1", "minimax-package", "questions")
 OUT_JSON = os.path.join(ROOT, "data", "eval", "m2_quality.json")
-OUT_MD = os.path.join(ROOT, "docs", "m2_quality.md")
+OUT_MD = os.path.join(ROOT, "reports", "m2_quality.md")
 
 SYS = "你是 LongMemEval-S knowledge-update 的标注器。只输出 JSON，不要解释。"
 
@@ -121,6 +121,7 @@ def main() -> int:
         json.dump({"summary": summary, "rows": results}, f, ensure_ascii=False, indent=1)
 
     lines = [
+        f"> 样本量 n = {len(results)}（缺失输入会在报告里显示 0，请核对）\n",
         "# M2 记忆质量评测（V1 72 题 gold）\n",
         "> 用 V1 的 72 题 gold 检验“系统自动判定”与人工标注的一致率；不新标、不改 gold。\n",
         "| 指标 | 一致率 |",
