@@ -40,12 +40,14 @@ export default function SettingsPage() {
     setColor(neon);
     localStorage.setItem(THEME_KEY, neon);
     applyTheme(neon, neon2);
+    window.dispatchEvent(new Event("anchorline-theme-changed"));
     message.success("主题色已应用");
   };
 
   const restore = () => {
     localStorage.removeItem(THEME_KEY);
     applyTheme("#00d4ff", "#7c5cff");
+    window.dispatchEvent(new Event("anchorline-theme-changed"));
     setColor("#00d4ff");
     message.success("已恢复默认主题");
   };
@@ -79,7 +81,7 @@ export default function SettingsPage() {
             const m = String(v);
             setMode(m);
             localStorage.setItem("anchorline-mode", m);
-            window.location.reload();
+            window.dispatchEvent(new Event("anchorline-theme-changed"));
           }}
           options={[
             { label: "夜间", value: "dark" },

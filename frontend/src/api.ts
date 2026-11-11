@@ -219,7 +219,7 @@ export const api = {
       }),
       240_000,
     ),
-  listSessions: () => json<ChatSession[]>("/api/sessions"),
+  listSessions: (limit = 200) => json<ChatSession[]>(`/api/sessions?limit=${limit}`),
   createSession: () => json<{ id: string }>("/api/sessions", post({})),
   sessionMessages: (id: string) => json<SessionMessage[]>(`/api/sessions/${id}/messages`),
   deleteFact: (id: string) => json<{ deleted: string }>(`/api/memory/facts/${id}`, { method: "DELETE" }),

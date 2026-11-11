@@ -66,8 +66,8 @@ export default function EvalPage() {
           <div style={{ lineHeight: 1.8 }}>
             <div>· 固定配置：reader <Text code>deepseek-flash</Text>、embedding <Text code>Qwen3-Embedding-8B</Text>、官方判分、4k 预算、top-6、1 次/题。</div>
             <div>· <b>B</b> = 官方基线（a11y 切片，不去重）；<b>C2</b> = a11y-only + L0 去重；<b>D</b> = 完整轨迹 + L0。</div>
-            <div>· 154 题确定性判分；168 题 = 154 + 14 道 LLM judge（prompt 冻结，3 题判分失败已排除）。</div>
-            <div>· A/A 噪声底：配对 |Δ| 均值 <b>6.3pp</b>（20 题 × 10 次）；差异需超过它才可称提升。</div>
+            <div>· 154 题确定性判分；名义 168 题 = 154 + 14 道 LLM judge（prompt 冻结）；judge 解析失败的题从两臂剔除 → run2 实际 165、run3 实际 167。</div>
+            <div>· 判读口径：用同臂复跑差（154 题：B +3.25pp / D +1.30pp）作为噪声参照，且需配对检验；旧「A/A 6.3pp（B 臂 20 题、17 题恒 0）」只代表 B 臂题内不稳定率，不再作为主阈值。</div>
             <div>· 不进入官方 leaderboard；只报同配置下的相对结果。</div>
           </div>
         }
@@ -83,8 +83,8 @@ export default function EvalPage() {
               <>
                 <Table rowKey={(r) => `${r.arm}-${r.source}`} size="small" dataSource={rows} columns={armColumns} pagination={false} />
                 <div style={{ marginTop: 12 }}>
-                  <Tag color="blue">A/A 噪声底</Tag>
-                  <Text type="secondary">配对 |Δ| 均值 6.3pp（单题翻转约 5pp）；差异需配对检验。</Text>
+                  <Tag color="blue">同臂复跑差</Tag>
+                  <Text type="secondary">154 题：B +3.25pp / D +1.30pp；差异需配对检验（精确符号翻转）。</Text>
                 </div>
               </>
             ),
@@ -113,8 +113,8 @@ export default function EvalPage() {
                     <div style={{ lineHeight: 1.8 }}>
                       <div>· 数据：LoreKeeper 的 56 题评测集（48 题有 gold_pages）+ 三库 chunk 索引（bge-m3 1024 维，10,843 chunk）。</div>
                       <div>· 查询向量与 LoreKeeper 原生一致（BAAI/bge-m3），只替换检索策略。</div>
-                      <div>· <b>chunk 级</b>：纯向量 R@1 0.8542；RRF 单用有害（0.7917）；<b>RRF + rerank 0.8958</b>（+4.17pp）；</div>
-                      <div>· <b>页面级重排</b>：按页面聚合后再 rerank，Recall@1 <b>0.854 → 0.917</b>（+3 题、0 反向，+6.25pp；置换检验 p=0.25 → <b>方向正确、样本不足不称显著</b>）。</div>
+                      <div>· <b>chunk 级</b>：具体数值以下方表格（来自 /eval/lorekeeper 产物）为准，不在页面写死。</div>
+                      <div>· <b>页面级重排</b>：按页面聚合后再 rerank；数值见下方「页面级」表格。注意置换检验 p 值接近/高于 0.05 时只能算方向性证据。</div>
                     </div>
                   }
                 />

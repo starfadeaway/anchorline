@@ -665,16 +665,29 @@ class MessageOut(BaseModel):
 
 
 @app.get("/sessions", response_model=list[SessionOut])
-def list_sessions(db: Session = Depends(get_db)) -> list[SessionOut]:
+def list_sessions(limit: int = Query(default=200, ge=1, le=500), db: Session = Depends(get_db)) -> list[SessionOut]:
     """聊天会话列表（左侧栏）；标题取首条 user 消息。"""
     rows = list(
         db.scalars(
-            select(ChatSession).where(ChatSession.domain == "chat").order_by(ChatSession.created_at.desc()).limit(50)
+            select(ChatSession)
+            .where(ChatSession.domain == "chat")
+            .order_by(ChatSession.created_at.desc())
+            .limit(limit)
         )
     )
+    ids = [s.id for s in rows]
+    by_session: dict[str, list[Message]] = {}
+    if ids:
+        msgs = list(
+            db.scalars(
+                select(Message).where(Message.session_id.in_(ids)).order_by(Message.id)
+            )
+        )
+        for m in msgs:
+            by_session.setdefault(m.session_id, []).append(m)
     out: list[SessionOut] = []
     for s in rows:
-        msgs = list(db.scalars(select(Message).where(Message.session_id == s.id).order_by(Message.id)))
+        msgs = by_session.get(s.id, [])
         first_user = next((m for m in msgs if m.role == "user"), None)
         title = (first_user.content.strip()[:60] if first_user else "（空会话）")
         out.append(SessionOut(id=s.id, title=title, topic=s.topic, created_at=s.created_at, message_count=len(msgs)))
@@ -1101,6 +1114,13 @@ def patch_fact(fact_id: str, body: FactPatch, db: Session = Depends(get_db)) -> 
     if body.confidence is not None:
         fact.confidence = body.confidence
     db.commit()
+    # P2-18：改值后同步向量索引（否则检索仍按旧文本打分）
+    try:
+        from anchorline.retrieval import facts_index
+
+        facts_index.upsert_fact(fact)
+    except Exception:
+        log.warning("fact index upsert failed after PATCH", exc_info=True)
     return {"fact_id": fact.id}
 
 

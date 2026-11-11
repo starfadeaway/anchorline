@@ -1,3 +1,4 @@
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider, theme } from "antd";
@@ -7,20 +8,47 @@ import ErrorBoundary from "./ErrorBoundary";
 import "antd/dist/reset.css";
 import "./styles.css";
 
-// 注意：不包 StrictMode —— antd 部分组件的 effect cleanup 在 StrictMode 双调用下会报
-// "destroy is not a function"（开发期问题），生产构建无此行为。
-const light = typeof localStorage !== "undefined" && localStorage.getItem("anchorline-mode") === "light";
+const THEME_KEY = "anchorline-theme";
+const MODE_KEY = "anchorline-mode";
+const DARK_NEON = "#00d4ff";
+const LIGHT_NEON = "#0b8fd6";
 
-createRoot(document.getElementById("root")!).render(
-  <ErrorBoundary>
+function readNeon(): string {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved) return saved;
+  return localStorage.getItem(MODE_KEY) === "light" ? LIGHT_NEON : DARK_NEON;
+}
+
+/** 主题色 / 日夜切换不整页刷新：SettingsPage 只 dispatch 事件，这里重渲染 ConfigProvider。 */
+function AppRoot() {
+  const [neon, setNeon] = useState<string>(readNeon);
+  const [mode, setMode] = useState<string>(() => localStorage.getItem(MODE_KEY) || "dark");
+
+  useEffect(() => {
+    const onChange = () => {
+      setNeon(readNeon());
+      setMode(localStorage.getItem(MODE_KEY) || "dark");
+    };
+    window.addEventListener("anchorline-theme-changed", onChange);
+    window.addEventListener("storage", onChange);
+    return () => {
+      window.removeEventListener("anchorline-theme-changed", onChange);
+      window.removeEventListener("storage", onChange);
+    };
+  }, []);
+
+  const light = mode === "light";
+  const primary = light && !localStorage.getItem(THEME_KEY) ? LIGHT_NEON : neon;
+
+  return (
     <ConfigProvider
       locale={zhCN}
       theme={{
         algorithm: light ? theme.defaultAlgorithm : theme.darkAlgorithm,
         token: light
           ? {
-              colorPrimary: "#0b8fd6",
-              colorInfo: "#0b8fd6",
+              colorPrimary: primary,
+              colorInfo: primary,
               colorBgBase: "#f4f7fb",
               colorBgContainer: "#ffffff",
               colorBgElevated: "#ffffff",
@@ -34,8 +62,8 @@ createRoot(document.getElementById("root")!).render(
               controlHeight: 32,
             }
           : {
-              colorPrimary: "#00d4ff",
-              colorInfo: "#00d4ff",
+              colorPrimary: primary,
+              colorInfo: primary,
               colorBgBase: "#070b12",
               colorBgContainer: "#0d1420",
               colorBgElevated: "#111a28",
@@ -55,6 +83,13 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </BrowserRouter>
     </ConfigProvider>
-  </ErrorBoundary>,
-);
+  );
+}
 
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ErrorBoundary>
+      <AppRoot />
+    </ErrorBoundary>
+  </StrictMode>,
+);

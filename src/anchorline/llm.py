@@ -12,6 +12,7 @@ import logging
 import random
 import time
 from dataclasses import dataclass
+from functools import lru_cache
 
 from openai import (
     APIConnectionError,
@@ -157,13 +158,18 @@ class ChatClient:
         max_tokens: int = 2048,
     ):
         """真流式：逐 token yield（OpenAI stream=True）。"""
-        resp = self._client.chat.completions.create(
-            model=self.cfg.model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            stream=True,
-        )
+
+        def _open():
+            return self._client.chat.completions.create(
+                model=self.cfg.model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=True,
+            )
+
+        # P2-10：流创建阶段失败可重试（一旦开始 yield 就不再重试，避免重复输出）
+        resp = _retry(_open, label=f"stream:{self.cfg.model}")
         for chunk in resp:
             choices = chunk.choices or []
             if choices and choices[0].delta and choices[0].delta.content:
@@ -183,20 +189,30 @@ class EmbeddingClient:
         return _retry(_call, label=f"embed:{self.cfg.model}")
 
 
+@lru_cache(maxsize=8)
+def _reader_cached(base_url: str, api_key: str, model: str, timeout: float) -> ChatClient:
+    return ChatClient(ReaderConfig(base_url, api_key, model, timeout))
+
+
+@lru_cache(maxsize=8)
+def _embedding_cached(base_url: str, api_key: str, model: str, timeout: float) -> EmbeddingClient:
+    return EmbeddingClient(ReaderConfig(base_url, api_key, model, timeout))
+
+
 def reader_client(settings: Settings | None = None) -> ChatClient:
     s = settings or Settings()
-    return ChatClient(ReaderConfig(s.deepseek_base_url, s.deepseek_api_key, s.deepseek_reader_model, s.llm_timeout_s))
+    return _reader_cached(s.deepseek_base_url, s.deepseek_api_key, s.deepseek_reader_model, s.llm_timeout_s)
 
 
 def judge_client(settings: Settings | None = None) -> ChatClient:
     s = settings or Settings()
-    return ChatClient(ReaderConfig(s.deepseek_base_url, s.deepseek_api_key, s.deepseek_judge_model, s.llm_timeout_s))
+    return _reader_cached(s.deepseek_base_url, s.deepseek_api_key, s.deepseek_judge_model, s.llm_timeout_s)
 
 
 def embedding_client(settings: Settings | None = None) -> EmbeddingClient:
     s = settings or Settings()
-    return EmbeddingClient(
-        ReaderConfig(s.siliconflow_base_url, s.siliconflow_api_key, s.siliconflow_embedding_model, s.llm_timeout_s)
+    return _embedding_cached(
+        s.siliconflow_base_url, s.siliconflow_api_key, s.siliconflow_embedding_model, s.llm_timeout_s
     )
 
 

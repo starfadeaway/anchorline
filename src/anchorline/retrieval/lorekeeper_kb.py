@@ -53,11 +53,14 @@ def search(query: str, game: str | None = None, top_k: int = 3) -> list[dict]:
         log.warning("lorekeeper kb unavailable; kb_search degrades to empty", exc_info=True)
         return []
 
+    # 表名 = kb_<game>_<embedding 模型标识>_base；由配置推导（不是写死 bge-m3）
+    model = (getattr(settings, "lorekeeper_embed_model", "") or "BAAI/bge-m3").strip()
+    embed_tag = model.replace("/", "-").lower()
     games = [game] if game in GAMES else list(GAMES)
     candidates: list[dict] = []
     for g in games:
         try:
-            tbl = db.open_table(f"kb_{g}_baai-bge-m3_base")
+            tbl = db.open_table(f"kb_{g}_{embed_tag}_base")
             rows = tbl.search(vec).select(["page_title", "text"]).limit(20).to_list()
         except Exception:
             continue
@@ -77,7 +80,13 @@ def search(query: str, game: str | None = None, top_k: int = 3) -> list[dict]:
         return []
     try:
         scored = rerank_client().rerank(query, [c["text"][:2000] for c in candidates], top_n=top_k)
-        return [candidates[i] for i, _ in scored if 0 <= i < len(candidates)][:top_k]
+        out: list[dict] = []
+        for i, score in scored:
+            if 0 <= i < len(candidates):
+                c = dict(candidates[i])
+                c["score"] = round(float(score), 6)  # P2-16：score 改为 rerank 分（与排序依据一致）
+                out.append(c)
+        return out[:top_k]
     except Exception:
         log.warning("lorekeeper rerank failed; fallback to vector score", exc_info=True)
         return sorted(candidates, key=lambda c: -c["score"])[:top_k]
