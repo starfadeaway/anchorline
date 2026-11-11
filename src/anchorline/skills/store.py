@@ -27,6 +27,8 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
                 description=r.description or "",
                 instructions=r.instructions,
                 memory_entity=r.memory_entity,
+                auto_activate=bool(r.auto_activate),
+                trigger_keywords=r.trigger_keywords or "",
             ),
             bool(r.enabled),
             "custom",
@@ -53,7 +55,16 @@ def set_skill(db: Session, name: str, enabled: bool) -> bool:
     return True
 
 
-def create_custom(db: Session, name: str, title: str, description: str, instructions: str, memory_entity: str | None = None) -> bool:
+def create_custom(
+    db: Session,
+    name: str,
+    title: str,
+    description: str,
+    instructions: str,
+    memory_entity: str | None = None,
+    auto_activate: bool = False,
+    trigger_keywords: str = "",
+) -> bool:
     """新建自定义技能；name 与内置/已有自定义冲突则失败。"""
     if name in SKILL_BY_NAME or db.scalar(select(CustomSkill).where(CustomSkill.name == name)) is not None:
         return False
@@ -65,6 +76,8 @@ def create_custom(db: Session, name: str, title: str, description: str, instruct
             instructions=instructions,
             enabled=True,
             memory_entity=memory_entity,
+            auto_activate=auto_activate,
+            trigger_keywords=trigger_keywords,
         )
     )
     db.commit()
@@ -78,6 +91,8 @@ def update_custom(
     description: str | None,
     instructions: str | None,
     memory_entity: str | None = None,
+    auto_activate: bool | None = None,
+    trigger_keywords: str | None = None,
 ) -> bool:
     row = db.scalar(select(CustomSkill).where(CustomSkill.name == name))
     if row is None:
@@ -90,6 +105,10 @@ def update_custom(
         row.instructions = instructions
     if memory_entity is not None:
         row.memory_entity = memory_entity or None
+    if auto_activate is not None:
+        row.auto_activate = auto_activate
+    if trigger_keywords is not None:
+        row.trigger_keywords = trigger_keywords
     db.commit()
     return True
 
@@ -105,6 +124,18 @@ def delete_custom(db: Session, name: str) -> bool:
 
 def enabled_skills(db: Session) -> list[Skill]:
     return [s for s, on, _src in list_skills(db) if on]
+
+
+def active_skills(db: Session, query: str) -> list[Skill]:
+    """本轮的技能：手动开启的 + 自动激活（关键词命中）的。"""
+    q = (query or "").lower()
+    out: list[Skill] = []
+    for s, on, _src in list_skills(db):
+        kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if k.strip()]
+        auto = bool(s.auto_activate and kws and any(k in q for k in kws))
+        if on or auto:
+            out.append(s)
+    return out
 
 
 def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:

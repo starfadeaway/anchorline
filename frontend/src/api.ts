@@ -11,6 +11,7 @@ export type Fact = {
   conflict_type: string | null;
   source_session_id?: string | null;
   source_message_id?: number | null;
+  skill_name?: string | null;
 };
 
 export type ToolCall = { name: string; arguments: string };
@@ -87,6 +88,8 @@ export type SkillInfo = {
   source: "builtin" | "custom";
   memory_entity?: string | null;
   memory_fact_count?: number;
+  auto_activate?: boolean;
+  trigger_keywords?: string;
 };
 
 export type SettingsOut = {
@@ -214,7 +217,15 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ description }),
     }),
-  createSkill: (body: { name: string; title: string; description: string; instructions: string; memory_entity?: string }) =>
+  createSkill: (body: {
+    name: string;
+    title: string;
+    description: string;
+    instructions: string;
+    memory_entity?: string;
+    auto_activate?: boolean;
+    trigger_keywords?: string;
+  }) =>
     json<SkillInfo>("/api/skills", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -222,7 +233,15 @@ export const api = {
     }),
   updateSkill: (
     name: string,
-    body: { enabled?: boolean; title?: string; description?: string; instructions?: string; memory_entity?: string },
+    body: {
+      enabled?: boolean;
+      title?: string;
+      description?: string;
+      instructions?: string;
+      memory_entity?: string;
+      auto_activate?: boolean;
+      trigger_keywords?: string;
+    },
   ) =>
     json<SkillInfo>(`/api/skills/${name}`, {
       method: "PUT",

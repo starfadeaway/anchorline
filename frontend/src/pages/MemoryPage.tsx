@@ -1,4 +1,5 @@
 import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Alert, Button, Card, Checkbox, Collapse, Drawer, Dropdown, Form, Input, Modal, Space, Table, Tag, Timeline, Typography, message } from "antd";
 import { DeleteOutlined, DownloadOutlined, EditOutlined, HistoryOutlined, StopOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
@@ -111,7 +112,8 @@ const Donut = memo(function Donut({
 export default function MemoryPage() {
   const [facts, setFacts] = useState<Fact[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
-  const [q, setQ] = useState("");
+  const [searchParams] = useSearchParams();
+  const [q, setQ] = useState(() => searchParams.get("entity") ?? "");
   const [history, setHistory] = useState<Fact[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [activeKeys, setActiveKeys] = useState<string[]>([]);
@@ -320,7 +322,21 @@ export default function MemoryPage() {
   const columns = useMemo(() => [
     { title: "实体", dataIndex: "entity_id", width: "10%", ellipsis: true },
     { title: "属性", dataIndex: "attribute", width: "14%", ellipsis: true },
-    { title: "值", dataIndex: "value", width: "30%" },
+    {
+      title: "值",
+      dataIndex: "value",
+      width: "30%",
+      render: (v: string, r: Fact) => (
+        <span>
+          {r.skill_name && (
+            <Tag color="purple" title="写入该事实时激活的技能">
+              技能 {r.skill_name}
+            </Tag>
+          )}
+          {v}
+        </span>
+      ),
+    },
     {
       title: "状态",
       width: "8%",
@@ -364,7 +380,7 @@ export default function MemoryPage() {
       title="记忆浏览器"
       extra={
         <Space>
-          <Input.Search placeholder="按实体/属性/值/来源会话 id 过滤" allowClear onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
+          <Input.Search placeholder="按实体/属性/值/来源会话 id 过滤" allowClear value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
           <Button type="primary" onClick={() => setAddOpen(true)}>新增事实</Button>
           <Dropdown
             menu={{

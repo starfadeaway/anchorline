@@ -4,9 +4,11 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+from anchorline.memory.store import FactStore
 from anchorline.models import Base, Fact
 from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME
 from anchorline.skills.store import (
+    active_skills,
     create_custom,
     delete_custom,
     enabled_skills,
@@ -94,3 +96,19 @@ def test_update_memory_entity(db):
     assert next(s for s, _, src in list_skills(db) if src == "custom").memory_entity == "user.猫"
     assert update_custom(db, "s1", None, None, None, memory_entity="")
     assert next(s for s, _, src in list_skills(db) if src == "custom").memory_entity is None
+
+
+def test_auto_activate_by_keywords(db):
+    assert create_custom(db, "kb_auto", "KB", "", "i", auto_activate=True, trigger_keywords="原神,星铁")
+    # 自定义技能默认开启；关掉后靠关键词自动激活
+    assert set_skill(db, "kb_auto", False)
+    assert [s.name for s in active_skills(db, "帮我查一下原神的角色")] == ["kb_auto"]
+    assert active_skills(db, "今天天气怎么样") == []
+
+
+def test_skill_name_recorded_in_fact(db):
+    from datetime import datetime
+
+    store = FactStore(db)
+    f = store.write(entity_id="user", attribute="x", value="y", valid_from=datetime(2026, 1, 1), skill_name="run_coach")
+    assert f.skill_name == "run_coach"

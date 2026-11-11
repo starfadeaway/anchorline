@@ -75,6 +75,8 @@ class Fact(Base):
     supersedes_id: Mapped[str | None] = mapped_column(ForeignKey("facts.id"), nullable=True)
     fact_type: Mapped[str] = mapped_column(String(32), default="semantic")  # semantic / episodic
     conflict_type: Mapped[str | None] = mapped_column(String(32))  # 时效 / 语义 / 偏好反转
+    # 写入该事实时激活的技能名（可空：手工/seed/MCP 写入）
+    skill_name: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
@@ -149,5 +151,8 @@ class CustomSkill(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     # 可选：绑定的记忆实体（如 user / user.猫）；注入该技能时附上该实体的当前事实
     memory_entity: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # 主题命中时自动启用（不依赖手动开关）
+    auto_activate: Mapped[bool] = mapped_column(Boolean, default=False)
+    trigger_keywords: Mapped[str] = mapped_column(String(256), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

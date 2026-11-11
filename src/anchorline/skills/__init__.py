@@ -16,11 +16,14 @@ class Skill:
     description: str
     instructions: str
     memory_entity: str | None = None
+    auto_activate: bool = False
+    trigger_keywords: str = ""
 
 
 BUILTIN_SKILLS: list[Skill] = [
     Skill(
         name="run_coach",
+        trigger_keywords="跑步,配速,5k,半马,全马,跑量",
         title="跑步教练",
         description="按记忆里的 PB / 目标 / 伤病史给训练建议",
         instructions=(
@@ -30,6 +33,7 @@ BUILTIN_SKILLS: list[Skill] = [
     ),
     Skill(
         name="diet_plan",
+        trigger_keywords="吃,饮食,配餐,忌口,咖啡",
         title="饮食规划",
         description="按饮食偏好 / 禁忌给配餐建议",
         instructions=(
@@ -39,6 +43,7 @@ BUILTIN_SKILLS: list[Skill] = [
     ),
     Skill(
         name="kb_search",
+        trigger_keywords="原神,星铁,绝区零,wiki,遗器",
         title="知识库问答",
         description="用 kb_search 检索 LoreKeeper 三库 wiki（原神 / 星铁 / 绝区零）",
         instructions=(
@@ -48,6 +53,7 @@ BUILTIN_SKILLS: list[Skill] = [
     ),
     Skill(
         name="memory_hygiene",
+        trigger_keywords="冲突,冗余,记忆整理,失效",
         title="记忆整理",
         description="冲突 / 冗余事实的记忆卫生建议",
         instructions=(

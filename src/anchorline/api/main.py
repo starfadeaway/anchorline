@@ -362,15 +362,17 @@ def _run_agent(
         "如果用户是在更新之前说过的事实（如人数、成绩、状态变化），必须以最新值回答，并且只保留一条当前值；"
         "同一条信息不要重复写多次，更新时用 supersedes_id 指向旧事实。"
     )
-    # 可开关技能：把启用技能的指令拼进 system prompt（只影响回答方式，不越过记忆边界）
+    # 技能：手动开启 + 关键词自动激活；把指令与绑定记忆拼进 system prompt（不越过记忆边界）
     try:
-        from anchorline.skills.store import enabled_skills, memory_context
+        from anchorline.skills.context import ACTIVE_SKILLS
+        from anchorline.skills.store import active_skills, memory_context
 
-        skills = enabled_skills(db)
+        skills = active_skills(db, str(query or ""))
+        ACTIVE_SKILLS.set([s.name for s in skills])
         if skills:
             lines = []
             for s in skills:
-                line = f"- {s.instructions}"
+                line = f"- [{s.name}] {s.instructions}"
                 if s.memory_entity:
                     facts = memory_context(db, s.memory_entity)
                     if facts:

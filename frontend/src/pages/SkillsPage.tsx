@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Card, Form, Input, Modal, Select, Space, Switch, Table, Tag, Typography, message } from "antd";
 import { DeleteOutlined, EditOutlined, PlusOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 import { api, type SkillInfo } from "../api";
 
 const { Paragraph, Text } = Typography;
@@ -91,7 +92,7 @@ export default function SkillsPage() {
   }, []);
 
   const openCreate = () => {
-    form.setFieldsValue({ name: "", title: "", description: "", instructions: "", memory_entity: "" });
+    form.setFieldsValue({ name: "", title: "", description: "", instructions: "", memory_entity: "", auto_activate: false, trigger_keywords: "" });
     setGenDesc("");
     setEdit({ mode: "create" });
   };
@@ -103,6 +104,8 @@ export default function SkillsPage() {
       description: sk.description,
       instructions: "",
       memory_entity: sk.memory_entity ?? "",
+      auto_activate: sk.auto_activate ?? false,
+      trigger_keywords: sk.trigger_keywords ?? "",
     });
     setGenDesc("");
     setEdit({ mode: "edit", name: sk.name });
@@ -148,6 +151,8 @@ export default function SkillsPage() {
           description: v.description?.trim() ?? "",
           instructions: v.instructions.trim(),
           memory_entity: (v.memory_entity ?? "").trim(),
+          auto_activate: !!v.auto_activate,
+          trigger_keywords: (v.trigger_keywords ?? "").trim(),
         });
         message.success("技能已创建并默认开启");
       } else if (edit?.mode === "edit" && edit.name) {
@@ -156,6 +161,8 @@ export default function SkillsPage() {
           description: v.description?.trim() ?? "",
           instructions: v.instructions.trim(),
           memory_entity: (v.memory_entity ?? "").trim(),
+          auto_activate: !!v.auto_activate,
+          trigger_keywords: (v.trigger_keywords ?? "").trim(),
         });
         message.success("技能已更新");
       }
@@ -182,12 +189,24 @@ export default function SkillsPage() {
       width: 170,
       render: (_: unknown, r: SkillInfo) =>
         r.memory_entity ? (
-          <Text code title={`该技能注入时会附上 ${r.memory_entity} 的当前事实`}>
-            {r.memory_entity}（{r.memory_fact_count ?? 0} 条）
-          </Text>
+          <Link
+            to={`/memory?entity=${encodeURIComponent(r.memory_entity)}`}
+            title={`跳转到记忆页过滤 ${r.memory_entity}（注入时会附上其当前事实）`}
+          >
+            <Text code>
+              {r.memory_entity}（{r.memory_fact_count ?? 0} 条）
+            </Text>
+          </Link>
         ) : (
           <Text type="secondary">未绑定</Text>
         ),
+    },
+    {
+      title: "自动",
+      dataIndex: "auto_activate",
+      width: 70,
+      render: (v: boolean, r: SkillInfo) =>
+        v ? <Tag color="gold" title={`关键词命中时自动启用：${r.trigger_keywords ?? ""}`}>自动</Tag> : <Text type="secondary">—</Text>,
     },
     {
       title: "开关",
@@ -331,6 +350,17 @@ export default function SkillsPage() {
             extra="绑定的实体当前事实会自动附在技能指令后（如 user / user.猫）；留空则不绑定"
           >
             <Input placeholder="如 user" />
+          </Form.Item>
+          <Form.Item
+            name="auto_activate"
+            label="主题命中时自动启用"
+            valuePropName="checked"
+            extra="开启后：用户问题包含任一触发关键词时自动注入本技能（不依赖上面的手动开关）"
+          >
+            <Switch checkedChildren="自动" unCheckedChildren="手动" />
+          </Form.Item>
+          <Form.Item name="trigger_keywords" label="触发关键词">
+            <Input placeholder="逗号分隔，如 原神,星铁,wiki" />
           </Form.Item>
           <Form.Item
             name="instructions"
