@@ -15,10 +15,26 @@ def _custom_rows(db: Session) -> list[CustomSkill]:
 
 def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
     """全部技能：[(Skill, enabled, source)]；内置在前，自定义在后。"""
-    toggles = dict(db.execute(select(SkillToggle.name, SkillToggle.enabled)).all())
-    out: list[tuple[Skill, bool, str]] = [
-        (s, bool(toggles.get(s.name, False)), "builtin") for s in BUILTIN_SKILLS
-    ]
+    toggle_rows = {r.name: r for r in db.scalars(select(SkillToggle))}
+    out: list[tuple[Skill, bool, str]] = []
+    for s in BUILTIN_SKILLS:
+        row = toggle_rows.get(s.name)
+        # 内置技能用 skill_toggles 里的覆盖绑定（memory_entity/auto/keywords）
+        out.append(
+            (
+                Skill(
+                    name=s.name,
+                    title=s.title,
+                    description=s.description,
+                    instructions=s.instructions,
+                    memory_entity=(row.memory_entity if row is not None else None) or s.memory_entity,
+                    auto_activate=bool(row.auto_activate) if row is not None else s.auto_activate,
+                    trigger_keywords=(row.trigger_keywords if row is not None and row.trigger_keywords else s.trigger_keywords),
+                ),
+                bool(row.enabled) if row is not None else False,
+                "builtin",
+            )
+        )
     out.extend(
         (
             Skill(
@@ -124,6 +140,30 @@ def delete_custom(db: Session, name: str) -> bool:
 
 def enabled_skills(db: Session) -> list[Skill]:
     return [s for s, on, _src in list_skills(db) if on]
+
+
+def set_builtin_binding(
+    db: Session,
+    name: str,
+    memory_entity: str | None = None,
+    auto_activate: bool | None = None,
+    trigger_keywords: str | None = None,
+) -> bool:
+    """内置技能的覆盖绑定（不改内置定义本身）。"""
+    if name not in SKILL_BY_NAME:
+        return False
+    row = db.get(SkillToggle, name)
+    if row is None:
+        row = SkillToggle(name=name, enabled=False)
+        db.add(row)
+    if memory_entity is not None:
+        row.memory_entity = memory_entity or None
+    if auto_activate is not None:
+        row.auto_activate = auto_activate
+    if trigger_keywords is not None:
+        row.trigger_keywords = trigger_keywords
+    db.commit()
+    return True
 
 
 def active_skills(db: Session, query: str) -> list[Skill]:

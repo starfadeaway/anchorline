@@ -308,7 +308,15 @@ export default function ChatPage() {
           )}
           <div className="messages" key={active ?? "new"}>
             {messages.length === 0 && (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）" />
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={
+                <div style={{ lineHeight: 1.8 }}>
+                  <div>发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）</div>
+                  <div style={{ fontSize: 12, opacity: 0.75 }}>
+                    技能说明：在「技能」页手动开启，或给技能配了关键词（如「跑步」「原神」）且命中你的问题时会自动激活——
+                    本次回答会按该技能的指令组织；技能只影响回答方式，不会编造记忆里没有的信息。
+                  </div>
+                </div>
+              } />
             )}
             {messages.map((m, i) => (
               <div key={`${m.created_at ?? ""}-${i}`} className={`msg msg-${m.role} msg-enter`}>

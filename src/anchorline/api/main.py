@@ -1195,6 +1195,8 @@ class SkillOut(BaseModel):
     source: str = "builtin"  # builtin / custom
     memory_entity: str | None = None  # 绑定的记忆实体
     memory_fact_count: int = 0  # 该实体当前事实数
+    auto_activate: bool = False
+    trigger_keywords: str = ""
 
 
 class SkillCreateIn(BaseModel):
@@ -1211,6 +1213,8 @@ class SkillUpdateIn(BaseModel):
     description: str | None = None
     instructions: str | None = None
     memory_entity: str | None = None
+    auto_activate: bool | None = None
+    trigger_keywords: str | None = None
 
 
 def _skill_out(db: Session, name: str) -> SkillOut:
@@ -1229,6 +1233,8 @@ def _skill_out(db: Session, name: str) -> SkillOut:
         source=src,
         memory_entity=s.memory_entity,
         memory_fact_count=count,
+        auto_activate=s.auto_activate,
+        trigger_keywords=s.trigger_keywords,
     )
 
 
@@ -1309,6 +1315,8 @@ def list_skills_endpoint(db: Session = Depends(get_db)) -> list[SkillOut]:
                 source=src,
                 memory_entity=s.memory_entity,
                 memory_fact_count=count,
+                auto_activate=s.auto_activate,
+                trigger_keywords=s.trigger_keywords,
             )
         )
     return out
@@ -1346,9 +1354,35 @@ def create_skill(body: SkillCreateIn, db: Session = Depends(get_db)) -> SkillOut
 def update_skill(name: str, body: SkillUpdateIn, db: Session = Depends(get_db)) -> SkillOut:
     from anchorline.skills.store import set_skill, update_custom
 
-    if body.title is not None or body.description is not None or body.instructions is not None or body.memory_entity is not None:
-        if not update_custom(db, name, body.title, body.description, body.instructions, body.memory_entity):
-            raise HTTPException(status_code=400, detail="只有自定义技能可以编辑内容（内置技能只能开关）")
+    from anchorline.skills import SKILL_BY_NAME
+    from anchorline.skills.store import set_builtin_binding
+
+    if name in SKILL_BY_NAME:
+        # 内置技能：只能改绑定（关联记忆/自动激活/关键词），不能改标题/指令
+        if body.title is not None or body.description is not None or body.instructions is not None:
+            raise HTTPException(status_code=400, detail="内置技能不能改标题/描述/指令，只能改绑定与关键词")
+        if any(v is not None for v in (body.memory_entity, body.auto_activate, body.trigger_keywords)):
+            if not set_builtin_binding(
+                db,
+                name,
+                memory_entity=body.memory_entity,
+                auto_activate=body.auto_activate,
+                trigger_keywords=body.trigger_keywords,
+            ):
+                raise HTTPException(status_code=404, detail="unknown skill")
+    else:
+        if any(v is not None for v in (body.title, body.description, body.instructions, body.memory_entity, body.auto_activate, body.trigger_keywords)):
+            if not update_custom(
+                db,
+                name,
+                body.title,
+                body.description,
+                body.instructions,
+                body.memory_entity,
+                body.auto_activate,
+                body.trigger_keywords,
+            ):
+                raise HTTPException(status_code=400, detail="技能不存在")
     if body.enabled is not None:
         if not set_skill(db, name, body.enabled):
             raise HTTPException(status_code=404, detail="unknown skill")

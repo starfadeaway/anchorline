@@ -113,7 +113,8 @@ export default function MemoryPage() {
   const [facts, setFacts] = useState<Fact[]>([]);
   const [traces, setTraces] = useState<TraceRow[]>([]);
   const [searchParams] = useSearchParams();
-  const [q, setQ] = useState(() => searchParams.get("entity") ?? "");
+  const [entityFilter, setEntityFilter] = useState(() => searchParams.get("entity") ?? "");
+  const [q, setQ] = useState("");
   const [history, setHistory] = useState<Fact[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [activeKeys, setActiveKeys] = useState<string[]>([]);
@@ -153,7 +154,9 @@ export default function MemoryPage() {
   const deferredFacts = useDeferredValue(facts);
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const base = deferredFacts.filter((f) => topicOfFact(f) !== "测试数据");
+    const base = deferredFacts
+      .filter((f) => !entityFilter || f.entity_id === entityFilter)
+      .filter((f) => topicOfFact(f) !== "测试数据");
     if (!s) return base;
     // 同时匹配实体/属性/值/主题名（支持搜"跑步""球类"命中整组）
     return base.filter((f) => {
@@ -161,7 +164,7 @@ export default function MemoryPage() {
       const hay = `${f.entity_id} ${f.attribute} ${f.value} ${topic} ${f.source_session_id ?? ""} ${f.source_message_id ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
-  }, [deferredFacts, q]);
+  }, [deferredFacts, q, entityFilter]);
 
   const groups = useMemo(() => {
     const m = new Map<string, Fact[]>();
@@ -380,6 +383,11 @@ export default function MemoryPage() {
       title="记忆浏览器"
       extra={
         <Space>
+          {entityFilter && (
+            <Tag color="blue" closable onClose={() => setEntityFilter("")} title="来自技能页的「关联记忆」跳转">
+              实体：{entityFilter}
+            </Tag>
+          )}
           <Input.Search placeholder="按实体/属性/值/来源会话 id 过滤" allowClear value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
           <Button type="primary" onClick={() => setAddOpen(true)}>新增事实</Button>
           <Dropdown

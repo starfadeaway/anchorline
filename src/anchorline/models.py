@@ -136,6 +136,10 @@ class SkillToggle(Base):
 
     name: Mapped[str] = mapped_column(String(64), primary_key=True)
     enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    # 内置技能的覆盖绑定（内置定义在代码里，绑定/关键词可在此覆盖）
+    memory_entity: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    auto_activate: Mapped[bool] = mapped_column(Boolean, default=False)
+    trigger_keywords: Mapped[str] = mapped_column(String(256), default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
 class CustomSkill(Base):

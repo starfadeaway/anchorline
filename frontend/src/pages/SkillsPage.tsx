@@ -78,6 +78,9 @@ export default function SkillsPage() {
   const [genDesc, setGenDesc] = useState("");
   const [genBusy, setGenBusy] = useState(false);
 
+  const editing = skills.find((x) => x.name === edit?.name);
+  const isBuiltin = editing?.source === "builtin";
+
   const load = () =>
     api
       .listSkills()
@@ -102,7 +105,7 @@ export default function SkillsPage() {
       name: sk.name,
       title: sk.title,
       description: sk.description,
-      instructions: "",
+      instructions: sk.source === "custom" ? "" : sk.description,
       memory_entity: sk.memory_entity ?? "",
       auto_activate: sk.auto_activate ?? false,
       trigger_keywords: sk.trigger_keywords ?? "",
@@ -156,15 +159,23 @@ export default function SkillsPage() {
         });
         message.success("技能已创建并默认开启");
       } else if (edit?.mode === "edit" && edit.name) {
-        await api.updateSkill(edit.name, {
-          title: v.title.trim(),
-          description: v.description?.trim() ?? "",
-          instructions: v.instructions.trim(),
+        const bound = {
           memory_entity: (v.memory_entity ?? "").trim(),
           auto_activate: !!v.auto_activate,
           trigger_keywords: (v.trigger_keywords ?? "").trim(),
-        });
-        message.success("技能已更新");
+        };
+        if (isBuiltin) {
+          await api.updateSkill(edit.name, bound); // 内置只能改绑定
+          message.success("绑定已更新（内置技能不改标题/指令）");
+        } else {
+          await api.updateSkill(edit.name, {
+            title: v.title.trim(),
+            description: v.description?.trim() ?? "",
+            instructions: v.instructions.trim(),
+            ...bound,
+          });
+          message.success("技能已更新");
+        }
       }
       setEdit(null);
       void load();
@@ -253,7 +264,9 @@ export default function SkillsPage() {
             />
           </Space>
         ) : (
-          <Text type="secondary">内置（只能开关）</Text>
+          <Button size="small" icon={<EditOutlined />} title="编辑绑定（关联记忆 / 自动激活 / 关键词）" onClick={() => openEdit(r)}>
+            编辑
+          </Button>
         ),
     },
   ];
@@ -295,6 +308,15 @@ export default function SkillsPage() {
         onCancel={() => setEdit(null)}
         width={780}
       >
+        {isBuiltin && (
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 10 }}
+            message="内置技能：只能编辑「关联记忆 / 自动激活 / 关键词」"
+            description="标题、描述与指令是内置定义（保证与文档/评测口径一致），不可修改；如需完全自定义，请新建技能。"
+          />
+        )}
         {edit?.mode === "create" && (
           <>
             <Paragraph type="secondary" style={{ marginBottom: 6 }}>
@@ -339,10 +361,10 @@ export default function SkillsPage() {
             <Input placeholder="如 travel_plan（建后不可改）" disabled={edit?.mode === "edit"} />
           </Form.Item>
           <Form.Item name="title" label="标题" rules={[{ required: true, message: "填标题" }]}>
-            <Input placeholder="如 旅行规划" />
+            <Input placeholder="如 旅行规划" disabled={isBuiltin} />
           </Form.Item>
           <Form.Item name="description" label="描述">
-            <Input placeholder="一句话说明这个技能做什么（列表里展示）" />
+            <Input placeholder="一句话说明这个技能做什么（列表里展示）" disabled={isBuiltin} />
           </Form.Item>
           <Form.Item
             name="memory_entity"
@@ -368,7 +390,7 @@ export default function SkillsPage() {
             rules={[{ required: true, message: "指令不能为空" }]}
             extra={TEMPLATE_HINT}
           >
-            <Input.TextArea rows={9} placeholder="写清楚：什么时候用、先检索什么、怎么回答、不要做什么" />
+            <Input.TextArea rows={9} placeholder="写清楚：什么时候用、先检索什么、怎么回答、不要做什么" disabled={isBuiltin} />
           </Form.Item>
         </Form>
         <Paragraph type="secondary" style={{ marginBottom: 0, fontSize: 12 }}>
