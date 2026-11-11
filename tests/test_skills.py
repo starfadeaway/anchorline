@@ -242,7 +242,47 @@ def test_negative_words_consumed(db):
     assert [s.name for s in active_skills(db, "我吃了亏")] == []
     assert [s.name for s in active_skills(db, "我想吃苦瓜能减肥吗")] == ["diet_plan"]
     assert [s.name for s in active_skills(db, "今天吃什么")] == ["diet_plan"]
-    # I5：手动开启时负向词同样生效
+    # J8：手动开启 = 用户主动要，负向词只影响自动激活
     assert set_skill(db, "diet_plan", True)
-    assert [s.name for s in active_skills(db, "今天吃了苦")] == []
+    assert [s.name for s in active_skills(db, "今天吃了苦")] == ["diet_plan"]
     assert [s.name for s in active_skills(db, "今天吃什么")] == ["diet_plan"]
+
+
+def test_negative_words_are_literal(db):
+    """J1：负向词是用户输入，必须当字面匹配（不能执行正则，避免 ReDoS）。"""
+    import time
+
+    from anchorline.models import SkillToggle
+
+    db.add(
+        SkillToggle(
+            name="diet_plan",
+            enabled=False,
+            auto_activate=True,
+            trigger_keywords="吃",
+            negative_keywords="(a+)+$",  # 恶意正则形态：必须被当作字面词
+        )
+    )
+    db.commit()
+    t0 = time.perf_counter()
+    active_skills(db, "跑" + "a" * 30 + "!")
+    assert time.perf_counter() - t0 < 0.5  # 若执行正则会指数级卡死
+
+
+def test_negative_word_吃苦_range(db):
+    """J5：连续字面「吃苦」也要被排除（此前测试没覆盖这条）。"""
+    from anchorline.models import SkillToggle
+    from anchorline.skills import SKILL_BY_NAME
+
+    db.add(
+        SkillToggle(
+            name="diet_plan",
+            enabled=False,
+            auto_activate=True,
+            trigger_keywords=SKILL_BY_NAME["diet_plan"].trigger_keywords,
+            negative_keywords=SKILL_BY_NAME["diet_plan"].negative_keywords,
+        )
+    )
+    db.commit()
+    assert active_skills(db, "这家公司太会吃苦了") == []
+    assert [s.name for s in active_skills(db, "我今天吃什么")] == ["diet_plan"]

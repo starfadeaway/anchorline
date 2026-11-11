@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import re
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -198,6 +197,22 @@ def set_builtin_binding(
     return True
 
 
+_FOOD_SUFFIX = ("瓜", "菜", "粒", "叶", "子")
+
+
+def _negative_hit(q: str, word: str) -> bool:
+    """字面命中负向词；若其后紧跟食物类字（吃苦瓜/吃苦菜），视为合法饮食问法。"""
+    start = 0
+    while True:
+        idx = q.find(word, start)
+        if idx == -1:
+            return False
+        nxt = q[idx + len(word) : idx + len(word) + 1]
+        if nxt not in _FOOD_SUFFIX:
+            return True
+        start = idx + 1
+
+
 def active_skills(db: Session, query: str, lorekeeper_enabled: bool | None = None) -> list[Skill]:
     """本轮的技能：手动开启的 + 自动激活（关键词命中）的。
 
@@ -222,16 +237,14 @@ def active_skills(db: Session, query: str, lorekeeper_enabled: bool | None = Non
         hit = bool(kws and any(k in q for k in kws))
         raw_negs = (s.negative_keywords or "").strip()
         if raw_negs:
-            negs = [n.strip() for n in re.split(r"[|,]", raw_negs) if n.strip()]
+            negs = [n.strip() for n in raw_negs.replace("|", ",").split(",") if n.strip()]
         else:
             negs = fallback_negative.get(s.name, [])
-        # I1：负向词按「正则片段」匹配，支持词形变体（吃了苦 / 吃苦(?![瓜菜])）
-        try:
-            excluded = any(re.search(n, q) for n in negs)
-        except re.error:
-            excluded = any(n in q for n in negs)
+        # J1：负向词只做字面匹配（用户可编辑 → 绝不执行正则，避免 ReDoS）
+        # J3：逗号分隔；"吃苦瓜/吃苦菜"这类食物词通过后缀排除，避免误杀合法饮食问法
+        excluded = any(_negative_hit(q, n) for n in negs)
         auto = bool(s.auto_activate and hit and not excluded)
-        if (on or auto) and not excluded:  # I5：手动开启时负向词同样生效
+        if on or auto:  # J8：手动开启 = 用户主动要，负向词只影响自动激活
             out.append(s)
     return out
 
@@ -241,26 +254,28 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
     if not skills:
         return ""
     HEADER = "\n\n已启用的技能（按需使用）：\n"
-    NOTE_RESERVE = 20  # I12：头部 + 可能的「因预算未注入」提示也计入预算
-    lines = []
-    total = len(HEADER) + NOTE_RESERVE
-    dropped: list[str] = []  # G12：被预算丢弃的技能要写进 hint（用户/模型可见）
+    lines: list[str] = []
+    dropped: list[str] = []
+    note = ""
     for sk in skills:
         line = f"- [{sk.name}] {sk.instructions}"
         if sk.memory_entity:
             facts = memory_context(db, sk.memory_entity)
             if facts:
                 line += f"（该技能绑定的记忆 {sk.memory_entity}：{'；'.join(facts)}）"
-        if total + len(line) > budget:
+        # J10：预算按「头部 + 已收 + 本条 + 当前 note」实时计算，超了就丢本条
+        candidate_note = f"\n（因预算未注入：{', '.join([*dropped, sk.name])}）"
+        if len(HEADER) + sum(len(x) + 1 for x in lines) + len(line) + len(candidate_note) > budget:
             dropped.append(sk.name)
-            log.warning("skill %s skipped: prompt budget %s exceeded (used %s)", sk.name, budget, total)
-            continue  # E18：超出总预算的技能不再注入，避免挤爆 system prompt
-        total += len(line)
+            log.warning("skill %s skipped: prompt budget %s exceeded", sk.name, budget)
+            note = candidate_note
+            continue
         lines.append(line)
     if not lines:
-        return f"\n（因预算未注入：{', '.join(dropped)}）" if dropped else ""
-    note = f"\n（因预算未注入：{', '.join(dropped)}）" if dropped else ""
-    return "\n\n已启用的技能（按需使用）：\n" + "\n".join(lines) + note
+        return note
+    if dropped:
+        note = f"\n（因预算未注入：{', '.join(dropped)}）"
+    return HEADER + "\n".join(lines) + note
 
 
 def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:

@@ -48,7 +48,7 @@ KNOWN_PCT = {12, 12.3, 11.7, 44.4, 44.44, 65.1, 65.08, 77.78, 98.6, 21, 15, 1.39
 # 覆盖率类，按文件限定（audit_report 的声称值；CI 现场算的当前值是 69/63）
 FILE_PCT = {"reports/audit_report.md": {45, 69, 71, 63}}
 LEGACY_PP = {0.5, 2.96, 1.03, 3.9, 4.17, 6.25, 7.8, 12.5, 20.6, 77.8}
-PP_RAW_WHITELIST = {6.3, 3.9, 0.65, 0.6, 2.96, 1.03, 0.5, 4.17, 12.5, 10, 7.8, 20.6, 77.8}  # 只放 pp 值，不混百分比
+PP_RAW_WHITELIST = {6.3, 3.9, 0.65, 0.6, 2.96, 1.03, 0.5, 4.17, 6.25, 12.5, 10, 7.8, 20.6, 77.8}  # 只放 pp 值，不混百分比
 INT_PCT_WHITELIST = {100}  # 常数基线（100%）可全局放行；覆盖率类见 FILE_PCT
 
 P4_PAT = re.compile(r"(?<![\d.])(\d\.\d{4,6})(?!\d)")
@@ -143,10 +143,11 @@ def check_file_p_binding(text: str, out: dict, rel: str) -> int:
     return bad
 
 
-def _find_comparison(out: dict, a: str, b: str, rel: str = ""):
-    """E2/G4：按文件+显式臂映射精确匹配 comparison key。"""
-    # H1：同一文件可能混用两代（m3_summary：表格 run2、解读四行 run3）——先按文件映射，找不到回落默认
-    for mapping in (ARM_BY_FILE.get(rel, {}), ARM_FULL):
+def _find_comparison(out: dict, a: str, b: str, rel: str = "", prefer_run2: bool = False):
+    """E2/G4/J6：按文件+显式臂映射精确匹配 comparison key（句子带 run2 标记时优先 run2 变体）。"""
+    run2_map = {"B": "B_run2", "D": "D_run2", "C1": "C1", "C2": "C2", "D_neighbor": "D_neighbor"}
+    candidates = ([run2_map] if prefer_run2 else []) + [ARM_BY_FILE.get(rel, {}), ARM_FULL]
+    for mapping in candidates:
         fa = mapping.get(a, a)
         fb = mapping.get(b, b)
         for key, row in out.items():
@@ -233,7 +234,7 @@ def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
             if not prev:
                 continue
             _, a, b = prev[-1]
-            row = _find_comparison(out, a, b, rel)
+            row = _find_comparison(out, a, b, rel, prefer_run2=("run2" in para.lower()))
             if row is None:
                 continue
             allowed_p = round(float(row["p_exact"]), 4)
@@ -264,7 +265,7 @@ def check_direction_all(text: str, out: dict, rel: str) -> int:
             if not prev:
                 continue
             _, a, b = prev[-1]
-            row = _find_comparison(out, a, b, rel)
+            row = _find_comparison(out, a, b, rel, prefer_run2=("run2" in line.lower()))
             if row is None:
                 continue
             exps = {_direction_diff(row, forward=True)}  # 报告已统一「后者 − 前者」，只接受 forward
@@ -346,9 +347,11 @@ def check_markdown(out: dict) -> int:
             file_bad += 1
         for m in re.finditer(r"(?<![\d.])(\d{1,3}(?:\.\d+)?)\s*pp", text):
             raw = float(m.group(1))
-            allowed = {round(abs(float(r["diff_a_minus_b"])) * 100, 2) for r in out.values()}
-            known = {float(x) for x in PP_RAW_WHITELIST}
-            if any(abs(raw - a) < 0.06 for a in allowed) or any(abs(raw - a) < 0.06 for a in known):
+            digits = len(m.group(1).split(".")[1]) if "." in m.group(1) else 0
+            # J7：按书写位数四舍五入后精确匹配（3.2 与 3.3 不再等价）
+            allowed = {round(abs(float(r["diff_a_minus_b"])) * 100, digits) for r in out.values()}
+            known = {round(float(x), digits) for x in PP_RAW_WHITELIST}
+            if raw in allowed or raw in known:
                 continue
             print(f"MISMATCH {rel}: 配对差 {m.group(1)}pp（裸值）不在重算/已知集合")
             file_bad += 1
@@ -403,6 +406,23 @@ def main() -> int:
         }
         print(f"{name}: n={r['n']} A={r['accuracy_a']:.4f} B={r['accuracy_b']:.4f} "
               f"diff={r['diff_a_minus_b']:+.4f} p_exact={r['p_exact']:.4f}")
+
+    # C2 源文件自报（对照 B_run2）：c2_arm_154.json 内含 b_accuracy / paired_diff / p
+    try:
+        c2 = json.load(open(os.path.join(EVAL, "c2_arm_154.json"), encoding="utf-8"))
+        if isinstance(c2.get("paired_diff_c2_minus_b"), (int, float)):
+            out["B_run2_vs_C2"] = {
+                "a_file": "b_arm_154_run2.json (self-reported in c2_arm_154.json)",
+                "b_file": "c2_arm_154.json",
+                "n": len(c2.get("per_question") or []) or 154,
+                "accuracy_a": round(float(c2["b_accuracy"]), 4),
+                "accuracy_b": round(float(c2["c2_accuracy"]), 4),
+                "diff_a_minus_b": round(-float(c2["paired_diff_c2_minus_b"]), 4),
+                "p_exact": round(float(c2["paired_permutation_pvalue"]), 4),
+            }
+            print(f"B_run2_vs_C2(self): n={out['B_run2_vs_C2']['n']} p_exact={out['B_run2_vs_C2']['p_exact']:.4f}")
+    except Exception:
+        pass
 
     # 168 口径：154 确定性 + 14 judge
     for run, b154_file, d154_file, judge_file in [

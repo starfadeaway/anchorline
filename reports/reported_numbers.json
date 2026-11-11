@@ -125,6 +125,15 @@
   "diff_a_minus_b": 0.0844,
   "p_exact": 0.0984
  },
+ "B_run2_vs_C2": {
+  "a_file": "b_arm_154_run2.json (self-reported in c2_arm_154.json)",
+  "b_file": "c2_arm_154.json",
+  "n": 154,
+  "accuracy_a": 0.539,
+  "accuracy_b": 0.5714,
+  "diff_a_minus_b": -0.0325,
+  "p_exact": 0.219
+ },
  "B_vs_D_168_run2": {
   "a_file": "b_arm_154_run2.json + arm_168_run2.json(b_label)",
   "b_file": "d_arm_154_run2.json + arm_168_run2.json(d_label)",
