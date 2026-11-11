@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import logging
 from contextlib import contextmanager
 from typing import Iterator
 
@@ -15,6 +16,8 @@ from mcp.server.mcpserver import MCPServer
 from anchorline.db import session_factory
 from anchorline.memory.store import FactStore
 from anchorline.tools import build_tools
+
+log = logging.getLogger("anchorline.mcp")
 
 # mcp 2.x：FastMCP 已更名为 MCPServer（from mcp.server.mcpserver import MCPServer）
 mcp = MCPServer("anchorline-memory")
@@ -40,7 +43,8 @@ def memory_search(query: str, budget_tokens: int = 2000) -> str:
         with _tools() as t:
             return t["memory_search"](query=query, budget_tokens=budget_tokens).content
     except Exception as exc:  # 错误以文本返回，不中断会话
-        return f"memory_search failed: {exc}"
+        log.warning("memory_search failed: %s", exc)
+        return "检索失败，请稍后重试（详情见服务端日志）"
 
 
 @mcp.tool()
@@ -52,7 +56,8 @@ def memory_write(entity_id: str, attribute: str, value: str, valid_from: str | N
                 entity_id=entity_id, attribute=attribute, value=value, valid_from=valid_from
             ).content
     except Exception as exc:
-        return f"memory_write failed: {exc}"
+        log.warning("memory_write failed: %s", exc)
+        return "写入失败，请稍后重试（详情见服务端日志）"
 
 
 @mcp.tool()
@@ -62,7 +67,8 @@ def memory_forget(entity_id: str, attribute: str, at: str | None = None) -> str:
         with _tools() as t:
             return t["memory_forget"](entity_id=entity_id, attribute=attribute, at=at).content
     except Exception as exc:
-        return f"memory_forget failed: {exc}"
+        log.warning("memory_forget failed: %s", exc)
+        return "删除失败，请稍后重试（详情见服务端日志）"
 
 
 @mcp.tool()

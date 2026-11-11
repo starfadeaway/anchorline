@@ -19,6 +19,14 @@ from anchorline.tools import TOOL_SCHEMAS  # noqa: E402
 
 
 def main() -> int:
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dry-run", action="store_true", help="只打印将写入的事实，不写库、不调模型")
+    args = ap.parse_args()
+    if args.dry_run:
+        print("dry-run: 将写 entity_id='user:smoke', attribute='5K best time', value='25:50'（未执行）")
+        return 0
     db = session_factory()()
     store = FactStore(db)
     reader = reader_client()

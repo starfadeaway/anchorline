@@ -46,7 +46,8 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
             from anchorline.retrieval.hybrid import hybrid_search_with_recalls
 
             facts, recalls = hybrid_search_with_recalls(store.db, query, top_k=limit) if query else ([], [])
-        except Exception:
+        except Exception as exc:
+            log.warning("hybrid search failed, falling back to text search: %s", exc)
             facts = store.search_text(query, limit=limit) if query else []
         # 回溯意图：把已失效的历史事实也带出来（retrospective 题必须能取到旧值）
         if include_history and query:
@@ -62,8 +63,8 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
                     hist = [f for f in hist if q_tokens & set(tokenize(f"{f.attribute} {f.value}"))]
                 seen = {f.id for f in facts}
                 facts = facts + [f for f in hist[:limit] if f.id not in seen]
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("include_history lookup failed: %s", exc)
         items = [
             ContextItem(
                 text=f"[{f.id[:8]}] {f.entity_id}.{f.attribute} = {f.value} (valid_from={f.valid_from:%Y-%m-%d %H:%M})",
@@ -143,8 +144,8 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
             from anchorline.retrieval import facts_index
 
             facts_index.upsert_fact(fact)
-        except Exception:
-            pass
+        except Exception as exc:
+            log.warning("facts_index.upsert_fact failed (fact kept in MySQL only): %s", exc)
         return ToolResult(
             ok=True,
             content=json.dumps(
@@ -167,7 +168,8 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
             from anchorline.retrieval.lorekeeper_kb import search as kb_search_fn
 
             hits = kb_search_fn(query, game or None, top_k)
-        except Exception:
+        except Exception as exc:
+            log.warning("kb_search failed: %s", exc)
             hits = []
         if not hits:
             return ToolResult(ok=True, content="(no knowledge hit)", meta={"hits": 0})

@@ -38,6 +38,17 @@ from anchorline.retrieval.store import open_lancedb  # noqa: E402
 TABLE = "v2_web_slices"
 BATCH = 1  # 单条最长 40k 字符；多条合计会触发 400 invalid parameter
 
+# T1/Q1：B 臂单条切片上限 = 预算 4k tokens（chars/4）÷ top-6 ≈ 2666 字符。
+# 封 40k 没有意义——reader 只会读到预算内的前 16k，单条超预算仍会被截断。
+SLICE_CHAR_CAP = 4000 * 4 // 6
+
+
+def _cap_head(text: str, cap: int) -> str:
+    """保头截断（Q6：不用 truncate_middle，避免把 State 块从中间拼坏）。"""
+    if len(text) <= cap:
+        return text
+    return text[: max(0, cap - 8)] + "\n…(截断)"
+
 
 def main():
     qs = load_questions()

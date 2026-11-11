@@ -8,7 +8,7 @@
 
 ## 1. 状态
 
-**72 题全部完成人工标注**（pilot10 10 题 + 剩余 63 题），schema v3.1 定稿。无 `manual_needed`、无 abstention 混入 72。
+**72 题全部完成人工标注**（pilot10-v2 9 行 + remaining-fixed 63 行 = 72；注：pilot10 原始包 10 题，其中 1 题未进入合并版），schema v3.1 定稿。无 `manual_needed`、无 abstention 混入 72。
 
 ## 2. 分层与分母（最终）
 

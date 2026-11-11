@@ -44,6 +44,7 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 LEGACY_P = {0.1098, 0.252, 0.25}
 LEGACY_ACC = {13.6, 9.7}  # d_arm_154 第一代准确率（必须精确存在，下面单测校验）
 # 其他实验的百分比（翻转率/覆盖率/V1 命中等）：非本表准确率，按值登记
+# H6/G8 已知边界：以下仍是全局白名单（按文件限定只覆盖了 FILE_PCT/FILE_P_BINDINGS）
 KNOWN_PCT = {12, 12.3, 11.7, 44.4, 44.44, 65.1, 65.08, 77.78, 98.6, 21, 15, 1.39, 1.9, 6.3}  # 6.3 在 aa_pilot 里以 % 形式出现  # 只放百分比，不混 pp
 # 覆盖率类，按文件限定（audit_report 的声称值；CI 现场算的当前值是 69/63）
 FILE_PCT = {"reports/audit_report.md": {45, 69, 71, 63}}
@@ -86,7 +87,8 @@ def _json_numbers() -> dict[str, set]:
         for path in glob.glob(os.path.join(ROOT, pattern)):
             try:
                 data = json.load(open(path, encoding="utf-8"))
-            except Exception:
+            except Exception as exc:  # T7：坏产物不能静默缩小白名单
+                print(f"WARN: 产物无法读取（白名单将变小）：{path}: {exc}")
                 continue
             walk(data)
     return {"num4": num4, "acc2": acc2}
@@ -106,6 +108,8 @@ def _global_allowed(out: dict) -> dict[str, set]:
         pp2.add(round(diff * 100, 2))
         pp2.add(round(diff * 100, 1))
     extra = _json_numbers()
+    if not os.environ.get("ANCHORLINE_VERIFY_QUIET"):
+        print(f"白名单规模：num4={len(p4 | acc4 | diff4 | LEGACY_P | extra['num4'])} acc2={len(acc2 | LEGACY_ACC | extra['acc2'])} p={len(p4 | LEGACY_P)}")
     return {
         "num4": p4 | acc4 | diff4 | LEGACY_P | extra["num4"],
         "acc2": acc2 | LEGACY_ACC | extra["acc2"],
@@ -435,8 +439,8 @@ def main() -> int:
                 "p_exact": round(float(c2["paired_permutation_pvalue"]), 4),
             }
             print(f"B_run2_vs_C2(self): n={out['B_run2_vs_C2']['n']} p_exact={out['B_run2_vs_C2']['p_exact']:.4f}")
-    except Exception:
-        pass
+    except Exception as exc:
+        print(f"WARN: B_run2_vs_C2 读取失败（该 comparison 不参与校验）：{exc}")
 
     # 168 口径：154 确定性 + 14 judge
     for run, b154_file, d154_file, judge_file in [

@@ -376,5 +376,7 @@
    "context_tokens_mean": 4000
   }
  ],
- "elapsed_s": 1410.3
+ "elapsed_s": 1410.3,
+ "_deprecated": true,
+ "_deprecated_note": "早期跑坏产物（d_accuracy=0.1，20 题）；正式产物见 d_arm_154_run3.json"
 }

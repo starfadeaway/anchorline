@@ -3,7 +3,7 @@ param(
     [string]$DbHost = "127.0.0.1",
     [int]$Port = 3306,
     [string]$User = "root",
-    [string]$Password = "placeholder-local-password",
+    [string]$Password = $env:ANCHORLINE_DB_PASSWORD,  # U18：从环境变量读取，不硬编码
     [string]$Database = "anchorline"
 )
 

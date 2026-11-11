@@ -23,8 +23,8 @@ from anchorline.llm import reader_client  # noqa: E402
 
 KU = os.path.join(ROOT, "data", "annotations", "ku72.jsonl")
 MD_DIR = os.path.join(ROOT, "dataset", "v1", "minimax-package", "questions")
-OUT_JSON = os.path.join(ROOT, "data", "eval", "m2_l2_extraction.json")
-OUT_MD = os.path.join(ROOT, "reports", "m2_l2_extraction.md")
+OUT_JSON = os.path.join(ROOT, "data", "eval", "_drafts", "m2_l2_extraction.json")  # U3：默认不覆盖已入库产物
+OUT_MD = os.path.join(ROOT, "reports", "_drafts", "m2_l2_extraction.md")
 
 SYS = "你是事实抽取器。只输出 JSON，不要解释。"
 PROMPT = """从下面的会话中抽取「用户的事实」（entity / attribute / value 三段式），只输出 JSON：
@@ -39,6 +39,9 @@ PROMPT = """从下面的会话中抽取「用户的事实」（entity / attribut
 会话：
 {context}
 """
+
+
+API_FAILS = 0
 
 
 def norm(x) -> str:
@@ -72,7 +75,10 @@ def main() -> int:
                 temperature=0.0,
                 max_tokens=4096,
             )
-        except Exception:
+        except Exception as exc:
+            global API_FAILS
+            API_FAILS += 1
+            print(f"  WARN api failed: {exc}")
             out = ""
         parsed = extract_json(out)
         if parsed is None:
@@ -86,12 +92,16 @@ def main() -> int:
         print(f"  [{i}/{len(rows)}] {qid} facts={len(facts)} hit={hit}")
 
     n = len(results)
+    if n == 0:  # U4：一条都没跑 ≠ 全错
+        raise SystemExit("没有可评测的题目：dataset/v1/minimax-package/questions 是否已准备？")
     summary = {
         "n": n,
         "value_hit_rate": round(sum(1 for x in results if x["hit"]) / n, 4) if n else 0.0,
         "avg_facts": round(sum(len(x["facts"]) for x in results) / n, 2) if n else 0.0,
         "parse_fail": parse_fail,
     }
+    os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
+    os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
     with open(OUT_JSON, "w", encoding="utf-8") as f:
         json.dump({"summary": summary, "rows": results}, f, ensure_ascii=False, indent=1)
 

@@ -22,6 +22,12 @@ ARMS = [
     ("D 154 v3", "d_arm_154_run3.json", "d_accuracy"),
     ("168 v2 (B/D)", "arm_168_run2.json", None),
     ("168 v3 (B/D)", "arm_168_run3.json", None),
+    # T18：把其余入库产物也纳入回归保护网
+    ("C1 154", "c1_arm_154.json", "accuracy"),
+    ("C2 154", "c2_arm_154.json", "c2_accuracy"),
+    ("D neighbor 154", "d_arm_154_neighbor.json", "d_accuracy"),
+    ("D intent 154", "d_arm_154_intent.json", "d_accuracy"),
+    ("AA pilot", "aa_pilot.json", "accuracy"),
 ]
 
 

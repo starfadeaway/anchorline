@@ -134,8 +134,9 @@ def rebuild_all(db_session, settings: Settings | None = None) -> int:
             "text": fact_text(f),
             "vector": v,
         }
-        for f, v in zip(rows, vectors)
+        for f, v in zip(rows, vectors, strict=True)
     ]
+    # T12 已知边界：overwrite 非原子（重建失败会留下半成品表）；后续可改为建临时表再重命名
     open_lancedb().create_table(TABLE, data=payload, mode="overwrite")
     return len(payload)
 

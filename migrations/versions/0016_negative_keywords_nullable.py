@@ -18,10 +18,12 @@ depends_on = None
 def upgrade() -> None:
     op.alter_column("skill_toggles", "negative_keywords", existing_type=sa.String(256), nullable=True, server_default=None)
     op.execute("UPDATE skill_toggles SET negative_keywords = NULL WHERE negative_keywords = ''")
+    op.execute("UPDATE custom_skills SET negative_keywords = NULL WHERE negative_keywords = ''")
     op.alter_column("custom_skills", "negative_keywords", existing_type=sa.String(256), nullable=True, server_default=None)
 
 
 def downgrade() -> None:
     op.execute("UPDATE skill_toggles SET negative_keywords = '' WHERE negative_keywords IS NULL")
+    op.execute("UPDATE custom_skills SET negative_keywords = '' WHERE negative_keywords IS NULL")
     op.alter_column("skill_toggles", "negative_keywords", existing_type=sa.String(256), nullable=False, server_default="")
     op.alter_column("custom_skills", "negative_keywords", existing_type=sa.String(256), nullable=False, server_default="")

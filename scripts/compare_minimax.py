@@ -19,7 +19,7 @@ from anchorline.evaluation.v1_judge import value_equivalent  # noqa: E402
 
 HUMAN = os.path.join(ROOT, "data", "annotations", "ku72.jsonl")
 MM = os.path.join(ROOT, "dataset", "v1", "minimax-package", "annotations-minimax.jsonl")
-OUT_DOC = os.path.join(ROOT, "docs", "minimax_cross.md")
+OUT_DOC = os.path.join(ROOT, "reports", "minimax_cross.md")  # U6：与 docstring 一致（入库那份可被更新）
 OUT_DETAIL = os.path.join(ROOT, "dataset", "v1", "minimax-compare.md")
 
 # 人工仲裁（依据数据核实，见 reports/ku72_build.md 与协议 v3.2）
@@ -107,7 +107,7 @@ def main() -> int:
         lines.append(f"| `{qid}` | {kind} | {decision} |")
     lines.extend([
         "",
-        "**真分歧 2 题**（`b01defab`、`5831f84d`）均保留人类值；另 2 题（`d7c942c3`、`89941a94`）为表述差异，语义等价。",
+        f"**仲裁 {len(ARBITRATION)} 项**：其中真分歧 2 题（`b01defab`、`5831f84d`）均保留人类值；另 2 题（`d7c942c3`、`89941a94`）为表述差异，语义等价。",
         "",
         "## 4. 结论与口径",
         "",

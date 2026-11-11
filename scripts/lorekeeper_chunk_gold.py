@@ -24,11 +24,11 @@ from rank_bm25 import BM25Plus  # noqa: E402
 from anchorline.config import Settings  # noqa: E402
 from anchorline.llm import EmbeddingClient, ReaderConfig  # noqa: E402
 
-LK = os.environ.get("LOREKEEPER_DIR", r"C:\Users\Liu\Desktop\ai实验\MiniMax\AI项目\lorekeeper")
+LK = os.environ.get("LOREKEEPER_DIR")  # U8：必须显式设置，不再硬编码他项目本机路径
 LK_CASES = os.path.join(LK, "backend", "app", "eval", "cases.py")
 LK_LANCE = os.path.join(LK, "data", "lance")
 LK_EMBED = "BAAI/bge-m3"
-OUT = os.path.join(ROOT, "data", "eval", "lorekeeper_chunk_gold.json")
+OUT = os.path.join(ROOT, "data", "eval", "_drafts", "lorekeeper_chunk_gold.json")
 
 
 def load_cases() -> list:

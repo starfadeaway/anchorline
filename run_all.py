@@ -90,7 +90,7 @@ def main() -> None:
             print("[check] MySQL 连接正常")
         except Exception:
             print("[check] MySQL 连接失败：先启动 MySQL 服务（例如 Start-Service mysql80，或用 mysqld 直接启动）")
-        raise SystemExit(1)
+            raise SystemExit(1)
 
     procs: list[tuple[str, subprocess.Popen]] = []
     if args.only != "client":

@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 from anchorline.evaluation.v1_judge import value_equivalent  # noqa: E402
 
 SRC = os.path.join(ROOT, "dataset", "v1", "cross-model-16.jsonl")
-OUT_DOC = os.path.join(ROOT, "docs", "cross_model_16.md")
+OUT_DOC = os.path.join(ROOT, "reports", "cross_model_16.md")  # U6：与 docstring 一致
 OUT_DETAIL = os.path.join(ROOT, "dataset", "v1", "cross-model-16-compare.md")
 
 

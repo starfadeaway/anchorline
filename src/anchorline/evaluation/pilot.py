@@ -40,7 +40,10 @@ def deterministic_web_questions(qs: dict[str, dict] | None = None) -> list[dict]
 
 
 def sample_deterministic(limit: int = 20, seed: int = 42) -> list[dict]:
-    """从确定性 web 题里按固定种子抽 limit 题（B/D 臂共用同一批）。"""
+    """从确定性 web 题里按固定种子抽 limit 题（B/D 臂共用同一批）。
+
+    T13：用局部 RNG，避免重置全局随机状态（llm.py 的重试抖动依赖全局）。
+    """
     pool = deterministic_web_questions()
-    random.seed(seed)
-    return random.sample(pool, min(limit, len(pool)))
+    rng = random.Random(seed)
+    return rng.sample(pool, min(limit, len(pool)))

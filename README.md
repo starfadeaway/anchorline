@@ -36,7 +36,7 @@ frontend/                  # React 前端（聊天/记忆/评测/审核/报告/�
 migrations/                # Alembic（0001 初始 → 0014：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
 reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
-tests/                     # pytest（130 项）
+tests/                     # pytest（133 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
@@ -159,7 +159,7 @@ docker compose up -d --build
 #   API   http://127.0.0.1:8000/health
 ```
 
-说明：`dataset/` 不入库，容器默认不含评测数据；要做评测/索引构建，取消 `docker-compose.yml` 里 dataset 挂载的注释。
+说明：`dataset/` 不入库——**评测/索引脚本需要先准备 `dataset/`**，否则会明确报错退出（不再静默写全 0 报告）；容器默认不含评测数据；要做评测/索引构建，取消 `docker-compose.yml` 里 dataset 挂载的注释。
 
 ## B 臂口径（重要）
 

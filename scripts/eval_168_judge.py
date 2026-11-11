@@ -76,7 +76,7 @@ def main() -> int:
         rb = answer_baseline(reader, embedder, tbl_b, q["question"], temperature=1.0)
         rd = answer_d_arm(reader, embedder, tbl_d, q["question"], temperature=1.0)
 
-        def judged(answer: str) -> dict:
+        def judged(answer: str, q=q) -> dict:  # T16：显式绑定循环变量
             # judge 输出偶发无法解析：重试一次；仍失败则记 None（从分母排除，不当 0）
             last = None
             for _ in range(2):
@@ -138,7 +138,7 @@ def main() -> int:
     lines = [
         "# M3 168 题汇总（154 确定性 + 14 judge）\n",
         f"- 题数：154 + {len(rows)} = {len(common)}",
-        f"- B（官方基线）准确率：**{summary['b_accuracy']:.4f}**",
+        f"- B（a11y 子集基线）准确率：**{summary['b_accuracy']:.4f}**",
         f"- D（完整轨迹 + L0）准确率：**{summary['d_accuracy']:.4f}**",
         f"- 配对差 D−B：**{summary['paired_diff_d_minus_b']:+.4f}**",
         f"- 置换检验 p：**{summary['paired_permutation_pvalue']:.4f}**",

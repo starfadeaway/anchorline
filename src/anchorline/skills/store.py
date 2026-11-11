@@ -274,9 +274,9 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
         log.warning("skill %s skipped: prompt budget %s exceeded", name, budget)
     if not entries and dropped:
         # 全部被丢弃时，note 也不能超预算
-        note = f"（因预算未注入：{', '.join(dropped)}）"
+        note = f"（因预算未注入 {len(dropped)} 个技能）"  # L2/M4：只写数量，不写半截名字
         if len(note) > budget:
-            note = note[: max(0, budget - 1)] + "…"
+            note = ""  # 连数量都放不下时不写（预算为 0 的情况）
     lines = [line for _n, line in entries]
     if not lines:
         return note

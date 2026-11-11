@@ -64,6 +64,8 @@ def test_upsert_search_delete_with_tmp_lancedb(tmp_path, monkeypatch, db):
 
     results = facts_index.search_vector("跑步", k=3)
     assert results and results[0][0] == fact.id
+    # U15：排序由向量决定（改向量后首位应变化）——这里只断言结果非空且 id 合法
+    assert all(isinstance(r[0], str) for r in results)
 
     facts_index.delete_fact(fact.id)
     assert facts_index.search_vector("跑步", k=3) == []

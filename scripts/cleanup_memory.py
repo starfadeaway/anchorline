@@ -66,7 +66,13 @@ def main() -> int:
                 )
                 if dup is not None:
                     db.execute(update(Fact).where(Fact.supersedes_id == f.id).values(supersedes_id=None))
+                    fid = f.id
                     db.delete(f)
+                    try:
+                        from anchorline.retrieval.facts_index import delete_fact
+                        delete_fact(fid)
+                    except Exception as exc:
+                        print(f"  WARN 向量索引同步失败：{exc}")
                 else:
                     f.attribute = new
             db.flush()

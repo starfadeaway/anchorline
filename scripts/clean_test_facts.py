@@ -12,10 +12,14 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-from sqlalchemy import delete, select  # noqa: E402
+from sqlalchemy import (  # noqa: E402
+    delete,
+    select,
+    update,  # noqa: E402
+)
 
 from anchorline.db import session_factory  # noqa: E402
-from anchorline.models import Fact  # noqa: E402
+from anchorline.models import Fact
 
 # 测试/冒烟数据前缀（entity_id）
 TEST_PREFIXES = ("user:mcp", "user:webtest", "user:http", "user:smoke", "user:probe")
@@ -35,8 +39,15 @@ def main() -> int:
         if args.dry_run or not targets:
             return 0
         ids = [f.id for f in targets]
+        db.execute(update(Fact).where(Fact.supersedes_id.in_(ids)).values(supersedes_id=None))
         db.execute(delete(Fact).where(Fact.id.in_(ids)))
         db.commit()
+        try:
+            from anchorline.retrieval.facts_index import delete_fact
+            for fid in ids:
+                delete_fact(fid)
+        except Exception as exc:
+            print(f"  WARN 向量索引同步失败：{exc}")
         print(f"已删除 {len(ids)} 条测试事实")
     return 0
 

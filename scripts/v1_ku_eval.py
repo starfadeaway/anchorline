@@ -25,8 +25,8 @@ from anchorline.llm import judge_client, reader_client  # noqa: E402
 
 KU = os.path.join(ROOT, "data", "annotations", "ku72.jsonl")
 MD_DIR = os.path.join(ROOT, "dataset", "v1", "minimax-package", "questions")
-OUT_JSON = os.path.join(ROOT, "data", "eval", "v1_ku_eval.json")
-OUT_MD = os.path.join(ROOT, "reports", "v1_ku_eval.md")
+OUT_JSON = os.path.join(ROOT, "data", "eval", "_drafts", "v1_ku_eval.json")  # U3：默认不覆盖已入库产物
+OUT_MD = os.path.join(ROOT, "reports", "_drafts", "v1_ku_eval.md")
 
 SYS_INTENT = "你是问题意图分类器，只输出 JSON。"
 PROMPT_INTENT = """判断问题问的是「当前值」还是「过去/最初的值」。
@@ -103,6 +103,9 @@ def extract_json(text: str) -> dict | None:
         return None
 
 
+JUDGE_FAILS = 0
+
+
 def judge_equivalent(judge, question: str, gold: str, answer: str) -> bool:
     if not gold:
         return False
@@ -115,7 +118,10 @@ def judge_equivalent(judge, question: str, gold: str, answer: str) -> bool:
         )
         parsed = extract_json(out) or {}
         return bool(parsed.get("equivalent"))
-    except Exception:
+    except Exception as exc:
+        global JUDGE_FAILS
+        JUDGE_FAILS += 1
+        print(f"  WARN judge failed: {exc}")
         return False
 
 
@@ -194,6 +200,10 @@ def main() -> int:
         "current_hit_rate": rate(current),
         "retrospective_hit_rate": rate(retro),
     }
+    os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
+    if not results:  # U4：一条都没跑 ≠ 全错
+        raise SystemExit("没有可评测的题目：dataset/v1/minimax-package/questions 是否已准备？")
+
     with open(OUT_JSON, "w", encoding="utf-8") as f:
         json.dump({"summary": summary, "rows": results}, f, ensure_ascii=False, indent=1)
 

@@ -61,6 +61,24 @@ def msg_lines(session):
 
 
 def main():
+    import argparse
+    import shutil
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--force", action="store_true", help="目标已存在时仍覆盖（会先备份到 _backup/）")
+    args = ap.parse_args()
+    target = os.path.join(OUT_ANN, "ku72.jsonl")
+    if os.path.exists(target) and not args.force:
+        raise SystemExit(
+            f"拒绝覆盖已入库的人工标注：{target}\n"
+            "该文件是 M2 评测的 gold（72 行人工标注），build_ku72 只是骨架生成器。\n"
+            "如确需重建骨架，请先手动备份，或加 --force（会自动备份）。"
+        )
+    if os.path.exists(target) and args.force:
+        bak_dir = os.path.join(OUT_ANN, "_backup")
+        os.makedirs(bak_dir, exist_ok=True)
+        shutil.copy2(target, os.path.join(bak_dir, f"ku72.jsonl.bak-{int(__import__('time').time())}"))
+    _ = (ap, args)
     q_all = load(os.path.join(DATA, "longmemeval_s_cleaned.json"))
     ku = [x for x in q_all if x.get("question_type") == "knowledge-update"]
     ku_by_id = {x["question_id"]: x for x in ku}
@@ -230,7 +248,7 @@ def main():
         f.write("# V1-KU 72 题骨架构建报告\n\n")
         f.write("- 78 题 knowledge-update → 72 非拒答 + 6 `_abs`\n")
         f.write(f"- 自动定位：1a current {stats['current']} 题；1b retrospective {stats['retrospective']} 题\n")
-        f.write(f"- 待人工：{stats['manual']} 题（NEITHER 14 + BOTH 2）\n")
+        f.write(f"- 待人工：{stats['manual']} 题（NEITHER {stats.get('neither', '?')} + BOTH {stats.get('both', '?')}）\n")
         f.write(f"- 拒答：{stats['abstention']} 题（层 1c，单列）\n")
         f.write(f"- 输出：`data/annotations/ku72.jsonl`（{len(ann)} 行）、`dataset/v1/pilot10.md`；manual 材料用 `scripts/make_annotation_batch.py` 生成\n")
         f.write("\n## 关键提醒\n\n")

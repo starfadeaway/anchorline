@@ -34,7 +34,7 @@
 - 数据库：MySQL 8 + LanceDB + BM25；唯一约束 `(entity_id, attribute, valid_from)`。
 - V2 主集：LongMemEval-V2 **web 子集**，240 题引用 100 条唯一轨迹（全量 1,870 = web 929 + enterprise 941）；不做 enterprise、不跑 Medium、不下载 5.92 GB 轨迹截图。
 - V2 主分母：**168 − k**（k ≤ 15）；168 目前 provisional；153 只作敏感性分析。
-- V2 对照臂：**6 臂**——A 无记忆 / B 官方基线 / C1 完整轨迹+官方切片 / C2 a11y-only+我方压缩 / D 本项目完整 / E 全量历史。
+- V2 对照臂：**6 臂**——A 无记忆 / B a11y 子集基线 / C1 完整轨迹+官方切片 / C2 a11y-only+我方压缩 / D 本项目完整 / E 全量历史。
 - C 臂是 **2×2 因子设计**，不要合成一个 C 臂。
 - M3 矩阵：**2,339 reader + 298 judge**；A/A 在 pilot 20 题 × N=10 = 200 次，不进主矩阵。
 - V1-KU：78 题，剔 6 道 `_abs` 后 **72 题** = 1a 49 + 1b 7 + 16 待人工判层；72 与 168 一样 provisional。

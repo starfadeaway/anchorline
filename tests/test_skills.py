@@ -211,7 +211,7 @@ def test_build_skills_hint_budget(db):
     assert set_skill(db, "big", True)
     sk = enabled_skills(db)
     hint = build_skills_hint(db, sk, budget=50)
-    assert "big" in hint and "未注入" in hint  # H7：全部超预算时也要有提示
+    assert "未注入" in hint and "1 个技能" in hint  # L2/M4：全部超预算时只写数量
 
 
 def test_builtin_negative_keywords_wired(db):
