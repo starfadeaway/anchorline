@@ -79,7 +79,7 @@ export type EvalArm = {
   note?: string;
 };
 
-export type SkillInfo = { name: string; title: string; description: string; enabled: boolean };
+export type SkillInfo = { name: string; title: string; description: string; enabled: boolean; source: "builtin" | "custom" };
 
 export type SettingsOut = {
   version: string;
@@ -200,12 +200,23 @@ export const api = {
   metrics: () => json<ApiMetrics>("/api/metrics"),
   settings: () => json<SettingsOut>("/api/settings", undefined, 10_000),
   listSkills: () => json<SkillInfo[]>("/api/skills"),
-  toggleSkill: (name: string, enabled: boolean) =>
+  createSkill: (body: { name: string; title: string; description: string; instructions: string }) =>
+    json<SkillInfo>("/api/skills", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  updateSkill: (
+    name: string,
+    body: { enabled?: boolean; title?: string; description?: string; instructions?: string },
+  ) =>
     json<SkillInfo>(`/api/skills/${name}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled }),
+      body: JSON.stringify(body),
     }),
+  deleteSkill: (name: string) =>
+    json<{ deleted: string }>(`/api/skills/${name}`, { method: "DELETE" }),
   facts: (limit = 200) => json<Fact[]>(`/api/memory/facts?limit=${limit}`),
   history: (id: string) => json<Fact[]>(`/api/memory/facts/${id}/history`),
   writeFact: (body: { entity_id: string; attribute: string; value: string; valid_from?: string }) =>

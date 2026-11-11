@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Button, Drawer, Layout, Menu, Spin, Typography, message } from "antd";
-import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileTextOutlined, DashboardOutlined, MenuOutlined, SettingOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { CommentOutlined, DatabaseOutlined, ExperimentOutlined, FileTextOutlined, DashboardOutlined, MenuOutlined, SettingOutlined, SafetyCertificateOutlined, ThunderboltOutlined } from "@ant-design/icons";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 // 路由级懒加载：首屏只加载聊天页，其余页面按需加载（减小首包）
@@ -12,6 +12,7 @@ const ReviewPage = lazy(() => import("./pages/ReviewPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const MonitorPage = lazy(() => import("./pages/MonitorPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const SkillsPage = lazy(() => import("./pages/SkillsPage"));
 
 const { Sider, Content, Header } = Layout;
 const { Text } = Typography;
@@ -24,6 +25,7 @@ const items = [
   { key: "/review", icon: <SafetyCertificateOutlined />, label: <Link to="/review">审核</Link> },
   { key: "/reports", icon: <FileTextOutlined />, label: <Link to="/reports">报告</Link> },
   { key: "/monitor", icon: <DashboardOutlined />, label: <Link to="/monitor">监控</Link> },
+  { key: "/skills", icon: <ThunderboltOutlined />, label: <Link to="/skills">技能</Link> },
   { key: "/settings", icon: <SettingOutlined />, label: <Link to="/settings">设置</Link> },
 ];
 
@@ -97,6 +99,7 @@ export default function App() {
             <Route path="/review" element={<ReviewPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/monitor" element={<MonitorPage />} />
+            <Route path="/skills" element={<SkillsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/chat" replace />} />
           </Routes>

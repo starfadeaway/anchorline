@@ -1182,27 +1182,78 @@ class SkillOut(BaseModel):
     title: str
     description: str
     enabled: bool
+    source: str = "builtin"  # builtin / custom
 
 
-class SkillToggleIn(BaseModel):
-    enabled: bool
+class SkillCreateIn(BaseModel):
+    name: str
+    title: str
+    description: str = ""
+    instructions: str
+
+
+class SkillUpdateIn(BaseModel):
+    enabled: bool | None = None
+    title: str | None = None
+    description: str | None = None
+    instructions: str | None = None
+
+
+def _skill_out(db: Session, name: str) -> SkillOut:
+    from anchorline.skills.store import list_skills
+
+    hit = next((row for row in list_skills(db) if row[0].name == name), None)
+    if hit is None:
+        raise HTTPException(status_code=404, detail="unknown skill")
+    s, on, src = hit
+    return SkillOut(name=s.name, title=s.title, description=s.description, enabled=on, source=src)
 
 
 @app.get("/skills", response_model=list[SkillOut])
 def list_skills_endpoint(db: Session = Depends(get_db)) -> list[SkillOut]:
     from anchorline.skills.store import list_skills
 
-    return [SkillOut(name=s.name, title=s.title, description=s.description, enabled=on) for s, on in list_skills(db)]
+    return [SkillOut(name=s.name, title=s.title, description=s.description, enabled=on, source=src) for s, on, src in list_skills(db)]
+
+
+@app.post("/skills", response_model=SkillOut)
+def create_skill(body: SkillCreateIn, db: Session = Depends(get_db)) -> SkillOut:
+    import re
+
+    from anchorline.skills.store import create_custom
+
+    if not re.fullmatch(r"[a-z][a-z0-9_]{1,32}", body.name):
+        raise HTTPException(status_code=400, detail="name 必须是 2-33 位小写字母/数字/下划线，且以字母开头")
+    if not body.instructions.strip():
+        raise HTTPException(status_code=400, detail="instructions 不能为空")
+    if not create_custom(db, body.name, body.title.strip() or body.name, body.description.strip(), body.instructions.strip()):
+        raise HTTPException(status_code=409, detail="name 已存在（内置或自定义技能同名）")
+    return _skill_out(db, body.name)
 
 
 @app.put("/skills/{name}", response_model=SkillOut)
-def toggle_skill(name: str, body: SkillToggleIn, db: Session = Depends(get_db)) -> SkillOut:
-    from anchorline.skills.store import list_skills, set_skill
+def update_skill(name: str, body: SkillUpdateIn, db: Session = Depends(get_db)) -> SkillOut:
+    from anchorline.skills.store import set_skill, update_custom
 
-    if not set_skill(db, name, body.enabled):
+    if body.title is not None or body.description is not None or body.instructions is not None:
+        if not update_custom(db, name, body.title, body.description, body.instructions):
+            raise HTTPException(status_code=400, detail="只有自定义技能可以编辑内容（内置技能只能开关）")
+    if body.enabled is not None:
+        if not set_skill(db, name, body.enabled):
+            raise HTTPException(status_code=404, detail="unknown skill")
+    return _skill_out(db, name)
+
+
+@app.delete("/skills/{name}", response_model=dict)
+def delete_skill(name: str, db: Session = Depends(get_db)) -> dict[str, str]:
+    from anchorline.skills import SKILL_BY_NAME
+    from anchorline.skills.store import delete_custom
+
+    if name in SKILL_BY_NAME:
+        raise HTTPException(status_code=400, detail="内置技能不能删除，只能关闭")
+    if not delete_custom(db, name):
         raise HTTPException(status_code=404, detail="unknown skill")
-    s, on = next((s, on) for s, on in list_skills(db) if s.name == name)
-    return SkillOut(name=s.name, title=s.title, description=s.description, enabled=on)
+    return {"deleted": name}
 
 
 @app.get("/settings", response_model=SettingsOut)

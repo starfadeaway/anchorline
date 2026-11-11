@@ -99,7 +99,7 @@ export default function SettingsPage() {
                 checked={sk.enabled}
                 onChange={(v) =>
                   api
-                    .toggleSkill(sk.name, v)
+                    .updateSkill(sk.name, { enabled: v })
                     .then(() => {
                       setSkills((prev) => prev.map((x) => (x.name === sk.name ? { ...x, enabled: v } : x)));
                       message.success(`${sk.title} 已${v ? "开启" : "关闭"}`);
