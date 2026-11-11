@@ -1586,7 +1586,7 @@ def eval_summary() -> list[EvalArmOut]:
     """把 data/eval 下的结果汇总成臂级表；文件缺失/损坏只跳过，不抛 500。"""
     out: list[EvalArmOut] = []
     for fname, arm, key, note in [
-        ("b_arm_154_run3.json", "B（官方基线）", None, "154 题，run3（当前口径）"),
+        ("b_arm_154_run3.json", "B（a11y 子集基线）", None, "154 题，run3（当前口径）；只复刻官方 a11y 通道，非完整官方基线"),
         ("d_arm_154_run3.json", "D（完整轨迹+L0）", "d_accuracy", "154 题，run3（当前口径）"),
         ("c1_arm_154.json", "C1（完整轨迹×官方切片）", None, "154 题，2×2 因子"),
         ("c2_arm_154.json", "C2（a11y-only+L0）", "c2_accuracy", "154 题，2×2 因子"),

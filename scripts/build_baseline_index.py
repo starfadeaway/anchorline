@@ -67,9 +67,9 @@ def main():
                 "center": e.center_state_index,
                 "goal": goals.get(e.trajectory_id, ""),
                 # N2/O5：与 C1/D/D_neighbor 一致，索引文本封顶 40k（防单条切片远超 4k 预算）
-                "axtree_text": truncate_middle(e.axtree_text, 40000),
+                "axtree_text": _cap_head(e.axtree_text, SLICE_CHAR_CAP),
                 # P1：B 臂注入用 state_blocks（不是 axtree_text），必须同样封顶
-                "state_blocks": truncate_middle(e.state_blocks, 40000),
+                "state_blocks": _cap_head(e.state_blocks, SLICE_CHAR_CAP),
                 "vector": normalize_vector(v),
             })
         if (i // BATCH) % 20 == 0:

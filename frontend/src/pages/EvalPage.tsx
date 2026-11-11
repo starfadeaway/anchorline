@@ -65,7 +65,7 @@ export default function EvalPage() {
         description={
           <div style={{ lineHeight: 1.8 }}>
             <div>· 固定配置：reader <Text code>deepseek-flash</Text>、embedding <Text code>Qwen3-Embedding-8B</Text>、官方判分、4k 预算、top-6、1 次/题。</div>
-            <div>· <b>B</b> = 官方基线（a11y 切片，不去重）；<b>C2</b> = a11y-only + L0 去重；<b>D</b> = 完整轨迹 + L0。</div>
+            <div>· <b>B</b> = 官方基线的 <b>a11y 通道子集</b>（官方另有 event/note 通道与改写查询；切片不去重）；<b>C2</b> = a11y-only + L0 去重；<b>D</b> = 完整轨迹 + L0。</div>
             <div>· 154 题确定性判分；名义 168 题 = 154 + 14 道 LLM judge（prompt 冻结）；judge 解析失败的题从两臂剔除 → run2 实际 165、run3 实际 167。</div>
             <div>· 判读口径：用同臂复跑差（154 题：B +3.25pp / D +1.30pp）作为噪声参照，且需配对检验；旧「A/A 6.3pp（B 臂 20 题、17 题恒 0）」只代表 B 臂题内不稳定率，不再作为主阈值。</div>
             <div>· 不进入官方 leaderboard；只报同配置下的相对结果。</div>

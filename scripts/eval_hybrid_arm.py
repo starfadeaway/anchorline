@@ -93,7 +93,7 @@ def main() -> int:
 
         items: list[tuple[float, str]] = []
         for h in hits:
-            sim = 1.0 - float(h.get("_distance") or 0.0) if "_distance" in h else 0.0
+            sim = float(h.get("rerank_score", 0.0))  # Q4：用真实 rerank 分排序（不再用恒 0 的融合分）
             block = (
                 f"### Memory entry\n"
                 f"- Trajectory: {h.get('traj_id')}\n"
