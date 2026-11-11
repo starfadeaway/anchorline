@@ -15,14 +15,12 @@ export const TOPIC = {
   travel: "旅行",
   trip: "出差",
   work: "工作",
-  testData: "测试数据",
   other: "其他",
 } as const;
 
 /** 由任意文本（会话标题/事实内容）推断规范主题。 */
 export function topicOfText(text: string): string {
   const s = text.toLowerCase();
-  if (/mcp|test|check/.test(s)) return TOPIC.testData;
   if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(s)) return TOPIC.swim;
   if (/乒乓球|羽毛球|网球|篮球|足球|排球|台球|球类/.test(s)) return TOPIC.ball;
   if (/5k|跑步|配速|半马|全马|\bpb\b|跑/.test(s)) return TOPIC.run;

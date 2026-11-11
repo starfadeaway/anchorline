@@ -302,14 +302,18 @@ def memory_capacity(db: Session = Depends(get_db)) -> CapacityOut:
     from anchorline.config import Settings
 
     limit = Settings().memory_max_current_per_entity
-    rows = list(db.scalars(select(Fact).order_by(Fact.entity_id)))
-    stats: dict[str, list[int]] = {}
-    for f in rows:
-        cur = stats.setdefault(f.entity_id, [0, 0])
-        if f.valid_to is None:
-            cur[0] += 1
-        else:
-            cur[1] += 1
+    from sqlalchemy import case, func
+
+    agg = db.execute(
+        select(
+            Fact.entity_id,
+            func.sum(case((Fact.valid_to.is_(None), 1), else_=0)),
+            func.sum(case((Fact.valid_to.isnot(None), 1), else_=0)),
+        ).group_by(Fact.entity_id)
+    ).all()
+    stats: dict[str, list[int]] = {
+        row[0]: [int(row[1] or 0), int(row[2] or 0)] for row in agg
+    }
     return CapacityOut(
         limit=limit,
         total_current=sum(v[0] for v in stats.values()),
@@ -448,9 +452,18 @@ def _verify_and_retry_answer(out: dict[str, Any], reader) -> dict[str, Any]:
         )
         answer = str((last or {}).get("content") or "")
         missing: list[str] = []
+        cn_to_digit = {"一": "1", "二": "2", "两": "2", "三": "3", "四": "4", "五": "5", "六": "6", "七": "7", "八": "8", "九": "9", "十": "10"}
+        digit_to_cn = {v: k for k, v in cn_to_digit.items() if k not in ("两",)}
         for v in write_values:
-            toks = re.findall(r"\d+(?:\.\d+)?", v) + re.findall(r"[一二三四五六七八九十百千万]+", v)
-            if toks and not any(t in answer for t in toks):
+            nums = re.findall(r"(?<!\d)\d+(?:\.\d+)?(?!\d)", v)  # 数字边界：25 不再命中 250
+            cn = re.findall(r"[一二两三四五六七八九十]", v)
+            candidates = list(nums) + cn
+            for n in nums:
+                if n in digit_to_cn:
+                    candidates.append(digit_to_cn[n])
+            for c in cn:
+                candidates.append(cn_to_digit[c])
+            if candidates and not any(c in answer for c in candidates):
                 missing.append(v)
         if missing:
             hint = (
@@ -1003,7 +1016,7 @@ def list_review_decisions(limit: int = Query(default=50, ge=1, le=200), db: Sess
 
 
 @app.get("/review/conflicts", response_model=list[ConflictEntity])
-def review_conflicts(db: Session = Depends(get_db)) -> list[ConflictEntity]:
+def review_conflicts(limit: int = Query(default=200, ge=1, le=500), db: Session = Depends(get_db)) -> list[ConflictEntity]:
     """审核队列：同一实体下「属性关键词重叠」的多个当前值（疑似冲突），供人工裁决。"""
     rows = list(
         db.scalars(select(Fact).where(Fact.valid_to.is_(None)).order_by(Fact.entity_id, Fact.attribute))
@@ -1025,7 +1038,7 @@ def review_conflicts(db: Session = Depends(get_db)) -> list[ConflictEntity]:
             if not placed:
                 clusters.append([f])
         for c in clusters:
-            if len(c) >= 2:
+            if len(c) >= 2 and len(out) < limit:
                 token_sets = [_attr_tokens(f.attribute) for f in c]
                 common = set.intersection(*token_sets) if token_sets else set()
                 if common:

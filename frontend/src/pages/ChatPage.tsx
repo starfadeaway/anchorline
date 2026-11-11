@@ -288,7 +288,7 @@ export default function ChatPage() {
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="发一条消息，例如：记住我的 5K 最好成绩是 25:50（2023-05-30）" />
             )}
             {messages.map((m, i) => (
-              <div key={i} className={`msg msg-${m.role} msg-enter`}>
+              <div key={`${m.created_at ?? ""}-${i}`} className={`msg msg-${m.role} msg-enter`}>
                 <div className="msg-role">
                   {m.role === "user" ? "你" : "Anchorline"}
                   {m.created_at && <span className="msg-time">{new Date(m.created_at).toLocaleTimeString()}</span>}
@@ -348,7 +348,7 @@ export default function ChatPage() {
               </Descriptions>
               <div style={{ marginTop: 12 }}>
                 {trace.tool_calls.map((t, i) => (
-                  <div key={i} className="tool-item">
+                  <div key={`${t.name}-${i}`} className="tool-item">
                     <Text code>{t.name}</Text>
                     <pre>{t.arguments}</pre>
                   </div>

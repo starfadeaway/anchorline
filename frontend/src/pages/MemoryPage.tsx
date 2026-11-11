@@ -6,13 +6,14 @@ import { topicOfText } from "../topics";
 
 const { Text } = Typography;
 
-function useNow(intervalMs = 30_000): Date {
+/** 相对时间只在它自己的小节点里按分钟刷新，不触发整页重渲染（记忆页卡顿修复）。 */
+function RelativeTime({ iso }: { iso: string }) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const t = window.setInterval(() => setNow(new Date()), intervalMs);
+    const t = window.setInterval(() => setNow(new Date()), 60_000);
     return () => window.clearInterval(t);
-  }, [intervalMs]);
-  return now;
+  }, []);
+  return <>{formatRelative(iso, now)}</>;
 }
 
 function formatRelative(iso: string, now: Date): string {
@@ -29,7 +30,8 @@ function formatRelative(iso: string, now: Date): string {
 }
 
 function topicOfFact(f: Fact): string {
-  // 大模型实体 → 模型与配置；其余按「实体 + 属性」的内容匹配（与 topics.ts / 后端一致）
+  // 测试数据只按显式实体前缀识别（不再按内容里的 test/check 猜，避免误伤真实记忆）
+  if (f.entity_id.startsWith("test.") || f.entity_id === "user:mcp") return "测试数据";
   if (/^大模型/.test(f.entity_id)) return "模型与配置";
   return topicOfText(`${f.entity_id} ${f.attribute}`);
 }
@@ -97,7 +99,6 @@ export default function MemoryPage() {
   const [exportSelected, setExportSelected] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [form] = Form.useForm();
-  const now = useNow();
   const [hoverBar, setHoverBar] = useState<TraceRow | null>(null);
   const [capacity, setCapacity] = useState<{ limit: number; total_current: number } | null>(null);
 
@@ -223,7 +224,7 @@ export default function MemoryPage() {
     setExportOpen(false);
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     { title: "实体", dataIndex: "entity_id", width: "10%", ellipsis: true },
     { title: "属性", dataIndex: "attribute", width: "14%", ellipsis: true },
     { title: "值", dataIndex: "value", width: "30%" },
@@ -238,7 +239,7 @@ export default function MemoryPage() {
       render: (_: unknown, r: Fact) => (
         <span>
           {new Date(r.valid_from).toLocaleString()}
-          <Text type="secondary" style={{ marginLeft: 6, fontSize: 11 }}>（{formatRelative(r.valid_from, now)}）</Text>
+          <Text type="secondary" style={{ marginLeft: 6, fontSize: 11 }}>（<RelativeTime iso={r.valid_from} />）</Text>
         </span>
       ),
     },
@@ -267,7 +268,7 @@ export default function MemoryPage() {
         </div>
       ),
     },
-  ];
+  ], []);
 
   return (
     <Card
@@ -425,7 +426,7 @@ export default function MemoryPage() {
       <Modal open={addOpen} onCancel={() => setAddOpen(false)} onOk={() => void submitAdd()} title="新增事实" okText="写入">
         <Form form={form} layout="vertical">
           <Form.Item name="entity_id" label="实体 ID" rules={[{ required: true }]}>
-            <Input placeholder="如 user:liu" />
+            <Input placeholder="如 user" />
           </Form.Item>
           <Form.Item name="attribute" label="属性" rules={[{ required: true }]}>
             <Input placeholder="如 5K best time" />

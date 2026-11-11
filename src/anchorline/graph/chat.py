@@ -12,7 +12,6 @@ import time
 from dataclasses import dataclass
 from typing import Callable, TypedDict
 
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, StateGraph
 
 from anchorline.memory.store import FactStore
@@ -161,7 +160,8 @@ def build_chat_graph(
     g.add_edge("tools", "agent")
     for n in ("done", "stop_max_steps", "stop_max_tokens", "stop_wall_time", "stop_no_progress"):
         g.add_edge(n, END)
-    return g.compile(checkpointer=InMemorySaver())
+    # 不挂 checkpointer：每次请求新建 graph，无恢复需求（避免 InMemorySaver 累积，P2-6）
+    return g.compile()
 
 
 def initial_state(messages: list[dict]) -> ChatState:
