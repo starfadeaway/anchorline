@@ -49,7 +49,7 @@ def answer_c2(
         sim = 1.0 - float(h.get("_distance") or 0.0)
         novel = deduper.feed(h.get("axtree_text") or "")
         if novel:
-            blocks.append((sim, f"### C2 slice\n- Trajectory: {h['traj_id']}\n- Center state: {h['center']}\n- Similarity: {sim:.4f}\n\n" + "\n".join(novel)))
+            blocks.append((sim, f"### C2 slice\n- Trajectory: {h['traj_id']}\n- Center state: {h['center']}\n- Similarity (1 − L2 距离，非余弦): {sim:.4f}\n\n" + "\n".join(novel)))
     context, used_tokens, dropped = assemble_blocks(blocks, context_budget_tokens)
     context = context or "(empty)"
     messages = build_messages(question, context)

@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-"""B 臂（官方基线的 a11y 通道子集，非完整官方基线）（B 臂）的检索 + 上下文 + reader 调用。
+"""B 臂（官方基线的 a11y 通道子集，非完整官方基线）的检索 + 上下文 + reader 调用。
 
-B 臂定义（v0.8 §6.5）：
-  - 输入模态：a11y-only；
-  - 切片：官方 raw_state_slice（radius 1，不做行级去重）；
-  - 检索：官方向量检索 top-6；
-  - 预算档：1 档（4k 名义；实际注入量由 top-6 切片决定，记录 token 数）。
 """
 from __future__ import annotations
 

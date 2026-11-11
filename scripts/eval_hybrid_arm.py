@@ -83,7 +83,13 @@ def main() -> int:
         else:
             # 4) rerank 取 top-k
             scored = reranker.rerank(question, [c["text"][:2000] for c in candidates], top_n=args.top_k)
-            hits = [candidates[idx] for idx, _ in scored if 0 <= idx < len(candidates)][: args.top_k]
+            hits = []
+            for idx, score in scored:
+                if 0 <= idx < len(candidates):
+                    c = dict(candidates[idx])
+                    c["rerank_score"] = float(score)
+                    hits.append(c)
+            hits = hits[: args.top_k]
 
         items: list[tuple[float, str]] = []
         for h in hits:
@@ -93,7 +99,7 @@ def main() -> int:
                 f"- Trajectory: {h.get('traj_id')}\n"
                 f"- Goal: {h.get('goal', '')}\n"
                 f"- State index: {h.get('state_index')}\n"
-                f"- Similarity: (hybrid 全表扫描不计算距离，此值不可用)\n\n"
+                f"- Rerank score: {h.get('rerank_score', 0.0):.4f}（hybrid 不计算余弦相似度）\n\n"
                 f"{h.get('text', '')}\n"
             )
             items.append((sim, block))
