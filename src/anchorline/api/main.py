@@ -362,6 +362,16 @@ def _run_agent(
         "如果用户是在更新之前说过的事实（如人数、成绩、状态变化），必须以最新值回答，并且只保留一条当前值；"
         "同一条信息不要重复写多次，更新时用 supersedes_id 指向旧事实。"
     )
+    # 可开关技能：把启用技能的指令拼进 system prompt（只影响回答方式，不越过记忆边界）
+    try:
+        from anchorline.skills.store import enabled_skills
+
+        skills = enabled_skills(db)
+        if skills:
+            base_hint += "\n\n已启用的技能（按需使用）：\n" + "\n".join(f"- {s.instructions}" for s in skills)
+    except Exception:
+        log.warning("load skills failed", exc_info=True)
+
     messages = [{"role": "system", "content": base_hint}, *messages]
     # 回溯意图识别（产品链路）：retrospective 时注入系统提示 + 要求检索历史
     intent = "current"
@@ -1165,6 +1175,34 @@ def _index_ready() -> bool:
         return facts_index.is_ready()
     except Exception:
         return False
+
+
+class SkillOut(BaseModel):
+    name: str
+    title: str
+    description: str
+    enabled: bool
+
+
+class SkillToggleIn(BaseModel):
+    enabled: bool
+
+
+@app.get("/skills", response_model=list[SkillOut])
+def list_skills_endpoint(db: Session = Depends(get_db)) -> list[SkillOut]:
+    from anchorline.skills.store import list_skills
+
+    return [SkillOut(name=s.name, title=s.title, description=s.description, enabled=on) for s, on in list_skills(db)]
+
+
+@app.put("/skills/{name}", response_model=SkillOut)
+def toggle_skill(name: str, body: SkillToggleIn, db: Session = Depends(get_db)) -> SkillOut:
+    from anchorline.skills.store import list_skills, set_skill
+
+    if not set_skill(db, name, body.enabled):
+        raise HTTPException(status_code=404, detail="unknown skill")
+    s, on = next((s, on) for s, on in list_skills(db) if s.name == name)
+    return SkillOut(name=s.name, title=s.title, description=s.description, enabled=on)
 
 
 @app.get("/settings", response_model=SettingsOut)

@@ -79,6 +79,8 @@ export type EvalArm = {
   note?: string;
 };
 
+export type SkillInfo = { name: string; title: string; description: string; enabled: boolean };
+
 export type SettingsOut = {
   version: string;
   db_ok: boolean;
@@ -197,6 +199,13 @@ export const api = {
   health: () => json<{ status: string; db: boolean }>("/api/health", undefined, 10_000),
   metrics: () => json<ApiMetrics>("/api/metrics"),
   settings: () => json<SettingsOut>("/api/settings", undefined, 10_000),
+  listSkills: () => json<SkillInfo[]>("/api/skills"),
+  toggleSkill: (name: string, enabled: boolean) =>
+    json<SkillInfo>(`/api/skills/${name}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled }),
+    }),
   facts: (limit = 200) => json<Fact[]>(`/api/memory/facts?limit=${limit}`),
   history: (id: string) => json<Fact[]>(`/api/memory/facts/${id}/history`),
   writeFact: (body: { entity_id: string; attribute: string; value: string; valid_from?: string }) =>

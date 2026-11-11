@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Card, ColorPicker, Descriptions, Divider, Input, Segmented, Space, Tag, Typography, message } from "antd";
-import { api, type SettingsOut } from "../api";
+import { Alert, Button, Card, ColorPicker, Descriptions, Divider, Input, Segmented, Space, Switch, Tag, Typography, message } from "antd";
+import { api, type SettingsOut, type SkillInfo } from "../api";
 
 const { Paragraph, Text } = Typography;
 
@@ -31,6 +31,7 @@ export default function SettingsPage() {
   const [color, setColor] = useState<string>(() => localStorage.getItem(THEME_KEY) || "#00d4ff");
   const [mode, setMode] = useState<string>(() => localStorage.getItem("anchorline-mode") || "dark");
   const [apiToken, setApiToken] = useState<string>(() => localStorage.getItem("anchorline-token") || "");
+  const [skills, setSkills] = useState<SkillInfo[]>([]);
 
   const load = () => {
     api
@@ -40,6 +41,7 @@ export default function SettingsPage() {
         setErr("");
       })
       .catch((e) => setErr(String(e)));
+    api.listSkills().then(setSkills).catch(() => setSkills([]));
   };
   useEffect(load, []);
 
@@ -81,6 +83,35 @@ export default function SettingsPage() {
           <Descriptions.Item label="聊天可切换"><Space>{s.chat_models.map((m) => <Tag key={m}>{m}</Tag>)}</Space></Descriptions.Item>
           <Descriptions.Item label="预算档"><Space>{s.budgets.map((b) => <Tag key={b}>{b}</Tag>)}</Space></Descriptions.Item>
         </Descriptions>
+      )}
+
+      <Divider titlePlacement="start">技能（可开关）</Divider>
+      <Paragraph type="secondary">
+        内置技能是**提示模块**：开启后聊天时把该技能指令拼进 system prompt；不引入外部工具、不越过记忆边界。
+      </Paragraph>
+      {skills.length === 0 ? (
+        <Text type="secondary">加载中…</Text>
+      ) : (
+        <Space direction="vertical" style={{ width: "100%" }}>
+          {skills.map((sk) => (
+            <div key={sk.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Switch
+                checked={sk.enabled}
+                onChange={(v) =>
+                  api
+                    .toggleSkill(sk.name, v)
+                    .then(() => {
+                      setSkills((prev) => prev.map((x) => (x.name === sk.name ? { ...x, enabled: v } : x)));
+                      message.success(`${sk.title} 已${v ? "开启" : "关闭"}`);
+                    })
+                    .catch((e) => message.error(`技能切换失败：${String(e)}`))
+                }
+              />
+              <Text strong style={{ minWidth: 96 }}>{sk.title}</Text>
+              <Text type="secondary">{sk.description}</Text>
+            </div>
+          ))}
+        </Space>
       )}
 
       <Divider titlePlacement="start">外观</Divider>

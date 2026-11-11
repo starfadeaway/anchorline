@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     DateTime,
     Float,
     ForeignKey,
@@ -125,3 +126,12 @@ class EvalRun(Base):
     judge_prompt_sha256: Mapped[str | None] = mapped_column(String(64))
     config_hash: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+class SkillToggle(Base):
+    """内置技能开关（可开关的提示模块；聊天时把启用技能拼进 system prompt）。"""
+
+    __tablename__ = "skill_toggles"
+
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
