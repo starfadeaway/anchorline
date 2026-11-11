@@ -9,19 +9,6 @@ import { api, downloadMarkdown, type ChatResp, type ChatSession, type Msg, type 
 
 const { Text } = Typography;
 
-/** 按对话内容（主题）分组，而不是按时间；topic 由模型生成，这里只是兜底规则。 */
-function topicOf(title: string): string {
-  const t = title.toLowerCase();
-  if (/游泳|泳池|自由泳|蛙泳|蝶泳|仰泳|swim/.test(t)) return "游泳记录";
-  if (/乒乓球|羽毛球|网球|篮球|足球|排球|台球/.test(t)) return "球类运动";
-  if (/5k|跑步|配速|跑|pb|半马|全马/.test(t)) return "跑步记录";
-  if (/健身|骑行|瑜伽|力量|增肌/.test(t)) return "健身记录";
-  if (/模型|你是谁|介绍一下|deepseek|minimax/.test(t)) return "模型与身份";
-  if (/记住|记忆|存下|保存/.test(t)) return "记忆写入";
-  if (/你好|hi|hello|聊天/.test(t)) return "闲聊";
-  return "其他对话";
-}
-
 function groupByTopic(sessions: ChatSession[]): [string, ChatSession[]][] {
   const m = new Map<string, ChatSession[]>();
   for (const s of sessions) {

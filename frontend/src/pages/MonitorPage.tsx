@@ -18,9 +18,9 @@ export default function MonitorPage() {
     api.metrics().then(setMetrics).catch(() => setMetrics(null));
     api.settings().then(setEnv).catch(() => setEnv(null));
     api.listSessions().then(setSessions).catch(() => setSessions([]));
-    fetch("/api/traces?limit=50")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows: TraceRow[]) => setTraces(rows))
+    api
+      .listTraces(50)
+      .then((rows) => setTraces(rows))
       .catch(() => setTraces([]));
   }, []);
 

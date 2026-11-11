@@ -213,7 +213,7 @@ export const api = {
       "/api/chat",
       post({
         messages,
-        max_steps: 6,
+        max_steps: 8,
         model: opts?.model ?? "deepseek",
         session_id: opts?.sessionId ?? null,
       }),

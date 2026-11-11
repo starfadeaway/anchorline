@@ -28,16 +28,16 @@ OUT_MD = os.path.join(ROOT, "reports", "m2_quality.md")
 SYS = "你是 LongMemEval-S knowledge-update 的标注器。只输出 JSON，不要解释。"
 
 PROMPT = """请阅读下面的会话，判断三个字段，并只输出 JSON：
-{{"query_form": "current|retrospective", "conflict_type": "时效|数值|否定|无", "expected_resolution": "覆盖|并存|无法裁决"}}
+{{"query_form": "current|retrospective", "conflict_type": "时效|语义|偏好反转|无", "expected_resolution": "覆盖|并存|标失效|升级人工"}}
 
 规则：
 - query_form=current 表示问题问的是“当前值”；retrospective 表示问的是“过去/旧值”。
 - conflict_type：
   * 时效 = 问题关于“新值是否取代旧值”（旧值被更新的时间顺序取代，**即使值是数字**）；
-  * 数值 = 仅数值不同、但没有“新取代旧”的语义；
-  * 否定 = 是/否反转；
+  * 语义 = 属性含义相近但值不同（非时效）；
+  * 偏好反转 = 用户偏好从 A 变成 B；
   * 无 = 无冲突。
-- expected_resolution：覆盖=应取新值；并存=两者都成立；无法裁决=无法确定。
+- expected_resolution：覆盖=应取新值；并存=两者都成立；标失效=旧值应标记失效；升级人工=无法自动裁决。
 - 判新旧只看 A/B 顺序，不要用日期。
 
 会话：

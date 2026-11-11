@@ -111,7 +111,7 @@ def main() -> int:
             "- stale_source_session_id / new_source_session_id：旧值/新值所在 session；\n"
             "- gold_session_index：当前值所在 session（0=A，1=B）；\n"
             "- is_abstention：无法从会话确定答案时为 true；\n"
-            "- conflict_type：时效 / 数值 / 否定 / 无；expected_resolution：覆盖 / 并存 / 无法裁决；\n"
+            "- conflict_type：时效 / 语义 / 偏好反转 / 无；expected_resolution：覆盖 / 并存 / 标失效 / 升级人工；\n"
             "- entity / match_mode / note 可留空或简述。\n\n"
             "## 判新旧只看 A/B 顺序，不用日期；retrospective 题的官方 answer 是旧值。\n\n"
             "## 输出\n"

@@ -53,7 +53,9 @@ async def _auth_middleware(request: Request, call_next):
         if path not in ("/health", "/docs", "/openapi.json", "/redoc"):
             got = request.headers.get("x-api-token") or request.headers.get("authorization", "")
             got = got.removeprefix("Bearer ").strip()
-            if got != token:
+            import hmac
+
+            if not hmac.compare_digest(got.encode("utf-8"), token.encode("utf-8")):
                 return JSONResponse(status_code=401, content={"detail": "unauthorized: invalid or missing X-API-Token"})
     return await call_next(request)
 
@@ -113,7 +115,6 @@ class WriteResponse(BaseModel):
     fact_id: str
     supersedes: str | None = None
     archived: int = 0
-    supersedes: str | None = None
 
 
 class ChatRequest(BaseModel):
@@ -260,11 +261,15 @@ def memory_search(req: SearchRequest, db: Session = Depends(get_db)) -> SearchRe
 @app.post("/memory/write", response_model=WriteResponse)
 def memory_write(req: WriteRequest, db: Session = Depends(get_db)) -> WriteResponse:
     store = FactStore(db)
+    # 边界归一化：客户端可能传带时区的 valid_from；统一转成本地 naive 时间（R3）
+    vf = req.valid_from
+    if vf is not None and vf.tzinfo is not None:
+        vf = vf.astimezone().replace(tzinfo=None)
     fact = store.write(
         entity_id=req.entity_id,
         attribute=req.attribute,
         value=req.value,
-        valid_from=req.valid_from or datetime.now(),
+        valid_from=vf or datetime.now(),
         confidence=req.confidence,
         source_session_id=req.source_session_id,
     )
@@ -941,15 +946,23 @@ def create_review_decision(body: ReviewDecisionIn, db: Session = Depends(get_db)
     kept = db.get(Fact, body.kept_fact_id)
     if kept is None:
         raise HTTPException(status_code=404, detail="kept fact not found")
+    # 归属校验：kept 必须属于本次提交的 entity（防跨簇串台写错金标，R5）
+    if body.entity_id and kept.entity_id != body.entity_id:
+        raise HTTPException(status_code=400, detail="kept fact does not belong to this entity")
+    if kept.valid_to is not None:
+        raise HTTPException(status_code=400, detail="kept fact is already invalid")
     now = datetime.now()
     invalidated: list[str] = []
     for fid in body.invalidated_fact_ids:
         if fid == kept.id:
             continue
         f = db.get(Fact, fid)
-        if f is not None and f.valid_to is None:
-            f.valid_to = now
-            invalidated.append(f.id)
+        if f is None or f.valid_to is not None:
+            continue
+        if body.entity_id and f.entity_id != body.entity_id:
+            continue  # 忽略不属于该实体的事实
+        f.valid_to = now
+        invalidated.append(f.id)
     decision = ReviewDecision(
         entity_id=body.entity_id,
         attribute=body.attribute or kept.attribute,

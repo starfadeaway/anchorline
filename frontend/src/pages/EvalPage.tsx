@@ -20,15 +20,14 @@ export default function EvalPage() {
         setError(String(e));
         message.error(String(e));
       });
-    fetch("/api/traces?limit=50")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data: TraceRow[]) => setTraces(data))
+    api
+      .listTraces(50)
+      .then((data) => setTraces(data))
       .catch(() => setTraces([]));
     api.lorekeeperBridge().then(setBridge).catch(() => setBridge(null));
     api.reviewSummary().then(setReview).catch(() => setReview(null));
   }, []);
 
-  const maxAcc = useMemo(() => Math.max(...rows.map((r) => r.accuracy), 0.01), [rows]);
 
   const armColumns = [
     { title: "臂", dataIndex: "arm", width: 240 },

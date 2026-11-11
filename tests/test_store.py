@@ -69,3 +69,43 @@ def test_search_text_hits_attribute_and_value(db):
     db.commit()
     assert [f.attribute for f in store.search_text("flyer")] == ["frequent flyer status"]
     assert [f.value for f in store.search_text("Air Fryer")] == ["Air Fryer"]
+
+
+def test_explicit_supersedes_current_links_to_old(db):
+    store = FactStore(db)
+    t1 = datetime(2023, 1, 1, 10, 0)
+    t2 = datetime(2023, 2, 1, 10, 0)
+    f1 = store.write(entity_id="user:liu", attribute="5K best time", value="24:00", valid_from=t1)
+    f2 = store.write(
+        entity_id="user:liu", attribute="5K best time", value="25:50", valid_from=t2, supersedes_id=f1.id
+    )
+    db.commit()
+    assert f1.valid_to == t2
+    assert f2.supersedes_id == f1.id
+
+
+def test_explicit_supersedes_historical_does_not_break_chain(db):
+    store = FactStore(db)
+    t1, t2, t3 = datetime(2023, 1, 1), datetime(2023, 2, 1), datetime(2023, 3, 1)
+    f1 = store.write(entity_id="user:liu", attribute="5K best time", value="v1", valid_from=t1)
+    f2 = store.write(entity_id="user:liu", attribute="5K best time", value="v2", valid_from=t2)
+    # 显式传入的是**已失效的历史事实** f1：链必须指向实际被失效的 f2，而不是 f1
+    f3 = store.write(
+        entity_id="user:liu", attribute="5K best time", value="v3", valid_from=t3, supersedes_id=f1.id
+    )
+    db.commit()
+    assert f2.valid_to == t3
+    assert f3.supersedes_id == f2.id  # R2：不指向历史事实
+
+
+def test_explicit_supersedes_later_fact_does_not_invert_interval(db):
+    store = FactStore(db)
+    t_new = datetime(2026, 3, 1, 10, 0)
+    t_old = datetime(2026, 1, 1, 10, 0)
+    f_new = store.write(entity_id="user:liu", attribute="5K best time", value="v2", valid_from=t_new)
+    # 显式指向“生效更晚”的事实：不得把它写成 valid_to < valid_from
+    store.write(
+        entity_id="user:liu", attribute="5K best time", value="v1", valid_from=t_old, supersedes_id=f_new.id
+    )
+    db.commit()
+    assert f_new.valid_to is None, "显式目标生效更晚时不应被失效（R1）"

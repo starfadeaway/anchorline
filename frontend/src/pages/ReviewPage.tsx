@@ -124,7 +124,8 @@ export default function ReviewPage() {
                 <Text type="secondary">没有需要审核的冲突 🎉</Text>
               ) : (
                 groups.map((g, idx) => {
-                  const gid = `${g.entity_id}#${idx}`;
+                  // 稳定 key：同簇的 fact id 排序拼接（刷新/裁决其他簇后不漂移，R5）
+                  const gid = [g.entity_id, ...g.facts.map((f) => f.id).sort()].join("#");
                   return (
                   <Card
                     key={gid}

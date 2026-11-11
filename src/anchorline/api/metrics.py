@@ -31,7 +31,7 @@ def snapshot() -> dict:
     if not rows:
         return {"n": 0, "p50_ms": 0.0, "p95_ms": 0.0, "p99_ms": 0.0, "error_rate": 0.0, "qps": 0.0}
     durations = sorted(r[3] for r in rows)
-    errors = sum(1 for r in rows if r[2] >= 500)
+    errors = sum(1 for r in rows if r[2] >= 400)  # 4xx 也算错误（鉴权失败不能再隐身）
     window = max(1.0, rows[-1][0] - rows[0][0])
     return {
         "n": len(rows),

@@ -2,11 +2,15 @@
 """配置：只从环境变量 / .env 读取；不得把 key 写入代码或日志。"""
 from __future__ import annotations
 
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_ENV_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=_ENV_FILE, env_file_encoding="utf-8", extra="ignore")
 
     # --- LLM providers（OpenAI-compatible） ---
     deepseek_base_url: str = ""
@@ -73,6 +77,6 @@ class Settings(BaseSettings):
         """安全打印：key 一律变成 ***。"""
         data = self.model_dump()
         for k in list(data):
-            if k.endswith("_api_key"):
+            if k.endswith("_api_key") or k == "api_token":
                 data[k] = "***" if data[k] else ""
         return data

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * 冒烟 e2e：覆盖主要页面渲染与关键交互。
- * 依赖后端 API（127.0.0.1:8000）与 MySQL；CI 里不跑（见 .github/workflows/ci.yml）。
+ * 依赖后端 API（127.0.0.1:8000）与 MySQL；CI 的 e2e job 会起 MySQL service + API 并跑本文件（见 .github/workflows/ci.yml）。
  */
 
 // 空库 runner 也能断言记忆页：先注入一条事实（本地/CI 都可重复执行）

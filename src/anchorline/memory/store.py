@@ -82,24 +82,20 @@ class FactStore:
             self.db.flush()
             return existing
 
-        # 显式 supersedes：在 store 内统一完成「失效旧事实 + 建立链接」（工具层不再自行改 valid_to）
-        supersedes: str | None = None
-        explicit = self.db.get(Fact, supersedes_id) if supersedes_id else None
-        if explicit is not None:
-            if explicit.valid_to is None:
-                explicit.valid_to = valid_from
-            supersedes = explicit.id
-
+        # 自动链优先：链必须指向「实际被失效的那条当前事实」
         old = self.current(entity_id, attribute)
-        if old is not None:
-            if valid_from >= old.valid_from:
-                # 新值更晚或同时：旧事实失效（不删除），有效区间截止到新值生效时刻
-                old.valid_to = valid_from
-                supersedes = supersedes or old.id
-            else:
-                # 乱序补写更早的事实：插入为历史区间，不改变当前值；
-                # 该历史事实的有效期截止到当前事实的生效时间。
-                supersedes = supersedes or None
+        supersedes: str | None = None
+        if old is not None and valid_from >= old.valid_from:
+            old.valid_to = valid_from
+            supersedes = old.id
+
+        # 显式 supersedes：决定「额外失效谁」，但不破坏链的指向（R2）
+        explicit = self.db.get(Fact, supersedes_id) if supersedes_id else None
+        if explicit is not None and explicit.valid_to is None and (old is None or explicit.id != old.id):
+            if valid_from >= explicit.valid_from:
+                explicit.valid_to = valid_from
+                supersedes = supersedes or explicit.id
+            # else: 显式目标生效更晚 → 不失效（防 valid_to < valid_from 倒挂，R1）
         # attribute 名变了（如 5K_personal_best → 5K 最好成绩（PB）→ 5k_pb）：
         # 同一实体下共享关键词的当前值视为「同一属性的更新」，自动失效（历史保留）。
         new_tokens = _attr_tokens(attribute)

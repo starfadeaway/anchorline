@@ -16,7 +16,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // 不把堆栈渲染到页面，只记录到控制台，避免暴露内部信息
+    // 只把错误消息展示给用户；堆栈只写控制台（不渲染堆栈，避免暴露内部信息）
     console.error("[anchorline] UI crash:", error, info.componentStack);
   }
 
