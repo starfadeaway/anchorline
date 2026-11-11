@@ -1,0 +1,92 @@
+{
+ "B_run2_vs_D_run2": {
+  "a_file": "b_arm_154_run2.json",
+  "b_file": "d_arm_154_run2.json",
+  "n": 154,
+  "accuracy_a": 0.539,
+  "accuracy_b": 0.6494,
+  "diff_a_minus_b": -0.1104,
+  "p_exact": 0.0115
+ },
+ "B_run3_vs_D_run3": {
+  "a_file": "b_arm_154_run3.json",
+  "b_file": "d_arm_154_run3.json",
+  "n": 154,
+  "accuracy_a": 0.5714,
+  "accuracy_b": 0.6623,
+  "diff_a_minus_b": -0.0909,
+  "p_exact": 0.0385
+ },
+ "B_run3_vs_C1": {
+  "a_file": "b_arm_154_run3.json",
+  "b_file": "c1_arm_154.json",
+  "n": 154,
+  "accuracy_a": 0.5714,
+  "accuracy_b": 0.539,
+  "diff_a_minus_b": 0.0325,
+  "p_exact": 0.4869
+ },
+ "B_run3_vs_C2": {
+  "a_file": "b_arm_154_run3.json",
+  "b_file": "c2_arm_154.json",
+  "n": 154,
+  "accuracy_a": 0.5714,
+  "accuracy_b": 0.5714,
+  "diff_a_minus_b": 0.0,
+  "p_exact": 1.0
+ },
+ "C1_vs_D_run3": {
+  "a_file": "c1_arm_154.json",
+  "b_file": "d_arm_154_run3.json",
+  "n": 154,
+  "accuracy_a": 0.539,
+  "accuracy_b": 0.6623,
+  "diff_a_minus_b": -0.1234,
+  "p_exact": 0.0066
+ },
+ "C2_vs_D_run3": {
+  "a_file": "c2_arm_154.json",
+  "b_file": "d_arm_154_run3.json",
+  "n": 154,
+  "accuracy_a": 0.5714,
+  "accuracy_b": 0.6623,
+  "diff_a_minus_b": -0.0909,
+  "p_exact": 0.0336
+ },
+ "C1_vs_D_neighbor": {
+  "a_file": "c1_arm_154.json",
+  "b_file": "d_arm_154_neighbor.json",
+  "n": 154,
+  "accuracy_a": 0.539,
+  "accuracy_b": 0.6429,
+  "diff_a_minus_b": -0.1039,
+  "p_exact": 0.0195
+ },
+ "D_run3_vs_D_neighbor": {
+  "a_file": "d_arm_154_run3.json",
+  "b_file": "d_arm_154_neighbor.json",
+  "n": 154,
+  "accuracy_a": 0.6623,
+  "accuracy_b": 0.6429,
+  "diff_a_minus_b": 0.0195,
+  "p_exact": 0.7359
+ },
+ "B_vs_D_168_run2": {
+  "a_file": "b_arm_154_run2.json + arm_168_run2.json(b_label)",
+  "b_file": "d_arm_154_run2.json + arm_168_run2.json(d_label)",
+  "n": 165,
+  "accuracy_a": 0.5333,
+  "accuracy_b": 0.6364,
+  "diff_a_minus_b": -0.103,
+  "p_exact": 0.0186
+ },
+ "B_vs_D_168_run3": {
+  "a_file": "b_arm_154_run3.json + arm_168_run3.json(b_label)",
+  "b_file": "d_arm_154_run3.json + arm_168_run3.json(d_label)",
+  "n": 167,
+  "accuracy_a": 0.5629,
+  "accuracy_b": 0.6467,
+  "diff_a_minus_b": -0.0838,
+  "p_exact": 0.0541
+ }
+}

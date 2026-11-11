@@ -52,6 +52,8 @@ jobs:
           pip install -e .
       - name: Eval artifacts check
         run: python scripts/eval_regression.py
+      - name: Verify reported numbers (deterministic sign-flip)
+        run: python scripts/verify_reported_numbers.py
 
   e2e:
     # 前端 e2e：MySQL service + 本地 API（不调模型，不需要 provider key）+ Playwright

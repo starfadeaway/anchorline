@@ -33,16 +33,15 @@ def load(path: str) -> dict[str, float]:
     return {r["question_id"]: float(r["mean"]) for r in rows if "mean" in r}
 
 
-def sign_flip_pvalue(diffs: np.ndarray, n_perm: int = 10000, seed: int = 0) -> float:
-    rng = np.random.default_rng(seed)
-    obs = abs(float(np.mean(diffs)))
-    count = 0
-    for _ in range(n_perm):
-        signs = rng.choice((-1.0, 1.0), size=diffs.size)
-        if abs(float(np.mean(diffs * signs))) >= obs:
-            count += 1
-    return (count + 1) / (n_perm + 1)
+def sign_flip_pvalue(diffs, n_perm: int = 10000, seed: int = 0) -> float:
+    """精确符号翻转 p 值（确定性；不依赖 numpy 版本）。"""
+    import os
+    import sys
 
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from eval_stats import sign_flip_exact
+
+    return sign_flip_exact([float(x) for x in diffs])
 
 def compare(name_a: str, a: dict[str, float], name_b: str, b: dict[str, float]) -> dict:
     common = sorted(set(a) & set(b))
