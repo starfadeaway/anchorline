@@ -121,14 +121,18 @@ def main() -> int:
         json.dump({"summary": summary, "rows": results}, f, ensure_ascii=False, indent=1)
 
     lines = [
-        f"> 样本量 n = {len(results)}（缺失输入会在报告里显示 0，请核对）\n",
+        f"> 样本量 n = {len(results)}；空预测数 n_empty_pred = {summary['n_empty_pred']}\n",
         "# M2 记忆质量评测（V1 72 题 gold）\n",
         "> 用 V1 的 72 题 gold 检验“系统自动判定”与人工标注的一致率；不新标、不改 gold。\n",
-        "| 指标 | 一致率 |",
-        "|---|---|",
-        f"| query_form（回溯意图） | {summary['query_form_acc']:.4f} |",
-        f"| conflict_type（冲突类型） | {summary['conflict_type_acc']:.4f} |",
-        f"| expected_resolution（裁决） | {summary['expected_resolution_acc']:.4f} |",
+        "> **基线说明**：每个指标必须与「常数基线」（gold 众数占比）对照；零方差的 gold 字段（如 conflict_type=时效 72/72）
+"
+        "> 常数预测器即 100%，此类指标不构成能力指标。\n",
+        "> **两套口径**：严格 = gold 非空即计入；宽松 = 双方都非空才计入。\n",
+        "| 指标 | 严格一致率 | 宽松一致率 |",
+        "|---|---|---|",
+        f"| query_form（回溯意图） | {summary['query_form_acc']:.4f} | {summary['query_form_acc_valid']:.4f} |",
+        f"| conflict_type（冲突类型） | {summary['conflict_type_acc']:.4f} | {summary['conflict_type_acc_valid']:.4f} |",
+        f"| expected_resolution（裁决） | {summary['expected_resolution_acc']:.4f} | {summary['expected_resolution_acc_valid']:.4f} |",
         "",
         "## 逐题差异（不一致项）\n",
         "| qid | 字段 | gold | pred |",

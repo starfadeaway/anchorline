@@ -1,0 +1,1 @@
+{"id": "r0000000000000000000000000000001", "entity_id": "user", "attribute": "5K 最好成绩", "kept_fact_id": "f00000000000000000000000000002", "invalidated_fact_ids": ["f00000000000000000000000000001"], "reason": "保留最新 PB", "operator": "human", "created_at": "2026-11-09T21:45:00"}

@@ -57,8 +57,10 @@ frontend/playwright-report/
 # 界面截图仅本地（不入库）
 docs/screenshots/
 
-# 全库导出（真实聊天数据）不入库
-data/exports/
+# 全库导出（真实聊天数据）不入库；脱敏示例例外
+/data/exports/*
+!/data/exports/sample/
+
 
 # 临时工具产物
 image-request.json

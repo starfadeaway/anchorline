@@ -1,0 +1,2 @@
+{"id": "e00000000000000000000000000001", "benchmark": "v2-web", "arm": "B", "budget_tokens": 4000, "question_id": "q0001", "score": 0.0, "scoring_mode": "deterministic", "reader_model": "deepseek-flash", "judge_model": null, "judge_prompt_sha256": null, "config_hash": "demo"}
+{"id": "e00000000000000000000000000002", "benchmark": "v2-web", "arm": "D", "budget_tokens": 4000, "question_id": "q0001", "score": 1.0, "scoring_mode": "deterministic", "reader_model": "deepseek-flash", "judge_model": null, "judge_prompt_sha256": null, "config_hash": "demo"}

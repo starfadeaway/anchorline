@@ -1,0 +1,12 @@
+{
+ "exported_at": "2026-11-11T16:00:00",
+ "note": "脱敏示例导出（全部为演示文本，不含真实聊天记录）",
+ "tables": {
+  "facts": 6,
+  "sessions": 3,
+  "messages": 6,
+  "traces": 2,
+  "eval_runs": 2,
+  "review_decisions": 1
+ }
+}
