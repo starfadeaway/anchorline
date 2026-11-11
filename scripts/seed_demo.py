@@ -49,23 +49,6 @@ def main() -> int:
         db.execute(delete(ReviewDecision).where(ReviewDecision.entity_id == ENTITY))
         db.commit()
 
-        # 事实（走 FactStore：supersede + 容量 + 索引同步）
-        store = FactStore(db)
-        facts = [
-            ("5k_pb", "27:12", 180),
-            ("5k_pb", "24:30", 90),
-            ("5k_pb", "23:50", 30),
-            ("200米游泳最好成绩", "2分15秒", 60),
-            ("饮食偏好", "喜欢清淡，少油少盐", 30),
-            ("咖啡习惯", "每天两杯手冲", 20),
-            ("工作项目", "Anchorline 记忆层", 120),
-            ("工作项目", "LoreKeeper 知识库桥接", 15),
-            ("旅行计划", "十一去云南", 10),
-        ]
-        for attr, value, days_ago in facts:
-            store.write(entity_id=ENTITY, attribute=attr, value=value, valid_from=now - timedelta(days=days_ago))
-        db.commit()
-
         # 会话 + 消息（user 首条带 [demo] 标记用于幂等清理；assistant 写自然回复，不带头缀）
         session_ids = []
         scripts = {
@@ -115,6 +98,29 @@ def main() -> int:
                 )
             )
             session_ids.append(s.id)
+
+        # 事实（走 FactStore：supersede + 容量 + 索引同步）
+        store = FactStore(db)
+        facts = [
+            ("5k_pb", "27:12", 180, "跑步"),
+            ("5k_pb", "24:30", 90, "跑步"),
+            ("5k_pb", "23:50", 30, "跑步"),
+            ("200米游泳最好成绩", "2分15秒", 60, "游泳"),
+            ("饮食偏好", "喜欢清淡，少油少盐", 30, "饮食"),
+            ("咖啡习惯", "每天两杯手冲", 20, "饮食"),
+            ("工作项目", "Anchorline 记忆层", 120, "工作"),
+            ("工作项目", "LoreKeeper 知识库桥接", 15, "工作"),
+            ("旅行计划", "十一去云南", 10, "旅行"),
+        ]
+        for attr, value, days_ago, topic in facts:
+            store.write(
+                entity_id=ENTITY,
+                attribute=attr,
+                value=value,
+                valid_from=now - timedelta(days=days_ago),
+                source_session_id=sessions_by_topic.get(topic),
+            )
+        db.commit()
 
         # 演示：5k_pb 保留最新（旧值已自动失效，但裁决记录里列出旧值以便追溯）
         db.commit()
