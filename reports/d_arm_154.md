@@ -1,3 +1,5 @@
+> ⚠️ **第一代产物（2026-11-10）**：已被 `d_arm_154_run2/run3` 取代（D 臂 13.6% → 66.2%，差异来自 prompt/判分口径修正），仅作历史留存；当前口径见 `reports/m3_summary.md`。
+
 # D 臂评测（154 题）
 
 > 配置：D = 完整轨迹 + 我方 L0（跨 state 去重）+ 单 state 检索 top-6 + 4k 预算；reader `deepseek-flash`，temperature 1.0。

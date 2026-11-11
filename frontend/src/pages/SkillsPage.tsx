@@ -374,10 +374,10 @@ export default function SkillsPage() {
             <Input placeholder="如 travel_plan（建后不可改）" disabled={edit?.mode === "edit"} />
           </Form.Item>
           <Form.Item name="title" label="标题" rules={[{ required: true, message: "填标题" }]}>
-            <Input placeholder="如 旅行规划" disabled={isBuiltin} />
+            <Input placeholder="如 旅行规划" disabled={isBuiltin} maxLength={128} showCount />
           </Form.Item>
           <Form.Item name="description" label="描述">
-            <Input placeholder="一句话说明这个技能做什么（列表里展示）" />
+            <Input placeholder="一句话说明这个技能做什么（列表里展示）" maxLength={512} showCount />
           </Form.Item>
           <Form.Item
             name="memory_entity"
@@ -409,7 +409,7 @@ export default function SkillsPage() {
             rules={[{ required: true, message: "指令不能为空" }]}
             extra={TEMPLATE_HINT}
           >
-            <Input.TextArea rows={9} placeholder="写清楚：什么时候用、先检索什么、怎么回答、不要做什么" />
+            <Input.TextArea rows={9} maxLength={2000} showCount placeholder="写清楚：什么时候用、先检索什么、怎么回答、不要做什么" />
           </Form.Item>
         </Form>
         <Paragraph type="secondary" style={{ marginBottom: 0, fontSize: 12 }}>

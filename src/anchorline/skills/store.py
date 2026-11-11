@@ -54,7 +54,7 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
     return out
 
 
-def set_skill(db: Session, name: str, enabled: bool) -> bool:
+def set_skill(db: Session, name: str, enabled: bool, commit: bool = True) -> bool:
     """开/关技能：内置写 skill_toggles，自定义写 custom_skills.enabled。"""
     if name in SKILL_BY_NAME:
         row = db.get(SkillToggle, name)
@@ -67,7 +67,8 @@ def set_skill(db: Session, name: str, enabled: bool) -> bool:
         if row is None:
             return False
         row.enabled = enabled
-    db.commit()
+    if commit:
+        db.commit()
     return True
 
 
@@ -80,6 +81,7 @@ def create_custom(
     memory_entity: str | None = None,
     auto_activate: bool = False,
     trigger_keywords: str = "",
+    commit: bool = True,
 ) -> bool:
     """新建自定义技能；name 与内置/已有自定义冲突则失败。"""
     if name in SKILL_BY_NAME or db.scalar(select(CustomSkill).where(CustomSkill.name == name)) is not None:
@@ -90,13 +92,14 @@ def create_custom(
             title=title,
             description=description,
             instructions=instructions,
-            enabled=True,
+            enabled=False,  # C3：与内置技能一致，默认关闭，由用户显式开启
             memory_entity=memory_entity,
             auto_activate=auto_activate,
             trigger_keywords=trigger_keywords,
         )
     )
-    db.commit()
+    if commit:
+        db.commit()
     return True
 
 
@@ -109,6 +112,7 @@ def update_custom(
     memory_entity: str | None = None,
     auto_activate: bool | None = None,
     trigger_keywords: str | None = None,
+    commit: bool = True,
 ) -> bool:
     row = db.scalar(select(CustomSkill).where(CustomSkill.name == name))
     if row is None:
@@ -125,7 +129,8 @@ def update_custom(
         row.auto_activate = auto_activate
     if trigger_keywords is not None:
         row.trigger_keywords = trigger_keywords
-    db.commit()
+    if commit:
+        db.commit()
     return True
 
 
@@ -134,6 +139,10 @@ def delete_custom(db: Session, name: str) -> bool:
     if row is None:
         return False
     db.delete(row)
+    # C6：顺手清掉 skill_toggles 里的同名残留行，避免脏数据
+    toggle = db.get(SkillToggle, name)
+    if toggle is not None:
+        db.delete(toggle)
     db.commit()
     return True
 
@@ -150,6 +159,7 @@ def set_builtin_binding(
     trigger_keywords: str | None = None,
     description: str | None = None,
     instructions: str | None = None,
+    commit: bool = True,
 ) -> bool:
     """内置技能的覆盖（绑定/关键词/描述/指令；不改内置定义本身）。"""
     if name not in SKILL_BY_NAME:
@@ -168,20 +178,49 @@ def set_builtin_binding(
         row.description = description.strip() or None
     if instructions is not None:
         row.instructions = instructions.strip() or None
-    db.commit()
+    if commit:
+        db.commit()
     return True
 
 
-def active_skills(db: Session, query: str) -> list[Skill]:
-    """本轮的技能：手动开启的 + 自动激活（关键词命中）的。"""
+def active_skills(db: Session, query: str, lorekeeper_enabled: bool | None = None) -> list[Skill]:
+    """本轮的技能：手动开启的 + 自动激活（关键词命中）的。
+
+    B2：kb_search 依赖 LoreKeeper；未启用时即使开关打开也不注入（否则指令要求引用页面标题、
+    而检索永远返回空 → 幻觉诱导）。
+    """
+    if lorekeeper_enabled is None:
+        try:
+            from anchorline.config import Settings
+
+            lorekeeper_enabled = bool(Settings().lorekeeper_enabled)
+        except Exception:
+            lorekeeper_enabled = False
     q = (query or "").lower()
     out: list[Skill] = []
     for s, on, _src in list_skills(db):
+        if s.name == "kb_search" and not lorekeeper_enabled:
+            continue
         kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if k.strip()]
         auto = bool(s.auto_activate and kws and any(k in q for k in kws))
         if on or auto:
             out.append(s)
     return out
+
+
+def build_skills_hint(db: Session, skills: list[Skill]) -> str:
+    """B5：把技能指令（含绑定记忆）拼成 system prompt 片段，便于单测。"""
+    if not skills:
+        return ""
+    lines = []
+    for sk in skills:
+        line = f"- [{sk.name}] {sk.instructions}"
+        if sk.memory_entity:
+            facts = memory_context(db, sk.memory_entity)
+            if facts:
+                line += f"（该技能绑定的记忆 {sk.memory_entity}：{'；'.join(facts)}）"
+        lines.append(line)
+    return "\n\n已启用的技能（按需使用）：\n" + "\n".join(lines)
 
 
 def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:

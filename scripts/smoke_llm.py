@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """一次性 smoke test：reader / judge / embedding 三个端点是否可用。
 
 不打印任何 key；只打印状态与长度。

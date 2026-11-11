@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """API 路由单测：SQLite 覆盖 get_db，索引调用打桩（不联网）。"""
 from __future__ import annotations
 

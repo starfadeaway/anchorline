@@ -191,11 +191,15 @@ export default function MemoryPage() {
     }
   }, [groups]);
 
-  // Y2：仅当搜索词变化时同步展开态（搜索=展开全部；清空=前 2 组）。手动折叠不再被覆盖。
+  // Y2：搜索词变化时同步展开态（搜索=展开全部；清空=前 2 组）。
+  // A4：搜索态下 groups 变化（新数据到达）也要展开，否则「搜到了却看不见」；非搜索态不重置写操作。
   useEffect(() => {
-    setActiveKeys(q.trim() ? groups.map(([t]) => t) : groups.slice(0, 2).map(([t]) => t));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+    if (q.trim()) {
+      setActiveKeys(groups.map(([t]) => t));
+    } else {
+      setActiveKeys(groups.slice(0, 2).map(([t]) => t));
+    }
+  }, [q, groups]);
 
   const visible = groups.reduce((n, [, rows]) => n + rows.length, 0);
   const current = groups.reduce((n, [, rows]) => n + rows.filter((f) => !f.valid_to).length, 0);

@@ -9,6 +9,7 @@ from anchorline.models import Base, Fact
 from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME
 from anchorline.skills.store import (
     active_skills,
+    build_skills_hint,
     create_custom,
     delete_custom,
     enabled_skills,
@@ -50,8 +51,10 @@ def test_custom_skill_crud(db):
     assert create_custom(db, "my_skill", "我的技能", "描述", "指令内容")
     skills = list_skills(db)
     custom = [(s, on, src) for s, on, src in skills if src == "custom"]
-    assert len(custom) == 1 and custom[0][0].name == "my_skill" and custom[0][1] is True
-    # 自定义默认开启 → 直接进入注入列表
+    assert len(custom) == 1 and custom[0][0].name == "my_skill" and custom[0][1] is False
+    # C3：自定义技能默认关闭（与内置一致）
+    assert enabled_skills(db) == []
+    assert set_skill(db, "my_skill", True)
     assert [s.name for s in enabled_skills(db)] == ["my_skill"]
     # 更新内容
     assert update_custom(db, "my_skill", title="新标题", description=None, instructions="新指令")
@@ -112,3 +115,13 @@ def test_skill_name_recorded_in_fact(db):
     store = FactStore(db)
     f = store.write(entity_id="user", attribute="x", value="y", valid_from=datetime(2026, 1, 1), skill_name="run_coach")
     assert f.skill_name == "run_coach"
+
+
+def test_build_skills_hint_injects_instructions(db):
+    assert create_custom(db, "hint_skill", "t", "", "这是注入用的指令文本")
+    assert build_skills_hint(db, []) == ""
+    assert set_skill(db, "hint_skill", True)
+    hint = build_skills_hint(db, enabled_skills(db))
+    assert "这是注入用的指令文本" in hint and "[hint_skill]" in hint
+    assert set_skill(db, "hint_skill", False)
+    assert build_skills_hint(db, enabled_skills(db)) == ""

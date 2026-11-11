@@ -96,6 +96,7 @@ export type SettingsOut = {
   version: string;
   db_ok: boolean;
   index_ready: boolean;
+  skills_ok: boolean;
   reader_model: string;
   judge_model: string;
   embedding_model: string;

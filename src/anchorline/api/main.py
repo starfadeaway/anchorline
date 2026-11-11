@@ -14,7 +14,7 @@ import re
 import time
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -365,20 +365,13 @@ def _run_agent(
     # 技能：手动开启 + 关键词自动激活；把指令与绑定记忆拼进 system prompt（不越过记忆边界）
     try:
         from anchorline.skills.context import ACTIVE_SKILLS
-        from anchorline.skills.store import active_skills, memory_context
+        from anchorline.skills.store import active_skills, build_skills_hint
 
         skills = active_skills(db, str(query or ""))
         ACTIVE_SKILLS.set([s.name for s in skills])
-        if skills:
-            lines = []
-            for s in skills:
-                line = f"- [{s.name}] {s.instructions}"
-                if s.memory_entity:
-                    facts = memory_context(db, s.memory_entity)
-                    if facts:
-                        line += f"（该技能绑定的记忆 {s.memory_entity}：{'；'.join(facts)}）"
-                lines.append(line)
-            base_hint += "\n\n已启用的技能（按需使用）：\n" + "\n".join(lines)
+        hint = build_skills_hint(db, skills)
+        if hint:
+            base_hint += hint
     except Exception:
         log.warning("load skills failed", exc_info=True)
 
@@ -1114,6 +1107,7 @@ class SettingsOut(BaseModel):
     rerank_model: str
     budgets: list[int]
     index_ready: bool = False  # 向量索引（LanceDB）是否可用
+    skills_ok: bool = False  # 技能表（skill_toggles）是否可用
     # 聊天模式可切换的 provider（评测模式固定，见 m3_summary）
     minimax_model: str
     minimax_base_url: str
@@ -1178,6 +1172,14 @@ def patch_fact(fact_id: str, body: FactPatch, db: Session = Depends(get_db)) -> 
     return {"fact_id": fact.id}
 
 
+def _skills_ok(db: Session) -> bool:
+    try:
+        db.execute(text("SELECT COUNT(*) FROM skill_toggles"))
+        return True
+    except Exception:
+        return False
+
+
 def _index_ready() -> bool:
     try:
         from anchorline.retrieval import facts_index
@@ -1192,7 +1194,7 @@ class SkillOut(BaseModel):
     title: str
     description: str
     enabled: bool
-    source: str = "builtin"  # builtin / custom
+    source: Literal["builtin", "custom"] = "builtin"
     memory_entity: str | None = None  # 绑定的记忆实体
     memory_fact_count: int = 0  # 该实体当前事实数
     auto_activate: bool = False
@@ -1200,21 +1202,21 @@ class SkillOut(BaseModel):
 
 
 class SkillCreateIn(BaseModel):
-    name: str
-    title: str
-    description: str = ""
-    instructions: str
-    memory_entity: str = ""
+    name: str = Field(..., max_length=64)
+    title: str = Field(..., max_length=128)
+    description: str = Field("", max_length=512)
+    instructions: str = Field(..., max_length=2000)
+    memory_entity: str = Field("", max_length=128)
 
 
 class SkillUpdateIn(BaseModel):
     enabled: bool | None = None
-    title: str | None = None
-    description: str | None = None
-    instructions: str | None = None
-    memory_entity: str | None = None
+    title: str | None = Field(None, max_length=128)
+    description: str | None = Field(None, max_length=512)
+    instructions: str | None = Field(None, max_length=2000)
+    memory_entity: str | None = Field(None, max_length=128)
     auto_activate: bool | None = None
-    trigger_keywords: str | None = None
+    trigger_keywords: str | None = Field(None, max_length=256)
 
 
 def _skill_out(db: Session, name: str) -> SkillOut:
@@ -1301,17 +1303,20 @@ def generate_skill(body: SkillGenerateIn) -> SkillDraftOut:
 
 @app.get("/skills", response_model=list[SkillOut])
 def list_skills_endpoint(db: Session = Depends(get_db)) -> list[SkillOut]:
+    from anchorline.config import Settings as _Settings
     from anchorline.skills.store import list_skills
 
+    lorekeeper_on = bool(_Settings().lorekeeper_enabled)
     out: list[SkillOut] = []
     for s, on, src in list_skills(db):
         count = _facts_count(db, s.memory_entity) if s.memory_entity else 0
+        kb_off = s.name == "kb_search" and not lorekeeper_on
         out.append(
             SkillOut(
                 name=s.name,
                 title=s.title,
-                description=s.description,
-                enabled=on,
+                description=(s.description + "（⚠️ 需开启 LOREKEEPER_ENABLED，否则不会注入）") if kb_off else s.description,
+                enabled=(False if kb_off else on),
                 source=src,
                 memory_entity=s.memory_entity,
                 memory_fact_count=count,
@@ -1355,40 +1360,53 @@ def update_skill(name: str, body: SkillUpdateIn, db: Session = Depends(get_db)) 
     from anchorline.skills import SKILL_BY_NAME
     from anchorline.skills.store import set_builtin_binding, set_skill, update_custom
 
-    if name in SKILL_BY_NAME:
-        # 内置技能：可改描述/指令/绑定/关键词；标题保持只读（避免与文档口径不一致）
-        if body.title is not None:
-            raise HTTPException(status_code=400, detail="内置技能的标题不可修改（描述与指令可以）")
-        if any(
-            v is not None
-            for v in (body.memory_entity, body.auto_activate, body.trigger_keywords, body.description, body.instructions)
-        ):
-            if not set_builtin_binding(
-                db,
-                name,
-                memory_entity=body.memory_entity,
-                auto_activate=body.auto_activate,
-                trigger_keywords=body.trigger_keywords,
-                description=body.description,
-                instructions=body.instructions,
+    if name in SKILL_BY_NAME and body.title is not None:
+        raise HTTPException(status_code=400, detail="内置技能的标题不可修改（描述与指令可以）")
+    try:
+        if name in SKILL_BY_NAME:
+            # 内置技能：可改描述/指令/绑定/关键词；标题保持只读
+            if any(
+                v is not None
+                for v in (body.memory_entity, body.auto_activate, body.trigger_keywords, body.description, body.instructions)
             ):
+                if not set_builtin_binding(
+                    db,
+                    name,
+                    memory_entity=body.memory_entity,
+                    auto_activate=body.auto_activate,
+                    trigger_keywords=body.trigger_keywords,
+                    description=body.description,
+                    instructions=body.instructions,
+                    commit=False,
+                ):
+                    raise HTTPException(status_code=404, detail="unknown skill")
+        else:
+            if any(
+                v is not None
+                for v in (body.title, body.description, body.instructions, body.memory_entity, body.auto_activate, body.trigger_keywords)
+            ):
+                if not update_custom(
+                    db,
+                    name,
+                    body.title,
+                    body.description,
+                    body.instructions,
+                    body.memory_entity,
+                    body.auto_activate,
+                    body.trigger_keywords,
+                    commit=False,
+                ):
+                    raise HTTPException(status_code=400, detail="技能不存在")
+        if body.enabled is not None:
+            if not set_skill(db, name, body.enabled, commit=False):
                 raise HTTPException(status_code=404, detail="unknown skill")
-    else:
-        if any(v is not None for v in (body.title, body.description, body.instructions, body.memory_entity, body.auto_activate, body.trigger_keywords)):
-            if not update_custom(
-                db,
-                name,
-                body.title,
-                body.description,
-                body.instructions,
-                body.memory_entity,
-                body.auto_activate,
-                body.trigger_keywords,
-            ):
-                raise HTTPException(status_code=400, detail="技能不存在")
-    if body.enabled is not None:
-        if not set_skill(db, name, body.enabled):
-            raise HTTPException(status_code=404, detail="unknown skill")
+        db.commit()  # C5：一次请求一次提交
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        raise
     return _skill_out(db, name)
 
 
@@ -1424,6 +1442,7 @@ def settings_view(db: Session = Depends(get_db)) -> SettingsOut:
         rerank_model=s.siliconflow_rerank_model,
         budgets=[4000, 8000, 16000],
         index_ready=_index_ready(),
+        skills_ok=_skills_ok(db),
         minimax_model=s.minimax_model,
         minimax_base_url=s.minimax_base_url,
         chat_models=["deepseek", "minimax"],

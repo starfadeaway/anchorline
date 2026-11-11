@@ -155,7 +155,7 @@ class CustomSkill(Base):
     title: Mapped[str] = mapped_column(String(128))
     description: Mapped[str] = mapped_column(String(512), default="")
     instructions: Mapped[str] = mapped_column(Text)
-    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     # 可选：绑定的记忆实体（如 user / user.猫）；注入该技能时附上该实体的当前事实
     memory_entity: Mapped[str | None] = mapped_column(String(128), nullable=True)
     # 主题命中时自动启用（不依赖手动开关）

@@ -31,8 +31,8 @@ from anchorline.retrieval.hybrid import rrf_fuse, tokenize  # noqa: E402
 from anchorline.retrieval.store import open_table  # noqa: E402
 
 TABLE = "v2_web_states_d"
-OUT_JSON = os.path.join(ROOT, "data", "eval", "_hybrid_draft.json")
-OUT_MD = os.path.join(ROOT, "reports", "_hybrid_draft.md")
+OUT_JSON = os.path.join(ROOT, "data", "eval", "_drafts", "hybrid.json")
+OUT_MD = os.path.join(ROOT, "reports", "_drafts", "hybrid.md")
 REF = os.path.join(ROOT, "data", "eval", "d_arm_154_run3.json")
 
 
@@ -111,6 +111,7 @@ def main() -> int:
         "per_question": results,
         "elapsed_s": round(time.time() - t0, 1),
     }
+    os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1, default=float)
 
@@ -138,11 +139,12 @@ def main() -> int:
         summary["paired_p_exact"] = float(sign_flip_exact(diffs))
         with open(args.out, "w", encoding="utf-8") as f:
             json.dump(summary, f, ensure_ascii=False, indent=1, default=float)
+    os.makedirs(os.path.dirname(args.md_out), exist_ok=True)
     with open(args.md_out, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     print(json.dumps({k: v for k, v in summary.items() if k != "per_question"}, ensure_ascii=False, indent=1, default=float))
     print("written:", args.out, args.md_out)
-    print("提示：默认写到 draft 产物，不会覆盖正式报告/CI 输入；要更新正式产物请显式 --out/--md-out")
+    print("提示：默认写到 _drafts/ 草稿目录（已 gitignore），不会覆盖正式报告/CI 输入；要更新正式产物请显式 --out/--md-out")
     return 0
 
 
