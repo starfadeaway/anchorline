@@ -30,7 +30,7 @@ BUILTIN_SKILLS: list[Skill] = [
     ),
     Skill(
         name="diet_plan",
-        trigger_keywords="吃,饮食,配餐,忌口,咖啡",
+        trigger_keywords="饮食,配餐,忌口,咖啡,吃饭",
         title="饮食规划",
         description="按饮食偏好 / 禁忌给配餐建议",
         instructions=('用户问吃什么、配餐、忌口时使用。先检索记忆里的饮食偏好、禁忌、过敏与目标（减脂/增肌）；再给具体搭配（早/午/晚 + 加餐），避开明确禁忌。不要推荐用户明确不吃/过敏的食物；不确定时先问。明确标注「通用建议」而非医疗建议。'),

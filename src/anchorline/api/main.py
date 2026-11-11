@@ -368,7 +368,7 @@ def _run_agent(
         from anchorline.skills.store import active_skills, build_skills_hint
 
         skills = active_skills(db, str(query or ""))
-        ACTIVE_SKILLS.set([s.name for s in skills])
+        _skill_ctx = ACTIVE_SKILLS.set([s.name for s in skills])
         hint = build_skills_hint(db, skills)
         if hint:
             base_hint += hint
@@ -403,10 +403,17 @@ def _run_agent(
         Bounds(max_steps=max_steps, max_tokens=24000, wall_time_s=180.0),
         session_id=session_id,
     )
-    out = graph.invoke(
-        initial_state(messages),
-        {"configurable": {"thread_id": uuid.uuid4().hex}},
-    )
+    try:
+        out = graph.invoke(
+            initial_state(messages),
+            {"configurable": {"thread_id": uuid.uuid4().hex}},
+        )
+    finally:
+        # D7：ContextVar 不 reset 会在同线程（threadpool 复用）的后续请求里沿用上次技能
+        if _skill_ctx is not None:
+            from anchorline.skills.context import ACTIVE_SKILLS as _AS
+
+            _AS.reset(_skill_ctx)
 
     # 硬校验：本轮写入了新值但最终回答没有体现 → 自动重答一次（防“复读上一轮”）
     out = _verify_and_retry_answer(out, reader)
@@ -1248,7 +1255,23 @@ class SkillDraftOut(BaseModel):
 
 
 class SkillGenerateIn(BaseModel):
-    description: str
+    description: str = Field(..., max_length=2000)
+
+
+_GEN_TIMES: list[float] = []
+
+
+def _gen_rate_limited() -> bool:
+    """D10：/skills/generate 是真实 LLM 调用，做简单进程内限流（10 次/分钟）。"""
+    import time
+
+    now = time.monotonic()
+    while _GEN_TIMES and now - _GEN_TIMES[0] > 60:
+        _GEN_TIMES.pop(0)
+    if len(_GEN_TIMES) >= 10:
+        return True
+    _GEN_TIMES.append(now)
+    return False
 
 
 def _parse_skill_draft(raw: str) -> dict:
@@ -1271,6 +1294,8 @@ def generate_skill(body: SkillGenerateIn) -> SkillDraftOut:
     """用户描述技能功能 → 用 reader 模型生成 name/title/description/instructions 草稿（不落库）。"""
     if not (body.description or "").strip():
         raise HTTPException(status_code=400, detail="请先描述技能功能")
+    if _gen_rate_limited():
+        raise HTTPException(status_code=429, detail="自动生成过于频繁（10 次/分钟），请稍后重试")
     prompt = (
         "你是技能设计助手。根据用户描述，生成一个 skill 定义，只输出一个 JSON 对象（不要 markdown 代码块、不要解释）：\n"
         '{"name": "...", "title": "...", "description": "...", "instructions": "..."}\n'

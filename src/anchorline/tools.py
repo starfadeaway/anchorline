@@ -95,6 +95,11 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
         # 记忆的「生效时间」= 写入/记录时间（会话时间），不是对话里提到的事件日期；
         # 事件日期应保留在 value 文本中（如 "25:50（日期 2023-05-30）"）。
         record_time = datetime.now()
+        # D6：记录本轮激活的技能名（ACTIVE_SKILLS 由 _run_agent 设置），供记忆页追溯
+        from anchorline.skills.context import ACTIVE_SKILLS
+
+        _active = ACTIVE_SKILLS.get() or []
+        skill_name = _active[0] if _active else None
         # 显式 supersedes 交给 FactStore.write 统一处理（同一事务里失效旧事实 + 建链）
         fact = store.write(
             entity_id=entity_id,
@@ -105,6 +110,7 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
             source_session_id=source_session_id or session_id,
             conflict_type=conflict_type,
             supersedes_id=supersedes_id,
+            skill_name=skill_name,
         )
         # 同步向量索引（失败不影响写入）
         try:

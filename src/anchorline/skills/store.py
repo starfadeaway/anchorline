@@ -201,7 +201,7 @@ def active_skills(db: Session, query: str, lorekeeper_enabled: bool | None = Non
     for s, on, _src in list_skills(db):
         if s.name == "kb_search" and not lorekeeper_enabled:
             continue
-        kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if k.strip()]
+        kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if len(k.strip()) >= 2]  # D8：忽略单字关键词
         auto = bool(s.auto_activate and kws and any(k in q for k in kws))
         if on or auto:
             out.append(s)
@@ -237,7 +237,7 @@ def memory_context(db: Session, entity_id: str, limit: int = 10) -> list[str]:
             .limit(limit)
         )
     )
-    return [f"{f.attribute} = {f.value}" for f in rows]
+    return [f"{f.attribute} = {f.value[:200]}" for f in rows]  # D13：单条 value 截断，避免挤爆 prompt
 
 
 def memory_fact_count(db: Session, entity_id: str) -> int:

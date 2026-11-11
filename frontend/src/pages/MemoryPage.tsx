@@ -191,12 +191,14 @@ export default function MemoryPage() {
     }
   }, [groups]);
 
-  // Y2：搜索词变化时同步展开态（搜索=展开全部；清空=前 2 组）。
-  // A4：搜索态下 groups 变化（新数据到达）也要展开，否则「搜到了却看不见」；非搜索态不重置写操作。
+  // D5：搜索态下 groups 变化（新数据到达）也展开（A4）；非搜索态只在搜索词变化时回默认（Z1：写操作不重置）。
+  const lastQ = useRef(q);
   useEffect(() => {
+    const qChanged = lastQ.current !== q;
+    lastQ.current = q;
     if (q.trim()) {
       setActiveKeys(groups.map(([t]) => t));
-    } else {
+    } else if (qChanged) {
       setActiveKeys(groups.slice(0, 2).map(([t]) => t));
     }
   }, [q, groups]);

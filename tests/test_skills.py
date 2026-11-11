@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from anchorline.memory.store import FactStore
 from anchorline.models import Base, Fact
 from anchorline.skills import BUILTIN_SKILLS, SKILL_BY_NAME
+from anchorline.skills.context import ACTIVE_SKILLS
 from anchorline.skills.store import (
     active_skills,
     build_skills_hint,
@@ -19,6 +20,7 @@ from anchorline.skills.store import (
     set_skill,
     update_custom,
 )
+from anchorline.tools import build_tools
 
 
 @pytest.fixture()
@@ -125,3 +127,26 @@ def test_build_skills_hint_injects_instructions(db):
     assert "这是注入用的指令文本" in hint and "[hint_skill]" in hint
     assert set_skill(db, "hint_skill", False)
     assert build_skills_hint(db, enabled_skills(db)) == ""
+
+def test_memory_write_records_active_skill(db):
+    """D6：走 build_tools 的真实写入路径，ACTIVE_SKILLS 必须落到 facts.skill_name。"""
+    store = FactStore(db)
+    tools = build_tools(store, "sess-1")
+    token = ACTIVE_SKILLS.set(["run_coach"])
+    try:
+        res = tools["memory_write"](entity_id="user", attribute="5K PB", value="23:50")
+    finally:
+        ACTIVE_SKILLS.reset(token)
+    assert res.ok
+    fact = db.query(__import__("anchorline.models", fromlist=["Fact"]).Fact).first()
+    assert fact.skill_name == "run_coach"
+
+
+def test_memory_write_without_active_skill(db):
+    store = FactStore(db)
+    tools = build_tools(store, "sess-2")
+    ACTIVE_SKILLS.set([])
+    res = tools["memory_write"](entity_id="user", attribute="饮食偏好", value="清淡")
+    assert res.ok
+    fact = db.query(__import__("anchorline.models", fromlist=["Fact"]).Fact).first()
+    assert fact.skill_name is None

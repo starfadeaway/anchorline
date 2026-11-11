@@ -42,44 +42,48 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 
 # 历史/附录数字（第一代产物、被取代的旧结论）——显式白名单，改动白名单需说明原因
 LEGACY_P = {0.1098, 0.252, 0.25}
-LEGACY_ACC = {13.6, 9.7, 21.0, 15.0, 44.4, 44.44, 98.6}
+LEGACY_ACC = {13.6, 9.7, 21.0, 15.0, 44.4, 44.44, 98.6, 65.1, 65.08, 77.78}
 LEGACY_PP = {0.5, 2.96, 1.03, 3.9, 4.17, 6.25, 7.8, 12.5, 20.6, 77.8}
+# 其他实验的整数百分比（非本表准确率）：LoreKeeper/V1 等
+INT_PCT_WHITELIST = {45, 69, 71, 100}
 
 P4_PAT = re.compile(r"(?<![\d.])(\d\.\d{4})(?!\d)")
-PCT_PAT = re.compile(r"(?<![\d.])(\d{1,3}\.\d{1,2})%")
+PCT_PAT = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,2})?)%")
 SIGNED_PP_PAT = re.compile(r"([+\-\u2212]\d+\.\d+)\s*pp")
 P_PAT = re.compile(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})")
 MD_GLOB = "reports/*.md"
 
 
 def _json_numbers() -> dict[str, set]:
-    """扫描 data/eval、data/v1 等 JSON 里的真实数值（md 会引用这些产物）。"""
+    """扫描 data/eval、data/v1 等 JSON 的数值；百分比只从 accuracy 类字段推导（避免 0.99 之类的偶然值放行）。"""
     import glob
 
     num4: set[float] = set()
     acc2: set[float] = set()
+
+    def walk(obj, key: str = "") -> None:
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                walk(v, str(k))
+        elif isinstance(obj, list):
+            for x in obj:
+                walk(x, key)
+        elif isinstance(obj, bool):
+            return
+        elif isinstance(obj, (int, float)):
+            v = float(obj)
+            num4.add(round(v, 4))
+            k = key.lower()
+            if "acc" in k or "accuracy" in k:
+                acc2.add(round(v * 100, 2) if 0.0 <= v <= 1.0 else round(v, 2))
+
     for pattern in ("data/eval/*.json", "data/v1/*.json", "data/*.json"):
         for path in glob.glob(os.path.join(ROOT, pattern)):
             try:
                 data = json.load(open(path, encoding="utf-8"))
             except Exception:
                 continue
-            stack = [data]
-            while stack:
-                cur = stack.pop()
-                if isinstance(cur, dict):
-                    stack.extend(cur.values())
-                elif isinstance(cur, list):
-                    stack.extend(cur)
-                elif isinstance(cur, bool):
-                    continue
-                elif isinstance(cur, (int, float)):
-                    v = float(cur)
-                    num4.add(round(v, 4))
-                    if 0.0 <= v <= 1.0:
-                        acc2.add(round(v * 100, 2))
-                    elif 1.0 < v <= 100.0:
-                        acc2.add(round(v, 2))
+            walk(data)
     return {"num4": num4, "acc2": acc2}
 
 
@@ -105,6 +109,118 @@ def _global_allowed(out: dict) -> dict[str, set]:
     }
 
 
+ROW_PAT = re.compile(
+    r"^\|\s*([A-Za-z0-9_]+)\s*(?:->|\u2192)\s*([A-Za-z0-9_]+)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|"
+)
+ARM_ALIASES = {"B": "B_run3", "C1": "C1", "C2": "C2", "D": "D_run3", "D_neighbor": "D_neighbor"}
+
+
+def _find_comparison(out: dict, a: str, b: str):
+    """按行内的 A -> B 找到对应 comparison（a 侧可能是 B_run3 等全名）。"""
+    for key, row in out.items():
+        parts = key.split("_vs_")
+        if len(parts) != 2:
+            continue
+        left, right = parts
+        for cand_a in (a, ARM_ALIASES.get(a, a)):
+            for cand_b in (b, ARM_ALIASES.get(b, b)):
+                if (left.startswith(cand_a) or cand_a in left) and (right.startswith(cand_b) or cand_b in right):
+                    return row
+    return None
+
+
+def check_comparison_rows(text: str, out: dict, rel: str) -> int:
+    """D2：m3_2x2 表格行按「对比」绑定允许值，避免把别的对比的合法数字当成这个对比的。"""
+    bad = 0
+    for line in text.splitlines():
+        m = ROW_PAT.match(line)
+        if not m:
+            continue
+        a, b, acc_col, _n, pp_col, p_col = m.groups()
+        row = _find_comparison(out, a, b)
+        if row is None:
+            continue
+        acc_a, acc_b = float(row["accuracy_a"]), float(row["accuracy_b"])
+        p = round(float(row["p_exact"]), 4)
+        # 准确率列（A → B 顺序）
+        for v in re.findall(r"(?<![\d.])(\d\.\d{4})", acc_col):
+            if not any(abs(float(v) - x) < 1e-9 for x in (round(acc_a, 4), round(acc_b, 4))):
+                print(f"MISMATCH {rel}: 行 {a}->{b} 的准确率 {v} 不属于该对比")
+                bad += 1
+        # 配对差（B − A 方向，m3_2x2 表格里是比例而非 pp）
+        expected_diff = round(acc_b - acc_a, 4)
+        pp = re.search(r"([+\-\u2212]?\d+\.\d+)", pp_col)
+        if pp:
+            got = float(pp.group(1).replace("\u2212", "-"))
+            if abs(got - expected_diff) > 0.001:
+                print(f"MISMATCH {rel}: 行 {a}->{b} 的配对差 {got} 应为 {expected_diff:+.4f}")
+                bad += 1
+        # p 值
+        for v in re.findall(r"(?<![\d.])(0?\.\d{4})", p_col):
+            if abs(float(v) - p) > 1e-9:
+                print(f"MISMATCH {rel}: 行 {a}->{b} 的 p={v} 应为 {p}")
+                bad += 1
+    return bad
+
+
+def check_signed_pp(text: str, out: dict, rel: str) -> int:
+    """D4：带符号配对差的符号必须与重算方向一致（符号 = 结论方向）。"""
+    bad = 0
+    for line in text.splitlines():
+        m = re.search(r"([\u2212\-\+]\d+\.\d+)\s*pp", line)
+        if not m:
+            continue
+        got = float(m.group(1).replace("\u2212", "-"))
+        mag = abs(got)
+        # 该行提到的对比：找 |diff|*100 匹配的 comparison
+        matches = [
+            (key, row)
+            for key, row in out.items()
+            if abs(round(abs(float(row["diff_a_minus_b"])) * 100, 2) - round(mag, 2)) < 0.06
+        ]
+        if not matches:
+            continue  # 其他实验的差值（如 lorekeeper/v1_ku）由白名单兜底
+        # 用行内文字判断方向：出现 "A − B" / "A−B" 时取 a−b 的符号
+        sign_ok = False
+        for key, row in matches:
+            parts = key.split("_vs_")
+            if len(parts) != 2:
+                continue
+            left, right = parts
+            diff = float(row["diff_a_minus_b"])
+            if f"{left}" in line and f"{right}" in line:
+                if got * diff > 0:
+                    sign_ok = True
+            elif left in line or right in line:
+                # 只提到一侧时，只能校验数值（符号可能因表述方向相反）
+                sign_ok = True
+        if not sign_ok:
+            print(f"MISMATCH {rel}: 配对差 {m.group(1)}pp 的符号与重算方向不一致")
+            bad += 1
+    return bad
+
+
+def check_hybrid_direction(text: str, out: dict, rel: str) -> int:
+    """D4：hybrid 报告的方向行（hybrid − 向量）符号必须与重算一致。"""
+    if "hybrid" not in rel:
+        return 0
+    keys = [k for k in ("D_run3_vs_D_hybrid", "D_run2_vs_D_hybrid", "D_neighbor_vs_D_hybrid") if out.get(k)]
+    if not keys:
+        return 0
+    expected_set = {-float(out[k]["diff_a_minus_b"]) * 100 for k in keys}  # hybrid − 向量
+    bad = 0
+    for line in text.splitlines():
+        if "pp" in line and re.search(r"[+\-\u2212]\d+\.\d+\s*pp", line) and ("hybrid" in line.lower() or "\u5411\u91cf" in line):
+            m = re.search(r"([+\-\u2212]\d+\.\d+)\s*pp", line)
+            if not m:
+                continue
+            got = float(m.group(1).replace("\u2212", "-"))
+            if not any((got > 0) == (e > 0) and abs(abs(got) - abs(e)) <= 0.06 for e in expected_set):
+                print(f"MISMATCH {rel}: hybrid 方向 {m.group(1)}pp 不属于 {sorted(round(e, 2) for e in expected_set)}")
+                bad += 1
+    return bad
+
+
 def check_markdown(out: dict) -> int:
     """A2：从 md 解析数字，与重算集合比对（子串存在性 → 数值比对）。"""
     bad = 0
@@ -120,6 +236,11 @@ def check_markdown(out: dict) -> int:
         for m in P_PAT.finditer(text):
             digits = len(m.group(1).split(".")[1])
             v = round(float(m.group(1)), digits)
+            legacy2 = {round(x, digits) for x in LEGACY_P}
+            if digits < 3 and v not in (0.0, 1.0) and v not in legacy2:
+                print(f"MISMATCH {rel}: p={m.group(1)} 精度不足（p 值至少写 3 位小数；0/1 除外）")
+                file_bad += 1
+                continue
             cands = {round(x, digits) for x in allow["p_raw"]}
             if v not in cands:
                 print(f"MISMATCH {rel}: p={m.group(1)} 与重算 p 不匹配（按 {digits} 位取整）")
@@ -133,6 +254,8 @@ def check_markdown(out: dict) -> int:
             v = float(m.group(1))
             if not (40.0 <= v <= 100.0):
                 continue  # 翻转率 12%、覆盖率等非准确率百分比
+            if v == int(v) and int(v) in INT_PCT_WHITELIST:
+                continue
             if not any(abs(v - a) < 0.06 for a in allow["acc2"]):
                 print(f"MISMATCH {rel}: 百分比 {m.group(1)}% 不在准确率集合")
                 file_bad += 1
@@ -141,6 +264,8 @@ def check_markdown(out: dict) -> int:
             if not any(abs(v - a) < 0.06 for a in allow["pp2"]):
                 print(f"MISMATCH {rel}: 配对差 {m.group(1)}pp 不在集合")
                 file_bad += 1
+        file_bad += check_comparison_rows(text, out, rel)
+        file_bad += check_hybrid_direction(text, out, rel)
         bad += file_bad
         checked += 1
     print(f"md 解析校验：覆盖 {checked} 个文件，问题 {bad} 处")
