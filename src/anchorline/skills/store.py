@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -34,7 +35,7 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
                     memory_entity=(row.memory_entity if row is not None else None) or s.memory_entity,
                     auto_activate=bool(row.auto_activate) if row is not None else s.auto_activate,
                     trigger_keywords=(row.trigger_keywords if row is not None and row.trigger_keywords else s.trigger_keywords),
-                    negative_keywords=s.negative_keywords,
+                    negative_keywords=(row.negative_keywords if row is not None and row.negative_keywords else s.negative_keywords),
                 ),
                 bool(row.enabled) if row is not None else False,
                 "builtin",
@@ -50,6 +51,7 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
                 memory_entity=r.memory_entity,
                 auto_activate=bool(r.auto_activate),
                 trigger_keywords=r.trigger_keywords or "",
+                negative_keywords=r.negative_keywords or "",
             ),
             bool(r.enabled),
             "custom",
@@ -86,6 +88,7 @@ def create_custom(
     memory_entity: str | None = None,
     auto_activate: bool = False,
     trigger_keywords: str = "",
+    negative_keywords: str = "",
     commit: bool = True,
 ) -> bool:
     """新建自定义技能；name 与内置/已有自定义冲突则失败。"""
@@ -101,6 +104,7 @@ def create_custom(
             memory_entity=memory_entity,
             auto_activate=auto_activate,
             trigger_keywords=trigger_keywords,
+            negative_keywords=negative_keywords,
         )
     )
     if commit:
@@ -117,6 +121,7 @@ def update_custom(
     memory_entity: str | None = None,
     auto_activate: bool | None = None,
     trigger_keywords: str | None = None,
+    negative_keywords: str | None = None,
     commit: bool = True,
 ) -> bool:
     row = db.scalar(select(CustomSkill).where(CustomSkill.name == name))
@@ -134,6 +139,8 @@ def update_custom(
         row.auto_activate = auto_activate
     if trigger_keywords is not None:
         row.trigger_keywords = trigger_keywords
+    if negative_keywords is not None:
+        row.negative_keywords = negative_keywords
     if commit:
         db.commit()
     return True
@@ -162,6 +169,7 @@ def set_builtin_binding(
     memory_entity: str | None = None,
     auto_activate: bool | None = None,
     trigger_keywords: str | None = None,
+    negative_keywords: str | None = None,
     description: str | None = None,
     instructions: str | None = None,
     commit: bool = True,
@@ -179,6 +187,8 @@ def set_builtin_binding(
         row.auto_activate = auto_activate
     if trigger_keywords is not None:
         row.trigger_keywords = trigger_keywords
+    if negative_keywords is not None:
+        row.negative_keywords = negative_keywords
     if description is not None:
         row.description = description.strip() or None
     if instructions is not None:
@@ -210,10 +220,18 @@ def active_skills(db: Session, query: str, lorekeeper_enabled: bool | None = Non
             continue
         kws = [k.strip().lower() for k in (s.trigger_keywords or "").split(",") if k.strip()]
         hit = bool(kws and any(k in q for k in kws))
-        negs = [n.strip() for n in (s.negative_keywords or "").split(",") if n.strip()] or fallback_negative.get(s.name, [])
-        excluded = any(n in q for n in negs)
+        raw_negs = (s.negative_keywords or "").strip()
+        if raw_negs:
+            negs = [n.strip() for n in re.split(r"[|,]", raw_negs) if n.strip()]
+        else:
+            negs = fallback_negative.get(s.name, [])
+        # I1：负向词按「正则片段」匹配，支持词形变体（吃了苦 / 吃苦(?![瓜菜])）
+        try:
+            excluded = any(re.search(n, q) for n in negs)
+        except re.error:
+            excluded = any(n in q for n in negs)
         auto = bool(s.auto_activate and hit and not excluded)
-        if on or auto:
+        if (on or auto) and not excluded:  # I5：手动开启时负向词同样生效
             out.append(s)
     return out
 
@@ -222,8 +240,10 @@ def build_skills_hint(db: Session, skills: list[Skill], budget: int = 8000) -> s
     """B5/E18：把技能指令（含绑定记忆）拼成 system prompt 片段；总量受 budget 限制。"""
     if not skills:
         return ""
+    HEADER = "\n\n已启用的技能（按需使用）：\n"
+    NOTE_RESERVE = 20  # I12：头部 + 可能的「因预算未注入」提示也计入预算
     lines = []
-    total = 0
+    total = len(HEADER) + NOTE_RESERVE
     dropped: list[str] = []  # G12：被预算丢弃的技能要写进 hint（用户/模型可见）
     for sk in skills:
         line = f"- [{sk.name}] {sk.instructions}"

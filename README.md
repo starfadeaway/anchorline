@@ -36,7 +36,7 @@ frontend/                  # React 前端（聊天/记忆/评测/审核/报告/�
 migrations/                # Alembic（0001 初始 → 0014：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
 reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
-tests/                     # pytest（120 项）
+tests/                     # pytest（121 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```

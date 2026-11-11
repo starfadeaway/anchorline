@@ -1217,6 +1217,7 @@ class SkillOut(BaseModel):
     memory_fact_count: int = 0  # 该实体当前事实数
     auto_activate: bool = False
     trigger_keywords: str = ""
+    negative_keywords: str = ""
 
 
 class SkillCreateIn(BaseModel):
@@ -1225,6 +1226,9 @@ class SkillCreateIn(BaseModel):
     description: str = Field("", max_length=512)
     instructions: str = Field(..., max_length=2000)
     memory_entity: str = Field("", max_length=128)
+    auto_activate: bool = False
+    trigger_keywords: str = Field("", max_length=256)
+    negative_keywords: str = Field("", max_length=256)
 
 
 class SkillUpdateIn(BaseModel):
@@ -1235,6 +1239,7 @@ class SkillUpdateIn(BaseModel):
     memory_entity: str | None = Field(None, max_length=128)
     auto_activate: bool | None = None
     trigger_keywords: str | None = Field(None, max_length=256)
+    negative_keywords: str | None = Field(None, max_length=256)
 
 
 def _skill_out(db: Session, name: str) -> SkillOut:
@@ -1255,6 +1260,7 @@ def _skill_out(db: Session, name: str) -> SkillOut:
         memory_fact_count=count,
         auto_activate=s.auto_activate,
         trigger_keywords=s.trigger_keywords,
+        negative_keywords=s.negative_keywords,
     )
 
 
@@ -1380,6 +1386,7 @@ def list_skills_endpoint(db: Session = Depends(get_db)) -> list[SkillOut]:
                 memory_fact_count=count,
                 auto_activate=s.auto_activate,
                 trigger_keywords=s.trigger_keywords,
+                negative_keywords=s.negative_keywords,
             )
         )
     return out
@@ -1408,7 +1415,7 @@ def create_skill(body: SkillCreateIn, db: Session = Depends(get_db)) -> SkillOut
     entity = body.memory_entity.strip() or None
     if entity is not None and not _facts_count(db, entity):
         log.warning("skill memory entity has no current facts: %s", entity)
-    if not create_custom(db, body.name, body.title.strip() or body.name, body.description.strip(), body.instructions.strip(), entity):
+    if not create_custom(db, body.name, body.title.strip() or body.name, body.description.strip(), body.instructions.strip(), entity, body.auto_activate, body.trigger_keywords, body.negative_keywords):
         raise HTTPException(status_code=409, detail="name 已存在（内置或自定义技能同名）")
     return _skill_out(db, body.name)
 
@@ -1452,6 +1459,7 @@ def update_skill(name: str, body: SkillUpdateIn, db: Session = Depends(get_db)) 
                     body.memory_entity,
                     body.auto_activate,
                     body.trigger_keywords,
+                    body.negative_keywords,
                     commit=False,
                 ):
                     raise HTTPException(status_code=400, detail="技能不存在")

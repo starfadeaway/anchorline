@@ -90,6 +90,7 @@ export type SkillInfo = {
   memory_fact_count?: number;
   auto_activate?: boolean;
   trigger_keywords?: string;
+  negative_keywords?: string;
 };
 
 export type SettingsOut = {
@@ -226,6 +227,7 @@ export const api = {
     memory_entity?: string;
     auto_activate?: boolean;
     trigger_keywords?: string;
+    negative_keywords?: string;
   }) =>
     json<SkillInfo>("/api/skills", {
       method: "POST",
@@ -242,6 +244,7 @@ export const api = {
       memory_entity?: string;
       auto_activate?: boolean;
       trigger_keywords?: string;
+      negative_keywords?: string;
     },
   ) =>
     json<SkillInfo>(`/api/skills/${name}`, {

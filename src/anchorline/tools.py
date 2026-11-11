@@ -113,11 +113,11 @@ def build_tools(store: FactStore, session_id: str | None = None) -> dict[str, Ca
                 sk = _skills.get(n)
                 if sk is None or sk.memory_entity != entity_id:
                     continue
-                if entity_id == "user" and not any(
+                if len(_active) > 1 and entity_id == "user" and not any(
                     k.strip() and k.strip().lower() in attribute.lower()
                     for k in (sk.trigger_keywords or "").split(",")
                 ):
-                    continue  # H4：通用实体不能仅凭 entity 相等就抢归属，需属性关键词命中
+                    continue  # I7：多技能冲突时才用关键词约束归属（单技能允许按实体归属，避免伤病/目标漏挂）
                 _matched.append(n)
             if len(_matched) == 1:
                 skill_name = _matched[0]

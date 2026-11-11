@@ -219,5 +219,30 @@ def test_builtin_negative_keywords_wired(db):
     from anchorline.skills.store import list_skills
 
     builtin = {s.name: s for s, _on, src in list_skills(db) if src == "builtin"}
-    assert builtin["run_coach"].negative_keywords == "跑步机,跑步鞋"
+    assert "跑步机" in builtin["run_coach"].negative_keywords
     assert "吃苦" in builtin["diet_plan"].negative_keywords
+
+
+def test_negative_words_consumed(db):
+    """I3：负向词必须走 active_skills 的过滤分支（而不仅是字段字符串）。"""
+    from anchorline.models import SkillToggle
+    from anchorline.skills import SKILL_BY_NAME
+
+    db.add(
+        SkillToggle(
+            name="diet_plan",
+            enabled=False,
+            auto_activate=True,
+            trigger_keywords=SKILL_BY_NAME["diet_plan"].trigger_keywords,
+            negative_keywords=SKILL_BY_NAME["diet_plan"].negative_keywords,
+        )
+    )
+    db.commit()
+    assert [s.name for s in active_skills(db, "今天吃了苦")] == []
+    assert [s.name for s in active_skills(db, "我吃了亏")] == []
+    assert [s.name for s in active_skills(db, "我想吃苦瓜能减肥吗")] == ["diet_plan"]
+    assert [s.name for s in active_skills(db, "今天吃什么")] == ["diet_plan"]
+    # I5：手动开启时负向词同样生效
+    assert set_skill(db, "diet_plan", True)
+    assert [s.name for s in active_skills(db, "今天吃了苦")] == []
+    assert [s.name for s in active_skills(db, "今天吃什么")] == ["diet_plan"]

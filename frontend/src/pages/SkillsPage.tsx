@@ -104,7 +104,7 @@ export default function SkillsPage() {
   }, []);
 
   const openCreate = () => {
-    form.setFieldsValue({ name: "", title: "", description: "", instructions: "", memory_entity: "", auto_activate: false, trigger_keywords: "" });
+    form.setFieldsValue({ name: "", title: "", description: "", instructions: "", memory_entity: "", auto_activate: false, trigger_keywords: "", negative_keywords: "" });
     setGenDesc("");
     setEdit({ mode: "create" });
   };
@@ -118,6 +118,7 @@ export default function SkillsPage() {
       memory_entity: sk.memory_entity ?? "",
       auto_activate: sk.auto_activate ?? false,
       trigger_keywords: sk.trigger_keywords ?? "",
+      negative_keywords: sk.negative_keywords ?? "",
     });
     setGenDesc("");
     setEdit({ mode: "edit", name: sk.name });
@@ -402,6 +403,13 @@ export default function SkillsPage() {
           </Form.Item>
           <Form.Item name="trigger_keywords" label="触发关键词">
             <Input placeholder="逗号分隔，如 原神,星铁,wiki" />
+          </Form.Item>
+          <Form.Item
+            name="negative_keywords"
+            label="负向词（可选，命中则不激活）"
+            extra="逗号或 | 分隔，支持简单正则；如 跑步机|跑步鞋。手动开启的技能命中负向词也不注入。"
+          >
+            <Input placeholder="如 跑步机|跑步鞋" maxLength={256} />
           </Form.Item>
           <Form.Item
             name="instructions"
