@@ -2,12 +2,12 @@
  "summary": {
   "n": 72,
   "n_empty_pred": 0,
-  "query_form_acc": 0.9861,
+  "query_form_acc": 0.9722,
   "conflict_type_acc": 0.8889,
-  "expected_resolution_acc": 0.8472,
-  "query_form_acc_valid": 0.9861,
+  "expected_resolution_acc": 0.8194,
+  "query_form_acc_valid": 0.9722,
   "conflict_type_acc_valid": 0.8889,
-  "expected_resolution_acc_valid": 0.8472
+  "expected_resolution_acc_valid": 0.8194
  },
  "rows": [
   {
@@ -50,7 +50,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "852ce960",
@@ -60,11 +60,11 @@
     "expected_resolution": "覆盖"
    },
    "pred": {
-    "query_form": "current",
+    "query_form": "retrospective",
     "conflict_type": "时效",
-    "expected_resolution": "覆盖"
+    "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"时效\",\"expected_resolution\":\"并存\"}"
   },
   {
    "question_id": "945e3d21",
@@ -89,10 +89,10 @@
    },
    "pred": {
     "query_form": "current",
-    "conflict_type": "否定",
-    "expected_resolution": "覆盖"
+    "conflict_type": "无",
+    "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"否定\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"无\",\"expected_resolution\":\"并存\"}"
   },
   {
    "question_id": "71315a70",
@@ -148,7 +148,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "07741c44",
@@ -176,7 +176,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "184da446",
@@ -190,7 +190,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "031748ae",
@@ -202,9 +202,9 @@
    "pred": {
     "query_form": "current",
     "conflict_type": "时效",
-    "expected_resolution": "并存"
+    "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"并存\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "4d6b87c8",
@@ -218,7 +218,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "0f05491a",
@@ -232,7 +232,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "08e075c7",
@@ -302,7 +302,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "45dc21b6",
@@ -372,7 +372,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "72e3ee87",
@@ -398,9 +398,9 @@
    "pred": {
     "query_form": "current",
     "conflict_type": "时效",
-    "expected_resolution": "并存"
+    "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"并存\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "01493427",
@@ -428,7 +428,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "2133c1b5",
@@ -456,7 +456,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "db467c8c",
@@ -484,7 +484,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "e61a7584",
@@ -540,7 +540,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "b01defab",
@@ -551,10 +551,10 @@
    },
    "pred": {
     "query_form": "current",
-    "conflict_type": "否定",
+    "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"否定\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "22d2cb42",
@@ -596,7 +596,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "7e974930",
@@ -624,7 +624,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "59524333",
@@ -680,7 +680,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "50635ada",
@@ -705,10 +705,10 @@
    },
    "pred": {
     "query_form": "retrospective",
-    "conflict_type": "无",
+    "conflict_type": "时效",
     "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"无\",\"expected_resolution\":\"并存\"}"
+   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"时效\",\"expected_resolution\":\"并存\"}"
   },
   {
    "question_id": "0ddfec37",
@@ -720,9 +720,9 @@
    "pred": {
     "query_form": "retrospective",
     "conflict_type": "无",
-    "expected_resolution": "覆盖"
+    "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"无\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"无\",\"expected_resolution\":\"并存\"}"
   },
   {
    "question_id": "f685340e",
@@ -775,10 +775,10 @@
    },
    "pred": {
     "query_form": "current",
-    "conflict_type": "时效",
+    "conflict_type": "无",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
+   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"无\",\"expected_resolution\":\"覆盖\"}"
   },
   {
    "question_id": "7401057b",
@@ -848,7 +848,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "3ba21379",
@@ -887,10 +887,10 @@
    },
    "pred": {
     "query_form": "retrospective",
-    "conflict_type": "无",
+    "conflict_type": "时效",
     "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"无\",\"expected_resolution\":\"并存\"}"
+   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"时效\",\"expected_resolution\":\"并存\"}"
   },
   {
    "question_id": "dad224aa",
@@ -929,10 +929,10 @@
    },
    "pred": {
     "query_form": "current",
-    "conflict_type": "否定",
-    "expected_resolution": "覆盖"
+    "conflict_type": "无",
+    "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"否定\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"无\", \"expected_resolution\": \"并存\"}"
   },
   {
    "question_id": "5c40ec5b",
@@ -946,7 +946,7 @@
     "conflict_type": "时效",
     "expected_resolution": "覆盖"
    },
-   "raw": "{\"query_form\":\"current\",\"conflict_type\":\"时效\",\"expected_resolution\":\"覆盖\"}"
+   "raw": "{\"query_form\": \"current\", \"conflict_type\": \"时效\", \"expected_resolution\": \"覆盖\"}"
   },
   {
    "question_id": "c6853660",
@@ -985,10 +985,10 @@
    },
    "pred": {
     "query_form": "retrospective",
-    "conflict_type": "时效",
+    "conflict_type": "无",
     "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"时效\",\"expected_resolution\":\"并存\"}"
+   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"无\",\"expected_resolution\":\"并存\"}"
   },
   {
    "question_id": "89941a94",
@@ -999,10 +999,10 @@
    },
    "pred": {
     "query_form": "retrospective",
-    "conflict_type": "时效",
+    "conflict_type": "无",
     "expected_resolution": "并存"
    },
-   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"时效\",\"expected_resolution\":\"并存\"}"
+   "raw": "{\"query_form\":\"retrospective\",\"conflict_type\":\"无\",\"expected_resolution\":\"并存\"}"
   },
   {
    "question_id": "07741c45",

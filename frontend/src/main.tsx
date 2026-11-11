@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider, theme } from "antd";
@@ -87,9 +87,9 @@ function AppRoot() {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <AppRoot />
-    </ErrorBoundary>
-  </StrictMode>,
+  // 不包 StrictMode：React 19 dev 下的双调用会让记忆页（10 组 Collapse + 40 行表格 +
+  // 50 个时间节点）在切页时明显卡顿；生产构建无此问题，dev 自检让位于可用性。
+  <ErrorBoundary>
+    <AppRoot />
+  </ErrorBoundary>,
 );

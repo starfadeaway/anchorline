@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Alert, Button, Card, Checkbox, Collapse, Drawer, Form, Input, Modal, Space, Table, Tag, Timeline, Tooltip, Typography, message } from "antd";
 import { DeleteOutlined, DownloadOutlined, HistoryOutlined, StopOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type Fact, type TraceRow } from "../api";
@@ -37,7 +37,19 @@ function topicOfFact(f: Fact): string {
 }
 
 /** 分段环形图：当前/失效两段，hover 段加粗突起并显示数据；加载时有转圈动画。 */
-function Donut({ current, stale, size = 120, label }: { current: number; stale: number; size?: number; label: string }) {
+const Donut = memo(function Donut({
+  current,
+  stale,
+  size = 120,
+  label,
+  delayMs = 0,
+}: {
+  current: number;
+  stale: number;
+  size?: number;
+  label: string;
+  delayMs?: number;
+}) {
   const total = current + stale;
   const curPct = total ? current / total : 0;
   const [hover, setHover] = useState<"cur" | "stale" | null>(null);
@@ -49,7 +61,11 @@ function Donut({ current, stale, size = 120, label }: { current: number; stale: 
   const baseWidth = size > 100 ? 11 : 10;
 
   return (
-    <div className="donut-wrap" style={{ width: size, height: size }} title={`${label}：当前 ${current} 条 / 失效 ${stale} 条`}>
+    <div
+      className="donut-wrap"
+      style={{ width: size, height: size, animationDelay: delayMs ? `${delayMs}ms` : undefined }}
+      title={`${label}：当前 ${current} 条 / 失效 ${stale} 条`}
+    >
       <svg viewBox="0 0 100 100" className="donut-svg">
         <circle cx="50" cy="50" r={R} fill="none" stroke="transparent" strokeWidth={22} />
         <circle
@@ -86,7 +102,7 @@ function Donut({ current, stale, size = 120, label }: { current: number; stale: 
       </div>
     </div>
   );
-}
+});
 
 /** 记忆浏览器：下拉分组 + 组内图表 + 顶部整体图表。 */
 export default function MemoryPage() {
@@ -103,13 +119,12 @@ export default function MemoryPage() {
   const [capacity, setCapacity] = useState<{ limit: number; total_current: number } | null>(null);
 
   const load = () =>
-    api
-      .facts()
-      .then((rows) => {
+    Promise.all([api.facts(), api.capacity()])
+      .then(([rows, c]) => {
         setFacts(rows);
+        setCapacity({ limit: c.limit, total_current: c.total_current });
         setError("");
       })
-      .then(() => api.capacity().then((c) => setCapacity({ limit: c.limit, total_current: c.total_current })))
       .catch((e) => setError(String(e)));
 
   useEffect(() => {
@@ -122,9 +137,10 @@ export default function MemoryPage() {
       .catch(() => setTraces([]));
   }, []);
 
+  const deferredFacts = useDeferredValue(facts);
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const base = facts.filter((f) => topicOfFact(f) !== "测试数据");
+    const base = deferredFacts.filter((f) => topicOfFact(f) !== "测试数据");
     if (!s) return base;
     // 同时匹配实体/属性/值/主题名（支持搜"跑步""球类"命中整组）
     return base.filter((f) => {
@@ -132,7 +148,7 @@ export default function MemoryPage() {
       const hay = `${f.entity_id} ${f.attribute} ${f.value} ${topic}`.toLowerCase();
       return hay.includes(s);
     });
-  }, [facts, q]);
+  }, [deferredFacts, q]);
 
   const groups = useMemo(() => {
     const m = new Map<string, Fact[]>();
@@ -248,23 +264,18 @@ export default function MemoryPage() {
       width: "23%",
       render: (_: unknown, r: Fact) => (
         <div className="action-buttons">
-          <Tooltip title="查看历史">
-            <Button
-              icon={<HistoryOutlined />}
-              onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}
-              style={{
-                background: "rgba(0, 212, 255, .14)",
-                borderColor: "var(--neon)",
-                color: "var(--neon)",
-              }}
-            />
-          </Tooltip>
-          <Tooltip title={r.valid_to ? "已失效" : "标记失效"}>
-            <Button danger icon={<StopOutlined />} disabled={!!r.valid_to} onClick={() => invalidateFact(r)} />
-          </Tooltip>
-          <Tooltip title="彻底删除">
-            <Button danger icon={<DeleteOutlined />} onClick={() => deleteFact(r)} />
-          </Tooltip>
+          <Button
+            title="查看历史"
+            icon={<HistoryOutlined />}
+            onClick={() => api.history(r.id).then(setHistory).catch((e) => message.error(String(e)))}
+            style={{
+              background: "rgba(0, 212, 255, .14)",
+              borderColor: "var(--neon)",
+              color: "var(--neon)",
+            }}
+          />
+          <Button title={r.valid_to ? "已失效" : "标记失效"} danger icon={<StopOutlined />} disabled={!!r.valid_to} onClick={() => invalidateFact(r)} />
+          <Button title="彻底删除" danger icon={<DeleteOutlined />} onClick={() => deleteFact(r)} />
         </div>
       ),
     },
@@ -370,7 +381,7 @@ export default function MemoryPage() {
       ) : (
         <Collapse
           defaultActiveKey={groups.map(([t]) => t)}
-          items={groups.map(([topic, rows]) => {
+          items={groups.map(([topic, rows], gi) => {
             const cur = rows.filter((f) => !f.valid_to).length;
             const st = rows.length - cur;
             return {
@@ -386,7 +397,7 @@ export default function MemoryPage() {
               children: (
                 <div className="group-body">
                   <div className="group-chart">
-                    <Donut current={cur} stale={st} size={84} label={topic} />
+                    <Donut current={cur} stale={st} size={84} label={topic} delayMs={gi * 20} />
                     <div className="group-chart-legend">
                       当前占比 <b>{rows.length ? Math.round((cur / rows.length) * 100) : 0}%</b>
                     </div>
