@@ -406,7 +406,7 @@ export default function ChatPage() {
       </div>
 
       <div className="env-bar">
-        <span><span className={`dot ${env?.index_ready ? "ok" : "bad"}`} /><em>索引</em> <b>{env?.index_ready ? "就绪" : (env ? "未建索引" : "—")}</b></span>
+        <span><span className={`dot ${env?.index_ready ? "ok" : "bad"}`} /><em>索引</em> <b>{env ? (env.index_ready === true ? "就绪" : env.index_ready === false ? "未建索引" : "—") : "—"}</b></span>
         <span><span className={`dot ${env?.embedding_model ? "ok" : "bad"}`} /><em>Embedding</em> <b>{env?.embedding_model || "—"}</b></span>
         <span><span className={`dot ${env?.rerank_model ? "ok" : "bad"}`} /><em>Rerank</em> <b>{env?.rerank_model || "—"}</b></span>
         <span><span className={`dot ${env?.db_ok ? "ok" : "bad"}`} /><em>MySQL</em> <b>{env?.db_ok ? "已连接" : "未连接"}</b></span>
