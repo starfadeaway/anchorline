@@ -1506,6 +1506,14 @@ def eval_summary() -> list[EvalArmOut]:
         ("c1_arm_154.json", "C1（完整轨迹×官方切片）", None, "154 题，2×2 因子"),
         ("c2_arm_154.json", "C2（a11y-only+L0）", "c2_accuracy", "154 题，2×2 因子"),
         ("d_arm_154_neighbor.json", "D（state+邻居）", "d_accuracy", "154 题，检索粒度对照"),
+        (
+            "d_arm_154_intent.json",
+            "D + 回溯意图识别",
+            None,
+            "唯一变量=意图识别（retrospective 时注入「取较早值」提示）；154 题里只有 3 题判 retrospective，"
+            "+1.30pp 不显著（精确 p=0.8145）。其他臂不带意图：V2 主集几乎全是 current、意图提示作用面≈0，"
+            "逐题意图判定还会多一次模型调用/延迟；该能力只在 V1-KU 冲突专项起作用（回溯命中 0/9→7/9）",
+        ),
     ]:
         d = _load_eval(fname)
         if not d:
