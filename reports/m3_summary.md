@@ -75,3 +75,11 @@
 # 168（154 + 14 judge）
 .venv\Scripts\python.exe scripts\eval_168_judge.py
 ```
+
+## 5. 混合检索的负结果（Y5：负面结果也写进主报告）
+
+用**产品侧检索**（BM25 + 向量 + RRF + rerank）在同一 state 表上跑 154 题：**55.84% vs 纯向量 66.23%，
+−10.4pp，p=0.0195**（多参照：vs run2 p=0.0488、vs neighbor p=0.0984，方向一致）。
+
+结论：**主评测（B/C1/C2/D）保持纯向量 top-6**；产品 `memory_search` 的混合检索只适用于短事实文本，
+不能把评测数据上的结果外推到产品，反之亦然。详见 `reports/d_arm_154_hybrid.md`。

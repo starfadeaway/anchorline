@@ -71,6 +71,33 @@
   "diff_a_minus_b": 0.0195,
   "p_exact": 0.7359
  },
+ "D_run3_vs_D_hybrid": {
+  "a_file": "d_arm_154_run3.json",
+  "b_file": "d_arm_154_hybrid.json",
+  "n": 154,
+  "accuracy_a": 0.6623,
+  "accuracy_b": 0.5584,
+  "diff_a_minus_b": 0.1039,
+  "p_exact": 0.0195
+ },
+ "D_run2_vs_D_hybrid": {
+  "a_file": "d_arm_154_run2.json",
+  "b_file": "d_arm_154_hybrid.json",
+  "n": 154,
+  "accuracy_a": 0.6494,
+  "accuracy_b": 0.5584,
+  "diff_a_minus_b": 0.0909,
+  "p_exact": 0.0488
+ },
+ "D_neighbor_vs_D_hybrid": {
+  "a_file": "d_arm_154_neighbor.json",
+  "b_file": "d_arm_154_hybrid.json",
+  "n": 154,
+  "accuracy_a": 0.6429,
+  "accuracy_b": 0.5584,
+  "diff_a_minus_b": 0.0844,
+  "p_exact": 0.0984
+ },
  "B_vs_D_168_run2": {
   "a_file": "b_arm_154_run2.json + arm_168_run2.json(b_label)",
   "b_file": "d_arm_154_run2.json + arm_168_run2.json(d_label)",

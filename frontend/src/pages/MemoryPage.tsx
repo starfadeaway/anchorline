@@ -140,6 +140,7 @@ export default function MemoryPage() {
   useEffect(() => {
     void load();
   }, []);
+
   useEffect(() => {
     api
       .listTraces(12)
@@ -175,6 +176,12 @@ export default function MemoryPage() {
       (a, b) => new Date(b[1][0].valid_from).getTime() - new Date(a[1][0].valid_from).getTime(),
     );
   }, [filtered]);
+
+  // Y2：q 或分组数据变化时同步展开态（搜索=展开全部；常态=前 2 组）。
+  // 用户手动折叠不会触发这里（q/groups 未变），折叠按钮因此可正常使用。
+  useEffect(() => {
+    setActiveKeys(q.trim() ? groups.map(([t]) => t) : groups.slice(0, 2).map(([t]) => t));
+  }, [q, groups]);
 
   const visible = groups.reduce((n, [, rows]) => n + rows.length, 0);
   const current = groups.reduce((n, [, rows]) => n + rows.filter((f) => !f.valid_to).length, 0);
@@ -438,9 +445,9 @@ export default function MemoryPage() {
         <Text type="secondary">暂无记忆</Text>
       ) : (
         <Collapse
-          // 懒渲染：默认只展开前 2 组；搜索时自动展开所有匹配组（否则搜到了却看不见）
+          // 懒渲染：折叠的组不挂载；展开状态由 activeKeys 受控（Y2：不在 render 里用三元覆盖，避免折叠按钮失效）
           destroyOnHidden
-          activeKey={q.trim() ? groups.map(([t]) => t) : activeKeys.length ? activeKeys : groups.slice(0, 2).map(([t]) => t)}
+          activeKey={activeKeys}
           onChange={(keys) => setActiveKeys(keys as string[])}
           items={groups.map(([topic, rows], gi) => {
             const cur = rows.filter((f) => !f.valid_to).length;

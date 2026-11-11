@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""分组词表一致性核验：前端 topics.ts 规则（Python 复刻）vs 后端 _canonical_topic。
+"""分组词表一致性核验：直接读取 frontend/src/topics.ts 校验词表项，并与后端 _canonical_topic 对照。
 
 前端规则改动词表时，同步更新这里（或反过来）；两边输出必须一致。
 """

@@ -48,3 +48,5 @@
 .venv\Scripts\python.exe scripts\eval_suite.py --arm b --a data\eval\b_arm_154_run2.json --b data\eval\b_arm_154_run3.json
 .venv\Scripts\python.exe scripts\eval_suite.py --arm d --a data\eval\d_arm_154_run2.json --b data\eval\d_arm_154_run3.json
 ```
+
+> 附：混合检索在 V2 轨迹上的负结果（−10.4pp，p=0.0195）见 `reports/d_arm_154_hybrid.md`，与上面的稳定性结论独立。

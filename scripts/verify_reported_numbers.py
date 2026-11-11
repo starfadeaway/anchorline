@@ -50,6 +50,9 @@ def main() -> int:
         "C2_vs_D_run3": ("c2_arm_154.json", "d_arm_154_run3.json"),
         "C1_vs_D_neighbor": ("c1_arm_154.json", "d_arm_154_neighbor.json"),
         "D_run3_vs_D_neighbor": ("d_arm_154_run3.json", "d_arm_154_neighbor.json"),
+        "D_run3_vs_D_hybrid": ("d_arm_154_run3.json", "d_arm_154_hybrid.json"),
+        "D_run2_vs_D_hybrid": ("d_arm_154_run2.json", "d_arm_154_hybrid.json"),
+        "D_neighbor_vs_D_hybrid": ("d_arm_154_neighbor.json", "d_arm_154_hybrid.json"),
     }
     out = {}
     for name, (a_file, b_file) in comparisons.items():

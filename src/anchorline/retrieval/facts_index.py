@@ -19,13 +19,27 @@ log = logging.getLogger("anchorline.retrieval.facts_index")
 TABLE = "facts_index"
 
 
+_READY_CACHE: tuple[float, bool] | None = None
+_READY_TTL = 30.0
+
+
 def is_ready() -> bool:
-    """向量索引是否可用（表存在）；用于 /settings 如实展示。"""
+    """向量索引是否可用（表存在）；用于 /settings 如实展示。
+
+    Y6：带 30s 进程内缓存，避免每次 /settings 都打开 LanceDB 并枚举表。
+    """
+    global _READY_CACHE
+    import time
+
+    now = time.time()
+    if _READY_CACHE is not None and now - _READY_CACHE[0] < _READY_TTL:
+        return _READY_CACHE[1]
     try:
-        db = open_lancedb()
-        return TABLE in _tables(db)
+        ok = TABLE in _tables(open_lancedb())
     except Exception:
-        return False
+        ok = False
+    _READY_CACHE = (now, ok)
+    return ok
 
 
 def _tables(db) -> list[str]:

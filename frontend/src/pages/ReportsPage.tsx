@@ -46,18 +46,36 @@ export default function ReportsPage() {
     try {
       const sessions: ChatSession[] = await api.listSessions(FETCH_LIMIT);
       const truncated = sessions.length >= FETCH_LIMIT;
-      // 并发拉取（X6：原实现串行 N 次，十几秒无反馈）
-      const msgsList = await Promise.all(sessions.map((s) => api.sessionMessages(s.id)));
+      // Y1：分批并发（10 个/批）+ allSettled —— 单个会话失败不导致整份报告归零
+      const BATCH = 10;
+      const msgsList: (Awaited<ReturnType<typeof api.sessionMessages>> | null)[] = new Array(sessions.length).fill(null);
+      const failed: string[] = [];
+      for (let i = 0; i < sessions.length; i += BATCH) {
+        const batch = sessions.slice(i, i + BATCH);
+        const settled = await Promise.allSettled(batch.map((s) => api.sessionMessages(s.id)));
+        settled.forEach((r, j) => {
+          if (r.status === "fulfilled") {
+            msgsList[i + j] = r.value;
+          } else {
+            failed.push(batch[j].title);
+          }
+        });
+      }
       const lines = [
         `# Anchorline 会话报告`,
         "",
         `- 导出时间：${new Date().toLocaleString()}`,
         `- 会话数：${sessions.length}${truncated ? "（达到后端上限，可能截断）" : ""}`,
+        failed.length ? `- **${failed.length} 个会话消息加载失败**（仅列出会话标题）：${failed.slice(0, 10).join("、")}` : "",
         "",
-      ];
+      ].filter(Boolean);
       sessions.forEach((s, i) => {
         const msgs = msgsList[i];
         lines.push(`## ${s.title}（${s.id.slice(0, 8)}）`, "");
+        if (msgs === null) {
+          lines.push(`- 主题：${s.topic ?? "—"} ｜ 创建：${new Date(s.created_at).toLocaleString()} ｜ **消息拉取失败**`, "");
+          return;
+        }
         lines.push(`- 主题：${s.topic ?? "—"} ｜ 创建：${new Date(s.created_at).toLocaleString()} ｜ 消息：${msgs.length}`, "");
         for (const m of msgs) {
           lines.push(`### ${m.role === "user" ? "我" : "Anchorline"}  ${new Date(m.created_at).toLocaleString()}`, "", m.content, "");
