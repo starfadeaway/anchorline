@@ -1356,16 +1356,21 @@ def update_skill(name: str, body: SkillUpdateIn, db: Session = Depends(get_db)) 
     from anchorline.skills.store import set_builtin_binding, set_skill, update_custom
 
     if name in SKILL_BY_NAME:
-        # 内置技能：只能改绑定（关联记忆/自动激活/关键词），不能改标题/指令
-        if body.title is not None or body.description is not None or body.instructions is not None:
-            raise HTTPException(status_code=400, detail="内置技能不能改标题/描述/指令，只能改绑定与关键词")
-        if any(v is not None for v in (body.memory_entity, body.auto_activate, body.trigger_keywords)):
+        # 内置技能：可改描述/指令/绑定/关键词；标题保持只读（避免与文档口径不一致）
+        if body.title is not None:
+            raise HTTPException(status_code=400, detail="内置技能的标题不可修改（描述与指令可以）")
+        if any(
+            v is not None
+            for v in (body.memory_entity, body.auto_activate, body.trigger_keywords, body.description, body.instructions)
+        ):
             if not set_builtin_binding(
                 db,
                 name,
                 memory_entity=body.memory_entity,
                 auto_activate=body.auto_activate,
                 trigger_keywords=body.trigger_keywords,
+                description=body.description,
+                instructions=body.instructions,
             ):
                 raise HTTPException(status_code=404, detail="unknown skill")
     else:

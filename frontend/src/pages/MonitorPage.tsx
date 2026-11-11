@@ -46,6 +46,7 @@ export default function MonitorPage() {
       <Paragraph type="secondary">
         数据来自 <Text code>/health</Text>、<Text code>/metrics</Text>（最近 1000 次真实请求的延迟分位数/错误率/QPS）、
         <Text code>/sessions</Text> 与 <Text code>/traces</Text>。
+        「平均 token」按 chars/4 估算，只用于相对比较。
       </Paragraph>
       {error && <Paragraph type="danger">{error}</Paragraph>}
       {metricsDown && (
@@ -54,7 +55,7 @@ export default function MonitorPage() {
         </Paragraph>
       )}
       <Row gutter={[12, 12]} style={{ marginBottom: 14 }}>
-        <Col span={4}><Card size="small"><Statistic title="服务" value={health?.status ?? "—"} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="服务" value={health ? (health.status === "ok" ? "正常" : health.status) : "—"} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="数据库" value={health?.db ? "正常" : "异常"} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="p50 延迟" value={metrics ? metrics.p50_ms : "—"} suffix={metrics ? "ms" : undefined} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="p95 延迟" value={metrics ? metrics.p95_ms : "—"} suffix={metrics ? "ms" : undefined} /></Card></Col>
@@ -64,7 +65,7 @@ export default function MonitorPage() {
         <Col span={4}><Card size="small"><Statistic title="会话数" value={sessions.length} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="消息数" value={totalMessages} /></Card></Col>
         <Col span={4}><Card size="small"><Statistic title="trace（最近50）" value={traces.length} /></Card></Col>
-        <Col span={4}><Card size="small"><Statistic title="平均 token（估算 chars/4）" value={avgTokens} /></Card></Col>
+        <Col span={4}><Card size="small"><Statistic title="平均 token" value={avgTokens} /></Card></Col>
       </Row>
 
       <Card size="small" title="运行配置" style={{ marginBottom: 12 }}>

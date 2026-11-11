@@ -25,8 +25,8 @@ def list_skills(db: Session) -> list[tuple[Skill, bool, str]]:
                 Skill(
                     name=s.name,
                     title=s.title,
-                    description=s.description,
-                    instructions=s.instructions,
+                    description=(row.description if row is not None and row.description else s.description),
+                    instructions=(row.instructions if row is not None and row.instructions else s.instructions),
                     memory_entity=(row.memory_entity if row is not None else None) or s.memory_entity,
                     auto_activate=bool(row.auto_activate) if row is not None else s.auto_activate,
                     trigger_keywords=(row.trigger_keywords if row is not None and row.trigger_keywords else s.trigger_keywords),
@@ -148,8 +148,10 @@ def set_builtin_binding(
     memory_entity: str | None = None,
     auto_activate: bool | None = None,
     trigger_keywords: str | None = None,
+    description: str | None = None,
+    instructions: str | None = None,
 ) -> bool:
-    """内置技能的覆盖绑定（不改内置定义本身）。"""
+    """内置技能的覆盖（绑定/关键词/描述/指令；不改内置定义本身）。"""
     if name not in SKILL_BY_NAME:
         return False
     row = db.get(SkillToggle, name)
@@ -162,6 +164,10 @@ def set_builtin_binding(
         row.auto_activate = auto_activate
     if trigger_keywords is not None:
         row.trigger_keywords = trigger_keywords
+    if description is not None:
+        row.description = description.strip() or None
+    if instructions is not None:
+        row.instructions = instructions.strip() or None
     db.commit()
     return True
 

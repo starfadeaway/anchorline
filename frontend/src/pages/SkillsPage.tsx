@@ -77,6 +77,7 @@ export default function SkillsPage() {
   const [form] = Form.useForm();
   const [genDesc, setGenDesc] = useState("");
   const [genBusy, setGenBusy] = useState(false);
+  const [entityOptions, setEntityOptions] = useState<{ label: string; value: string }[]>([]);
 
   const editing = skills.find((x) => x.name === edit?.name);
   const isBuiltin = editing?.source === "builtin";
@@ -89,6 +90,14 @@ export default function SkillsPage() {
         setError("");
       })
       .catch((e) => setError(String(e)));
+    api
+      .capacity()
+      .then((c) =>
+        setEntityOptions(
+          c.entities.map((e) => ({ label: `${e.entity_id}（${e.current} 条当前）`, value: e.entity_id })),
+        ),
+      )
+      .catch(() => setEntityOptions([]));
 
   useEffect(() => {
     void load();
@@ -165,8 +174,12 @@ export default function SkillsPage() {
           trigger_keywords: (v.trigger_keywords ?? "").trim(),
         };
         if (isBuiltin) {
-          await api.updateSkill(edit.name, bound); // 内置只能改绑定
-          message.success("绑定已更新（内置技能不改标题/指令）");
+          await api.updateSkill(edit.name, {
+            ...bound,
+            description: v.description?.trim() ?? "",
+            instructions: v.instructions.trim(),
+          });
+          message.success("已更新（内置技能：标题只读，描述/指令已覆盖）");
         } else {
           await api.updateSkill(edit.name, {
             title: v.title.trim(),
@@ -313,8 +326,8 @@ export default function SkillsPage() {
             type="info"
             showIcon
             style={{ marginBottom: 10 }}
-            message="内置技能：只能编辑「关联记忆 / 自动激活 / 关键词」"
-            description="标题、描述与指令是内置定义（保证与文档/评测口径一致），不可修改；如需完全自定义，请新建技能。"
+            message="内置技能：可以编辑「描述 / 指令 / 关联记忆 / 自动激活 / 关键词」"
+            description="标题保持只读（与文档/评测口径一致）；描述与指令可改长、改清楚，覆盖内置默认值。"
           />
         )}
         {edit?.mode === "create" && (
@@ -364,14 +377,20 @@ export default function SkillsPage() {
             <Input placeholder="如 旅行规划" disabled={isBuiltin} />
           </Form.Item>
           <Form.Item name="description" label="描述">
-            <Input placeholder="一句话说明这个技能做什么（列表里展示）" disabled={isBuiltin} />
+            <Input placeholder="一句话说明这个技能做什么（列表里展示）" />
           </Form.Item>
           <Form.Item
             name="memory_entity"
             label="关联记忆实体（可选）"
-            extra="绑定的实体当前事实会自动附在技能指令后（如 user / user.猫）；留空则不绑定"
+            extra="从下拉选择（实体标识就是实体名，如 user / user.猫 / 大模型.大肥鱼）；选择后该实体的当前事实会自动附在技能指令后"
           >
-            <Input placeholder="如 user" />
+            <Select
+              allowClear
+              showSearch
+              placeholder="选择实体（不选则不绑定）"
+              options={entityOptions}
+              filterOption={(input, option) => String(option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
+            />
           </Form.Item>
           <Form.Item
             name="auto_activate"
@@ -390,7 +409,7 @@ export default function SkillsPage() {
             rules={[{ required: true, message: "指令不能为空" }]}
             extra={TEMPLATE_HINT}
           >
-            <Input.TextArea rows={9} placeholder="写清楚：什么时候用、先检索什么、怎么回答、不要做什么" disabled={isBuiltin} />
+            <Input.TextArea rows={9} placeholder="写清楚：什么时候用、先检索什么、怎么回答、不要做什么" />
           </Form.Item>
         </Form>
         <Paragraph type="secondary" style={{ marginBottom: 0, fontSize: 12 }}>

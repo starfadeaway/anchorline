@@ -140,6 +140,9 @@ class SkillToggle(Base):
     memory_entity: Mapped[str | None] = mapped_column(String(128), nullable=True)
     auto_activate: Mapped[bool] = mapped_column(Boolean, default=False)
     trigger_keywords: Mapped[str] = mapped_column(String(256), default="")
+    # 内置技能的描述/指令覆盖（允许用户改长、改清楚；为空则用内置定义）
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
 class CustomSkill(Base):
