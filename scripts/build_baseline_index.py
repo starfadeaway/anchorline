@@ -66,7 +66,8 @@ def main():
                 "traj_id": e.trajectory_id,
                 "center": e.center_state_index,
                 "goal": goals.get(e.trajectory_id, ""),
-                "axtree_text": e.axtree_text,
+                # N2/O5：与 C1/D/D_neighbor 一致，索引文本封顶 40k（防单条切片远超 4k 预算）
+                "axtree_text": truncate_middle(e.axtree_text, 40000),
                 "state_blocks": e.state_blocks,
                 "vector": normalize_vector(v),
             })

@@ -73,7 +73,6 @@ def main() -> int:
 
     summary = {
         "n_questions": len(rows),
-        "accuracy": statistics.mean([r["mean"] for r in rows]),  # N7：与其它臂字段名统一
         "c2_accuracy": statistics.mean([r["mean"] for r in rows]),
         "b_accuracy": statistics.mean([b_mean[q] for q in common]) if common else None,
         "paired_diff_c2_minus_b": float(np.mean(diffs)) if diffs.size else None,

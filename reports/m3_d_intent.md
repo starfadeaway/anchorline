@@ -1,3 +1,5 @@
+> ⚠️ **本产物是旧 prompt 结构（两个 system 消息）的生成结果**；N5 修复后（单 system）重跑可能与表中数字不同，见 §35/D_intent 注。
+
 # D 臂 + 回溯意图识别（V2 154 题）
 
 > 唯一变量：每题先判 current/retrospective，retrospective 时注入「取较早状态」提示。

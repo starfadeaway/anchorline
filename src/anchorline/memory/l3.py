@@ -104,7 +104,16 @@ def assemble_blocks(
             parts.append(text)
             used_chars += len(text) + sep
         else:
-            # N1：截断要留显式标记，避免模型把半条切片当完整内容
-            parts.append(text[: max(0, remain - 8)] + "…(截断)")
-            used_chars = budget_chars
+            # N1/O6：截断留显式标记；剩余空间不足时只放省略号或直接丢弃，绝不超预算
+            marker = "…(截断)"
+            if remain <= len(marker) + 1:
+                if remain >= 1:
+                    parts.append("…")
+                    used_chars += 1 + sep
+                else:
+                    dropped += 1
+                continue
+            cut = text[: remain - len(marker)]
+            parts.append(cut + marker)
+            used_chars += len(cut) + len(marker) + sep
     return ("\n\n".join(parts) if parts else ""), used_chars // chars_per_token, dropped

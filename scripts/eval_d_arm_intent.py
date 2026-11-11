@@ -72,7 +72,7 @@ def main() -> int:
         for _ in range(args.n):
             r = answer_d_arm(reader, embedder, tbl, q["question"], temperature=1.0, system_hint=hint)
             scores.append(1 if score_deterministic(r.answer, q.get("answer"), q["eval_function"]) else 0)
-        results.append({"question_id": q["id"], "intent": intent, "scores": scores, "mean": statistics.mean(scores)})
+        results.append({"question_id": q["id"], "intent": intent, "scores": scores, "mean": statistics.mean(scores), "context_tokens": getattr(r, "context_tokens", None)})
         print(f"  [{i}/{len(sample)}] {q['id']} intent={intent} scores={scores} {time.time()-t0:.0f}s")
 
     ref = json.load(open(args.ref, encoding="utf-8"))
