@@ -911,6 +911,24 @@ def delete_fact(fact_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
     return {"deleted": fact_id}
 
 
+@app.delete("/memory/facts/entity/{entity_id}")
+def delete_entity_facts(entity_id: str, db: Session = Depends(get_db)) -> dict[str, int]:
+    """按实体物理删除全部事实（含失效）——仅用于测试数据清理（e2e），不用于产品路径。"""
+    ids = [f.id for f in db.scalars(select(Fact).where(Fact.entity_id == entity_id))]
+    if ids:
+        db.execute(update(Fact).where(Fact.supersedes_id.in_(ids)).values(supersedes_id=None))
+        db.execute(delete(Fact).where(Fact.id.in_(ids)))
+        db.commit()
+        for fid in ids:
+            try:
+                from anchorline.retrieval import facts_index
+
+                facts_index.delete_fact(fid)
+            except Exception:
+                log.warning("fact index delete failed", exc_info=True)
+    return {"deleted": len(ids)}
+
+
 @app.delete("/memory/facts")
 def purge_stale_facts(db: Session = Depends(get_db)) -> dict[str, int]:
     """批量清理已失效事实（控制存储量，保留当前值）。"""
