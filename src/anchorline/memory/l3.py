@@ -68,8 +68,10 @@ def assemble_blocks(
 ) -> tuple[str, int, int]:
     """长文本块（B 臂切片 / D 臂 state 条目）的预算组装。
 
-    与 `assemble` 的区别：单个块可能远超预算，**截断到剩余预算而不是整块丢弃**
-    （同官方 `truncate_memory_context` 语义）。B 臂与 D 臂共用本函数，保证预算口径一致。
+    与 `assemble` 的区别：单个块可能远超预算，**截断到剩余预算而不是整块丢弃**。
+    注意（N3）：这**不是**官方 `truncate_memory_context` 的语义——官方是「整条丢弃 + 真实 tokenizer
+    + 200k 预算」，本项目是「切半条 + chars/4 + 4000」，两者只在"按预算组装"这一层相似。
+    B 臂与 D 臂共用本函数，保证内部预算口径一致。
 
     参数:
         blocks: [(score, text)]；score 越大越优先。
@@ -92,10 +94,17 @@ def assemble_blocks(
             dropped += 1
             continue
         remain = budget_chars - used_chars
+        # N8：块间分隔符（\n\n）也计入预算
+        sep = 2 if parts else 0
+        if used_chars + sep >= budget_chars:
+            dropped += 1
+            continue
+        remain = budget_chars - used_chars - sep
         if len(text) <= remain:
             parts.append(text)
-            used_chars += len(text)
+            used_chars += len(text) + sep
         else:
-            parts.append(text[:remain])
-            used_chars += remain
+            # N1：截断要留显式标记，避免模型把半条切片当完整内容
+            parts.append(text[: max(0, remain - 8)] + "…(截断)")
+            used_chars = budget_chars
     return ("\n\n".join(parts) if parts else ""), used_chars // chars_per_token, dropped

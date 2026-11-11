@@ -93,7 +93,7 @@ def main() -> int:
                 f"- Trajectory: {h.get('traj_id')}\n"
                 f"- Goal: {h.get('goal', '')}\n"
                 f"- State index: {h.get('state_index')}\n"
-                f"- Similarity: {sim:.4f}\n\n"
+                f"- Similarity (1 − L2 距离，非余弦): {sim:.4f}\n\n"
                 f"{h.get('text', '')}\n"
             )
             items.append((sim, block))

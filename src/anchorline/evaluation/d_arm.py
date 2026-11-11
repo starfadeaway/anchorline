@@ -54,7 +54,7 @@ def answer_d_arm(
             f"- Trajectory: {h['traj_id']}\n"
             f"- Goal: {h.get('goal', '')}\n"
             f"- State index: {h['state_index']}\n"
-            f"- Similarity: {sim:.4f}\n\n"
+            f"- Similarity (1 − L2 距离，非余弦): {sim:.4f}\n\n"
             f"{h['text']}\n"
         )
         items.append((sim, block))
@@ -63,7 +63,8 @@ def answer_d_arm(
     context = context or "(empty)"
     messages = build_messages(question, context)
     if system_hint:
-        messages = [{"role": "system", "content": system_hint}, *messages]
+        # N5：合并为单个 system（此前是两个 system，且 hint 可能被官方 prompt 覆盖）
+        messages[0] = {"role": "system", "content": messages[0]["content"] + "\n\n" + system_hint}
     answer = reader.complete(messages, temperature=temperature, max_tokens=max_tokens)
     if not answer.strip():
         # 同 B 臂：reasoning 模型空答案时放大上限重试一次

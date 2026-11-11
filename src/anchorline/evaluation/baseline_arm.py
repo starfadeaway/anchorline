@@ -65,7 +65,7 @@ def answer_baseline(
             f"- Trajectory: {h['traj_id']}\n"
             f"- Goal: {h.get('goal', '')}\n"
             f"- Center state index: {h['center']}\n"
-            f"- Similarity: {sim:.4f}\n\n"
+            f"- Similarity (1 − L2 距离，非余弦): {sim:.4f}\n\n"
             f"Relevant state slices\n{h['state_blocks']}\n"
         )
         items.append((sim, block))

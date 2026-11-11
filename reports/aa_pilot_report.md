@@ -11,7 +11,7 @@
 | 臂 | **B（官方基线）**：a11y-only + 官方 `raw_state_slice`（radius=1）+ 官方向量检索 top-6 |
 | reader | `deepseek-flash`（DeepSeek，temperature **1.0**，max_tokens 1024） |
 | embedding | `Qwen/Qwen3-Embedding-8B`（SiliconFlow，4096 维，L2 归一化） |
-| 预算 | 4k（B 臂 1 档；长切片按官方语义截断） |
+| 预算 | 4k（B 臂 1 档；长切片按项目口径「切半条 + chars/4」截断——**与官方 truncate_memory_context 语义不同**，见 N3） |
 | 题集 | 154 道确定性判分题中随机抽 **20** 题（seed=42）；14 道 `llm_gotchas_checker` 题不进 pilot |
 | 重复 | 每题 **N=10**，共 **200 次** |
 | 耗时 | 1,463s（约 24 分钟） |
