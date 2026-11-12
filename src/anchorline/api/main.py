@@ -39,7 +39,10 @@ from anchorline.tools import TOOL_SCHEMAS
 log = logging.getLogger("anchorline.api")
 
 # src/anchorline/api/main.py -> api -> anchorline -> src -> 仓库根
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# 容器里包在 site-packages 下，文件路径上溯不是仓库根；用 ANCHORLINE_ROOT 显式指定
+ROOT = os.environ.get("ANCHORLINE_ROOT") or os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 EVAL_DIR = os.path.join(ROOT, "data", "eval")
 
 app = FastAPI(title="Anchorline", version=__version__)
