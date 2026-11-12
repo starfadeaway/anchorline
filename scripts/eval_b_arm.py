@@ -58,8 +58,8 @@ def main() -> int:
                 "question_id": q["id"],
                 "scores": [score],
                 "mean": score,
-                "context_tokens": r.context_tokens,
-                "dropped_slices": r.dropped_slices,
+                "context_tokens_mean": r.context_tokens,  # V3：与旧 B 产物字段名一致
+                "dropped": r.dropped_slices,  # V3：统一叫 dropped（旧产物无此字段）
             }
         )
         print(f"  [{i}/{len(sample)}] {q['id']} score={score} ctx={r.context_tokens} dropped={r.dropped_slices} {time.time()-t0:.0f}s")

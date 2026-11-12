@@ -31,11 +31,14 @@
 
 ## 决定
 
-1. **不采用 2666 封顶**；`build_baseline_index.py` 的默认上限改为 `4000 * 4 = 16000` 字符（= 预算字符数，等效于旧的有效行为，同时把 49k/968k 的极端切片挡住），`ANCHORLINE_INDEX_SLICE_CAP` 可覆盖。
+1. **不采用 2666 封顶**；`build_baseline_index.py` 的默认上限改为 `4000 * 4 = 16000` 字符（= 预算字符数，**近似而非严格等于**旧行为：旧行为在组装期截到 15995+5 字符标记，新行为在索引期截到 15992+6 字符标记，注入差 2 字符），`ANCHORLINE_INDEX_SLICE_CAP` 可覆盖。
+   - **V2 提醒**：这意味着索引不再是「原始检索单元」，而是「已按 4k 预算裁剪好给 reader 看的文本」——换预算档或 top_k 时需要重建索引。这是已知取舍，不是无意为之。
 2. 索引已恢复为旧版（1737 条，max 967757）——B 的数字与报告保持不变，**无需重跑 168**。
-3. 2666 封顶的索引与结果保留为证据（均不入库）：
-   - `data/backups/v2_web_slices_cap2666.lance`
-   - `data/eval/_drafts/b_arm_154_rebuild.json`（43.51%）
+3. 2666 封顶的索引与结果保留为证据：
+   - `data/backups/v2_web_slices_cap2666.lance` —— **本地保留、不入库**（`data/backups/` 已加 `.gitignore`）。
+     注：该目录曾在 `624d2e4` 被 `git add -A` 误提交（82.85MB），`de504fc` 已从索引移除；
+     **历史 blob 仍在 git 历史里**，只有 `git filter-repo` 能清（待拍板）。
+   - `data/eval/_drafts/b_arm_154_rebuild.json`（43.51%）—— 在 `.gitignore` 的 `_drafts/` 下。
 4. 结论写进 README 的「B 臂口径」：封顶实验测过、结果为负、默认按预算字符数封顶。
 
 > 备注：这次实验本身消耗 1737 次 embedding + 154 次 reader 调用；它换来的是一个可复现的负结果，而不是又一处"看起来修好了"的改动。

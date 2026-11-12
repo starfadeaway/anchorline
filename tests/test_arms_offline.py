@@ -107,3 +107,19 @@ def test_d_arm_budget_and_result_shape():
     assert 0 < r.context_tokens <= 4000
     assert r.answer == "fake answer"
     assert r.question == "q?"
+
+
+def test_baseline_state_budget_keeps_all_state_headers():
+    """§42.2：开启按 State 分预算后，3 个 State 的 header 必须全部保留。"""
+    sample = (
+        "State 1 (step 1)\n- URL: u1\n- AXTree:\n" + "a" * 3000 + "\n\n"
+        "State 2 (step 2)\n- URL: u2\n- AXTree:\n" + "b" * 3000 + "\n\n"
+        "State 3 (step 3)\n- URL: u3\n- AXTree:\n" + "c" * 3000
+    )
+    hits = [_hit(2, sample)]
+    reader = FakeReader()
+    r = baseline_arm.answer_baseline(reader, FakeEmb(), FakeTable(hits), "q?", state_budget=True)
+    text = _ctx(reader)
+    for n in (1, 2, 3):
+        assert f"State {n} (step {n})" in text
+    assert r.context_tokens <= 4000

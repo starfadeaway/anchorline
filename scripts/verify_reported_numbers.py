@@ -59,7 +59,7 @@ KNOWN_PCT_BY_FILE.update({
     "reports/m2_l2_extraction.md": {1.39},
     "reports/m3_2x2.md": {12.0},
     "reports/m3_d_intent.md": {1.9, 44.4, 65.1},
-    "reports/m3_summary.md": {12.0, 43.51},
+    "reports/m3_summary.md": {12.0, 43.51, 92.7},
     "reports/stability_runs.md": {11.7, 12.0, 12.3},
     "reports/v1_ku_eval.md": {44.4, 44.44, 65.08, 65.1, 77.78, 98.6},
 })

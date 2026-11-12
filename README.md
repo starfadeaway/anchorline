@@ -36,7 +36,7 @@ frontend/                  # React 前端（聊天/记忆/评测/审核/报告/�
 migrations/                # Alembic（0001 初始 → 0014：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
 reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
-tests/                     # pytest（146 项）
+tests/                     # pytest（152 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
@@ -164,7 +164,7 @@ docker compose up -d --build
 ## B 臂口径（重要）
 
 - **B ≈ 官方基线的 a11y 通道子集**：官方 baseline 还有 event/note 通道、controller 生成的改写查询与动作序列/截图；本项目只复刻 a11y 通道（见 dataset/v2/official_repo/）。
-- **B 臂切片历史上未做长度封顶**（中位约 49k 字符、最长约 968k），而预算 4k → **旧产物 154/154 题都顶满预算并被截断**（旧产物无标记）。
+- **根因是「检索单元粒度」不一致，不是字符上限**：B/C1 的索引单元是 **3-state 拼接**（median 49,341 / 39,998 字符，p10 仍 >22k），D 是**单 state**（median 702 字符）→ 4k 预算下 B/C1 的 top-6 **没有一条能完整入预算**（必然 top-1 截断 + 5 条丢弃），而 D 的 92.7% 装得下。所以「B vs D」在注入完整性上不是同预算对照。
 - **按 `预算 ÷ top_k ≈ 2666` 封顶经实测不采用**：重建索引后 B 从 **57.14% 降到 43.51%**（配对差 −13.64pp，精确符号翻转 **p=0.0011**，39/154 题变化）。结论与证据见 `docs/b_arm_slice_cap_experiment.md`；默认封顶改为**预算字符数（16000）**，可用 `ANCHORLINE_INDEX_SLICE_CAP` 覆盖。
 - 因此 **B 的绝对准确率不代表官方基线全貌**，只用于本项目内部同预算对照（B vs C1/C2/D）。
 - **历史产物（b/c2/d/hybrid/intent）是旧代码路径生成的**：截断标记、system 合并、Similarity 标签是后续修复；重跑会与 `reports/` 中的旧数字不同（未重跑，因为需要 provider key 与索引重建）。

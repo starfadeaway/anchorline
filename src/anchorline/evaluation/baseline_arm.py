@@ -10,9 +10,11 @@ B 臂定义（v0.8 §6.5）：
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 from anchorline.evaluation.reader import build_messages
+from anchorline.evaluation.state_budget import budget_state_text
 from anchorline.llm import ChatClient, EmbeddingClient
 from anchorline.memory.l3 import assemble_blocks
 from anchorline.retrieval.baseline import (
@@ -55,19 +57,30 @@ def answer_baseline(
     temperature: float = 1.0,
     max_tokens: int = 8192,
     context_budget_tokens: int = 4000,
+    state_budget: bool | None = None,
 ) -> BaselineResult:
     hits = retrieve(tbl, embedder, question, top_k=top_k)
+    # §42.2：按 State 分预算（默认关闭；env ANCHORLINE_STATE_BUDGET=1 或显式传参开启）
+    use_state_budget = state_budget if state_budget is not None else os.environ.get("ANCHORLINE_STATE_BUDGET") == "1"
     items: list[tuple[float, str]] = []
     for h in hits:
         dist = float(h.get("_distance") or 0.0)
         sim = 1.0 - dist  # 向量已 L2 归一化，l2 与 cosine 单调对应
+        slices_text = h["state_blocks"]
+        if use_state_budget:
+            # 给外层包装留 ~400 字符，剩余按 State 分配（center 优先）
+            slices_text = budget_state_text(
+                slices_text,
+                max(0, context_budget_tokens * 4 - 400),
+                center=h.get("center"),
+            )
         block = (
             f"### Raw state result\n"
             f"- Trajectory: {h['traj_id']}\n"
             f"- Goal: {h.get('goal', '')}\n"
             f"- Center state index: {h['center']}\n"
             f"- Similarity (1 − L2 距离，非余弦): {sim:.4f}\n\n"
-            f"Relevant state slices\n{h['state_blocks']}\n"
+            f"Relevant state slices\n{slices_text}\n"
         )
         items.append((sim, block))
     # B 臂预算档：4k（与 §6.5 的「B 臂 1 档」一致）。
