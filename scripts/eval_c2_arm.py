@@ -95,6 +95,7 @@ def main() -> int:
         f"| 置换检验 p | **{summary['paired_permutation_pvalue']:.4f}** |\n",
         "> 这是 2×2 设计里「压缩层」的单变量对照：输入模态与检索都相同。",
     ]
+    os.makedirs(os.path.dirname(args.md_out), exist_ok=True)
     with open(args.md_out, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
