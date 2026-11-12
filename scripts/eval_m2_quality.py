@@ -22,8 +22,9 @@ from anchorline.llm import reader_client  # noqa: E402
 
 KU = os.path.join(ROOT, "data", "annotations", "ku72.jsonl")
 MD_DIR = os.path.join(ROOT, "dataset", "v1", "minimax-package", "questions")
-OUT_JSON = os.path.join(ROOT, "data", "eval", "m2_quality.json")
-OUT_MD = os.path.join(ROOT, "reports", "m2_quality.md")
+# X34：默认写 _drafts，避免一次复现覆盖已入库产物；--out/--md-out 可显式指定
+OUT_JSON = os.path.join(ROOT, "data", "eval", "_drafts", "m2_quality.json")
+OUT_MD = os.path.join(ROOT, "reports", "_drafts", "m2_quality.md")
 
 SYS = "你是 LongMemEval-S knowledge-update 的标注器。只输出 JSON，不要解释。"
 
@@ -56,7 +57,22 @@ def extract_json(text: str) -> dict | None:
 
 
 def main() -> int:
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--limit", type=int, default=0, help="只跑前 N 题（0=全部）")
+    ap.add_argument("--out", default=None, help="结果 JSON 路径（默认 _drafts）")
+    ap.add_argument("--md-out", default=None, help="报告 md 路径（默认 _drafts）")
+    ap.add_argument("--dry-run", action="store_true", help="只打印题数与路径，不调模型")
+    args = ap.parse_args()
+    out_json = args.out or OUT_JSON
+    out_md = args.md_out or OUT_MD
     rows = [json.loads(line) for line in open(KU, encoding="utf-8") if line.strip()]
+    if args.limit and args.limit > 0:
+        rows = rows[: args.limit]
+    if args.dry_run:
+        print(f"dry-run: rows={len(rows)} out_json={out_json} out_md={out_md}（未调用模型）")
+        return 0
     client = reader_client(Settings())
     results = []
     for i, r in enumerate(rows, 1):
@@ -117,7 +133,7 @@ def main() -> int:
         "conflict_type_acc_valid": valid_acc("conflict_type"),
         "expected_resolution_acc_valid": valid_acc("expected_resolution"),
     }
-    with open(OUT_JSON, "w", encoding="utf-8") as f:
+    with open(out_json, "w", encoding="utf-8") as f:
         json.dump({"summary": summary, "rows": results}, f, ensure_ascii=False, indent=1)
 
     lines = [
@@ -141,10 +157,10 @@ def main() -> int:
         for key in ("query_form", "conflict_type", "expected_resolution"):
             if x["gold"].get(key) and x["pred"].get(key) != x["gold"][key]:
                 lines.append(f"| `{x['question_id']}` | {key} | {x['gold'][key]} | {x['pred'].get(key)} |")
-    with open(OUT_MD, "w", encoding="utf-8") as f:
+    with open(out_md, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     print(json.dumps(summary, ensure_ascii=False, indent=1))
-    print("written:", OUT_JSON, OUT_MD)
+    print("written:", out_json, out_md)
     return 0
 
 

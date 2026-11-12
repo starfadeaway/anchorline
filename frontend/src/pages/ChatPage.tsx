@@ -426,8 +426,8 @@ export default function ChatPage() {
         <span><span className={`dot ${env?.embedding_model ? "ok" : "bad"}`} /><em>Embedding</em> <b>{env?.embedding_model || "—"}</b></span>
         <span><span className={`dot ${env?.rerank_model ? "ok" : "bad"}`} /><em>Rerank</em> <b>{env?.rerank_model || "—"}</b></span>
         <span><span className={`dot ${env?.db_ok ? "ok" : "bad"}`} /><em>MySQL</em> <b>{env?.db_ok ? "已连接" : "未连接"}</b></span>
-        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Reader</em> <b>{env?.reader_model ?? "—"}</b></span>
-        <span><span className={`dot ${env ? "ok" : "bad"}`} /><em>Judge</em> <b>{env?.judge_model ?? "—"}</b></span>
+        <span><span className={`dot ${env?.reader_model ? "ok" : "bad"}`} /><em>Reader</em> <b>{env?.reader_model ?? "—"}</b></span>
+        <span><span className={`dot ${env?.judge_model ? "ok" : "bad"}`} /><em>Judge</em> <b>{env?.judge_model ?? "—"}</b></span>
         <span><span className="dot ok" /><em>预算</em> <b>{env?.budgets?.join(" / ") ?? "—"}</b></span>
       </div>
     </div>
