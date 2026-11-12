@@ -10,9 +10,9 @@ import json
 import os
 from typing import Iterator
 
-# src/anchorline/data/v2.py -> data -> anchorline -> src -> 仓库根
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-V2_DIR = os.path.join(_ROOT, "dataset", "v2")
+from anchorline.paths import DATASET_V2_DIR
+
+V2_DIR = DATASET_V2_DIR
 
 
 def v2_path(name: str) -> str:

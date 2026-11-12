@@ -33,9 +33,9 @@
 ```text
 src/anchorline/            # 记忆层（L0/L1/L2/L3）、检索（hybrid/facts_index）、图（chat/workflows）、API、MCP
 frontend/                  # React 前端（聊天/记忆/评测/审核/报告/监控/会话管理/设置）
-migrations/                # Alembic（0001 初始 → 0014：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
+migrations/                # Alembic（0001 初始 → 0016：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
-reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
+reports/                   # 30 份评测/审计/整改报告（项目最核心的证据资产）
 tests/                     # pytest（173 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
@@ -108,7 +108,8 @@ dataset/                   # 数据与核验产物（大文件不入库）
 # 2) 写进项目根 .env（不要提交）
 #    API_TOKEN=<上一步的输出>
 
-# 3) 无需重启：中间件每次请求都会重新读 .env，改完立即生效（如果你用 run_all 起的服务，也建议重启一次确认）
+# 3) 改完 .env 后需要重启 API：中间件只缓存 token 字符串（lru_cache），不会自动重读 .env
+#    Docker 里用 `docker compose up -d api`（重建容器才会读到新 .env；`restart` 不会）
 .venv\Scripts\python.exe run_all.py
 ```
 
@@ -197,9 +198,9 @@ docker compose up -d --build
 ### 部署验证
 
 ```bash
-curl -s http://127.0.0.1:18000/health          # {"status":"ok","db":true,...}（默认 8000）
-curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:18080/   # 200（默认 8080）
-docker exec anchorline-api-1 python -c "from anchorline.retrieval import facts_index; print('index_ready:', facts_index.is_ready())"
+curl -s http://127.0.0.1:8000/health          # {"status":"ok","db":true,...}；改过 API_HOST_PORT 用对应端口
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/   # 200；改过 WEB_HOST_PORT 用对应端口
+docker compose exec api python -c "from anchorline.retrieval import facts_index; print('index_ready:', facts_index.is_ready())"
 ```
 
 ### 常见问题
@@ -208,7 +209,7 @@ docker exec anchorline-api-1 python -c "from anchorline.retrieval import facts_i
 |---|---|
 | `port is already allocated`（8000/8080） | 在 `.env` 设 `API_HOST_PORT=18000` / `WEB_HOST_PORT=18080` 后 `docker compose up -d` |
 | 前端显示「未建索引（检索退回 BM25）」 | 确认 `./data/lancedb` 挂载且含 `facts_index.lance`；容器内 `index_ready` 应为 `True`（镜像已设 `ANCHORLINE_LANCEDB=/app/data/lancedb`） |
-| 前端请求 401 | 到「设置」页填与 `.env` 相同的 `API_TOKEN`；改 `.env` 后需 `docker compose restart api` |
+| 前端请求 401 | 到「设置」页填与 `.env` 相同的 `API_TOKEN`；改 `.env` 后需 `docker compose up -d api`（`restart` 不会重读 .env） |
 | 页面没有数据 | 新库是空的；导入演示数据见下方「演示数据」 |
 | VM 是 NAT，Windows 打不开 | 在 VMware 虚拟网络编辑器给 VMnet8 加端口转发，或把网络改为桥接 |
 
@@ -239,7 +240,8 @@ docker exec anchorline-api-1 python -c "from anchorline.retrieval import facts_i
 
 ## 演示数据
 
-- data/exports/sample/anchorline-demo.sql：实验用途的完整 MySQL 导出（30 条事实 / 21 会话 / 50 消息 / 142 trace / 4 裁决；实体均为 user:demo），**不含真实用户数据**。导入：mysql -uroot -p < anchorline-demo.sql 前先建库并跑 lembic upgrade head。
+- `data/exports/sample/anchorline-demo.sql`：**纯演示数据**（15 条事实 / 6 会话 / 6 消息，全部 `user:demo` 与 `[demo]` 前缀；空表：trace / 裁决 / 评测运行），不含真实用户数据。
+  导入：**只导入空库**（dump 含 `DROP TABLE IF EXISTS`，会覆盖同名表）——`mysql -uroot -p -e "CREATE DATABASE anchorline CHARACTER SET utf8mb4"`，再 `mysql -uroot -p anchorline < anchorline-demo.sql`；dump 自带 `alembic_version=0016`，不需要再跑迁移。
 
 ## 实验与复现
 
@@ -277,7 +279,7 @@ docker exec anchorline-api-1 python -c "from anchorline.retrieval import facts_i
 | 项 | 用法 |
 |---|---|
 | 一键启动 | `.venv\Scripts\python.exe run_all.py`（`--only server\|client`、`--port`） |
-| Lint | `.venv\Scripts\python.exe -m ruff check src tests scripts run_all.py examples` |
+| Lint | `.venv\Scripts\python.exe -m ruff check .`（含 migrations） |
 | 测试 | `.venv\Scripts\python.exe -m pytest -q`；CI 里带 `--cov=src/anchorline` |
 | e2e | `cd frontend; npm run e2e`（本地真实模型用例：`$env:REAL_E2E='1'; npm run e2e`） |
 | 备份/恢复 | `scripts\backup_db.ps1` / `scripts\restore_db.ps1 -File <sql>` |

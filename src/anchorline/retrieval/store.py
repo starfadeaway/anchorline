@@ -2,15 +2,9 @@
 """LanceDB 连接与表访问（统一入口，避免各脚本重复写路径）。"""
 from __future__ import annotations
 
-import os
+from anchorline.paths import LANCEDB_DIR
 
-# src/anchorline/retrieval/store.py -> retrieval -> anchorline -> src -> 仓库根
-# 容器里包被 pip 安装到 site-packages，文件路径上溯不是仓库根；
-# 用 ANCHORLINE_ROOT / ANCHORLINE_LANCEDB 显式指定（Dockerfile 设为 /app）。
-_ROOT = os.environ.get("ANCHORLINE_ROOT") or os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-DEFAULT_LANCEDB = os.environ.get("ANCHORLINE_LANCEDB") or os.path.join(_ROOT, "data", "lancedb")
+DEFAULT_LANCEDB = LANCEDB_DIR
 
 
 def open_lancedb(root: str | None = None):
