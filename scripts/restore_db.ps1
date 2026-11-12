@@ -8,6 +8,16 @@
 )
 
 $ErrorActionPreference = "Stop"
+
+# 密码优先级：-Password 参数 > ANCHORLINE_DB_PASSWORD > .env 的 MYSQL_PASSWORD（第 33 轮）
+if (-not $Password) {
+    $envFile = Join-Path (Split-Path -Parent $PSScriptRoot) ".env"
+    if (Test-Path $envFile) {
+        $pwdLine = Get-Content $envFile -Encoding utf8 | Where-Object { $_ -match '^\s*MYSQL_PASSWORD\s*=' } | Select-Object -First 1
+        if ($pwdLine) { $Password = ($pwdLine -split '=', 2)[1].Trim() }
+    }
+}
+if (-not $Password) { throw "缺少数据库密码：请设置 ANCHORLINE_DB_PASSWORD 或在 .env 里配置 MYSQL_PASSWORD" }
 if (-not (Test-Path $File)) { throw "备份文件不存在：$File" }
 
 $opt = [System.IO.Path]::GetTempFileName()

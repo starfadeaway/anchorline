@@ -8,6 +8,16 @@
 )
 
 $ErrorActionPreference = "Stop"
+
+# 密码优先级：-Password 参数 > ANCHORLINE_DB_PASSWORD > .env 的 MYSQL_PASSWORD（第 33 轮）
+if (-not $Password) {
+    $envFile = Join-Path (Split-Path -Parent $PSScriptRoot) ".env"
+    if (Test-Path $envFile) {
+        $pwdLine = Get-Content $envFile -Encoding utf8 | Where-Object { $_ -match '^\s*MYSQL_PASSWORD\s*=' } | Select-Object -First 1
+        if ($pwdLine) { $Password = ($pwdLine -split '=', 2)[1].Trim() }
+    }
+}
+if (-not $Password) { throw "缺少数据库密码：请设置 ANCHORLINE_DB_PASSWORD 或在 .env 里配置 MYSQL_PASSWORD" }
 if (-not (Get-Command mysqldump -ErrorAction SilentlyContinue)) {
     throw "未找到 mysqldump：请把 MySQL 的 bin 目录加入 PATH（例如 C:\Program Files\MySQL\MySQL Server 8.4\bin）"
 }
