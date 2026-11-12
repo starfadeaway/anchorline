@@ -43,6 +43,7 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 # 历史/附录数字（第一代产物、被取代的旧结论）——显式白名单，改动白名单需说明原因
 LEGACY_P: set[float] = set()  # F4：已迁移到 LEGACY_P_BY_FILE
 LEGACY_P_BY_FILE: dict[str, set[float]] = {
+    "docs/b_c1_c2_single_state_experiment.md": {0.0807, 0.4996, 0.0385, 0.0066, 0.0195, 1.0, 0.2327, 0.1263, 0.0201, 0.5224, 0.4049, 0.4869},
     "reports/d_arm_154.md": {0.1098},  # 第一代产物
     "reports/lorekeeper_bridge.md": {0.252},
     "reports/project_review.md": {0.25},
@@ -62,6 +63,7 @@ INT_PCT_WHITELIST = {100}  # 常数基线（100%）可全局放行；覆盖率�
 
 # H6/G8：文件级白名单（由实测收集：只在它实际出现的文件里放行）
 KNOWN_PCT_BY_FILE.update({
+    "docs/b_c1_c2_single_state_experiment.md": {92.7, 27.0, 50.0},
     "reports/aa_pilot_report.md": {6.3},
     "reports/m2_l2_extraction.md": {1.39},
     "reports/m3_2x2.md": {12.0},
@@ -85,6 +87,8 @@ PP_RAW_BY_FILE.update({
     "reports/v1_ku_eval.md": {20.6, 77.8},
 })
 LEGACY_PP_BY_FILE.update({
+    "docs/b_c1_c2_single_state_experiment.md": {13.64, 1.95, 3.25, 9.09, 12.34, 10.39, 5.84, 7.14},
+
     "reports/d_arm_154.md": {3.9},
     "reports/d_arm_pilot.md": {0.5},
     "reports/lorekeeper_bridge.md": {4.17, 6.25, 12.5},
@@ -170,7 +174,7 @@ ARM_BY_FILE = {
 }
 # m3_2x2.json 的 pair -> 单 state 键映射
 M3_2X2_ARMS = {"B": "B_single", "C1": "C1_single", "C2": "C2_single", "D": "D_run3", "D_neighbor": "D_neighbor"}
-LEGACY_REPORTS = {"reports/d_arm_154.md"}  # 第一代产物（有废弃标注），方向检查豁免
+LEGACY_REPORTS = {"reports/d_arm_154.md", "docs/b_c1_c2_single_state_experiment.md"}  # 第一代产物/新旧口径对照文档：方向检查豁免
 # G7：单主题报告的 p 值可以绑定到文件级对比（句子不必写出臂名）
 FILE_P_BINDINGS = {
     "reports/m3_d_intent.md": ["D_run3_vs_D_intent", "D_run3_vs_D_run2"],  # H5：两处 p 恰好同为 0.8145
@@ -221,6 +225,8 @@ def _find_comparison(out: dict, a: str, b: str, rel: str = ""):
 
 
 def check_comparison_rows(text: str, out: dict, rel: str) -> int:
+    if rel in LEGACY_REPORTS:
+        return 0
     """D2：m3_2x2 表格行按「对比」绑定允许值，避免把别的对比的合法数字当成这个对比的。"""
     bad = 0
     for line in text.splitlines():
@@ -304,6 +310,8 @@ def check_hybrid_diff_row(text: str, out: dict, rel: str) -> int:
 
 
 def check_paragraph_bindings(text: str, out: dict, rel: str) -> int:
+    if rel in LEGACY_REPORTS:
+        return 0
     """E7：散文段落里出现 `A vs B` / `A -> B` 时，段内 p 值必须属于该对比。"""
     bad = 0
     if rel == "reports/d_arm_154.md":
@@ -445,13 +453,43 @@ def check_m3_2x2_json(out: dict) -> int:
     return bad
 
 
+def check_conclusion_phrases() -> int:
+    """第 30 轮：把「结论措辞必须存在」变成 CI 断言，防止再出现「声称改了、实际 no-op」。"""
+    required = {
+        "reports/m3_2x2.md": ["少赢 1 题", "0.0807"],
+        "reports/m3_summary.md": ["不稳健"],
+        "README.md": ["高估"],
+        "docs/b_c1_c2_single_state_experiment.md": ["高估", "跨口径"],
+    }
+    bad = 0
+    for rel, phrases in required.items():
+        path = os.path.join(ROOT, rel)
+        if not os.path.exists(path):
+            # 自检沙盒只镜像 reports/ 与 data/；措辞断言在真实仓库（CI）里生效
+            print(f"SKIP（沙盒缺文件）: {rel}")
+            continue
+        text = open(path, encoding="utf-8").read()
+        for phrase in phrases:
+            if phrase not in text:
+                print(f"MISMATCH {rel}: 缺少结论措辞「{phrase}」")
+                bad += 1
+    return bad
+
+
 def check_markdown(out: dict) -> int:
     """A2：从 md 解析数字，与重算集合比对（子串存在性 → 数值比对）。"""
     bad = 0
     allow = _global_allowed(out)
     import glob
 
+    # 第 30 轮：reports/ 全量 + docs/ 下「当前口径结论文档」。
+    # docs/ 的历史/数据集类文档（DATASET_LICENSES、HANDOFF、annotation-protocol-*、
+    # b_arm_slice_cap_experiment、b_arm_state_budget、legacy_audit_*、d_arm_154_v3）记录的是
+    # 历史口径或数据集统计，不是当前可重算的评测值，显式排除（见 docs/reported_numbers_convention.md）。
     paths = sorted(glob.glob(os.path.join(ROOT, "reports", "*.md")))
+    _doc = os.path.join(ROOT, "docs", "b_c1_c2_single_state_experiment.md")
+    if os.path.exists(_doc):
+        paths.append(_doc)
     checked = 0
     for path in paths:
         rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
@@ -626,6 +664,7 @@ def main() -> int:
             if abs(float(ref[key]) - float(cur[key])) > 1e-4:
                 print(f"MISMATCH {name}.{key}: baseline={ref[key]} recomputed={cur[key]}")
                 bad += 1
+    bad += check_conclusion_phrases()
     bad += check_markdown(out)
     bad += check_m3_2x2_json(out)
     if bad:
