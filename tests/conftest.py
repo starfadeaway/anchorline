@@ -4,6 +4,16 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
+def _no_api_token(monkeypatch):
+    """测试与本地 .env 解耦：API_TOKEN 为空 = 鉴权关闭（第 35 轮）。
+
+    pydantic-settings 优先级 env var > dotenv，空串会被采纳 -> 中间件不拦。
+    需要测试鉴权的用例在自己的函数里 monkeypatch.setenv 覆盖。
+    """
+    monkeypatch.setenv("API_TOKEN", "")
+
+
+@pytest.fixture(autouse=True)
 def _no_real_index(monkeypatch, request):
     # M6：需要真实索引的测试显式打 @pytest.mark.real_index，不再按文件名字符串豁免
     if request.node.get_closest_marker("real_index"):

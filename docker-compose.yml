@@ -24,6 +24,8 @@ services:
       MYSQL_DATABASE: anchorline
       MYSQL_USER: root
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 设置 MYSQL_PASSWORD}
+      # 反代把 /api 暴露给局域网；API_TOKEN 必须设置（缺失时 compose 直接报错）
+      API_TOKEN: ${API_TOKEN:?请在 .env 设置 API_TOKEN（前端设置页填同一个值）}
     restart: unless-stopped
     depends_on:
       mysql:
