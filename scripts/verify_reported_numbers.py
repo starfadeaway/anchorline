@@ -42,15 +42,49 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 
 # 历史/附录数字（第一代产物、被取代的旧结论）——显式白名单，改动白名单需说明原因
 LEGACY_P = {0.1098, 0.252, 0.25}
-LEGACY_ACC = {13.6, 9.7}  # d_arm_154 第一代准确率（必须精确存在，下面单测校验）
-# 其他实验的百分比（翻转率/覆盖率/V1 命中等）：非本表准确率，按值登记
-# H6/G8 已知边界：以下仍是全局白名单（按文件限定只覆盖了 FILE_PCT/FILE_P_BINDINGS）
-KNOWN_PCT = {12, 12.3, 11.7, 44.4, 44.44, 65.1, 65.08, 77.78, 98.6, 21, 15, 1.39, 1.9, 6.3}  # 6.3 在 aa_pilot 里以 % 形式出现  # 只放百分比，不混 pp
+# H6/G8：以下白名单按「文件 + 语境」限定（全局白名单已移除）。
+# 收集方式：清空字典 → 跑 verify → 把每个 MISSING 值归到它实际出现的文件（逐条确认后写入）。
+KNOWN_PCT_BY_FILE: dict[str, set[float]] = {}
+PP_RAW_BY_FILE: dict[str, set[float]] = {}
+LEGACY_PP_BY_FILE: dict[str, set[float]] = {}
+LEGACY_ACC_BY_FILE: dict[str, set[float]] = {}
 # 覆盖率类，按文件限定（audit_report 的声称值；CI 现场算的当前值是 69/63）
 FILE_PCT = {"reports/audit_report.md": {45, 69, 71, 63}}
-LEGACY_PP = {0.5, 2.96, 1.03, 3.9, 4.17, 6.25, 7.8, 12.5, 20.6, 77.8}
-PP_RAW_WHITELIST = {6.3, 3.9, 0.65, 0.6, 2.96, 1.03, 0.5, 4.17, 6.25, 12.5, 10, 7.8, 20.6, 77.8}  # 只放 pp 值，不混百分比
 INT_PCT_WHITELIST = {100}  # 常数基线（100%）可全局放行；覆盖率类见 FILE_PCT
+
+
+# H6/G8：文件级白名单（由实测收集：只在它实际出现的文件里放行）
+KNOWN_PCT_BY_FILE.update({
+    "reports/aa_pilot_report.md": {6.3},
+    "reports/m2_l2_extraction.md": {1.39},
+    "reports/m3_2x2.md": {12.0},
+    "reports/m3_d_intent.md": {1.9, 44.4, 65.1},
+    "reports/m3_summary.md": {12.0},
+    "reports/stability_runs.md": {11.7, 12.0, 12.3},
+    "reports/v1_ku_eval.md": {44.4, 44.44, 65.08, 65.1, 77.78, 98.6},
+})
+PP_RAW_BY_FILE.update({
+    "reports/_flow_d.md": {6.3},
+    "reports/aa_pilot_report.md": {6.3},
+    "reports/d_arm_154.md": {0.65, 3.9, 6.3},
+    "reports/d_arm_154_neighbor.md": {6.3},
+    "reports/d_arm_154_run2.md": {6.3},
+    "reports/d_arm_pilot.md": {0.5, 6.3},
+    "reports/lorekeeper_bridge.md": {4.17, 6.25, 12.5},
+    "reports/m3_c1.md": {6.3},
+    "reports/m3_d_intent.md": {6.3},
+    "reports/m3_summary.md": {0.6, 0.65, 6.3, 7.8},
+    "reports/stability_runs.md": {0.65, 1.03, 2.96, 6.3},
+    "reports/v1_ku_eval.md": {20.6, 77.8},
+})
+LEGACY_PP_BY_FILE.update({
+    "reports/d_arm_154.md": {3.9},
+    "reports/d_arm_pilot.md": {0.5},
+    "reports/lorekeeper_bridge.md": {4.17, 6.25, 12.5},
+    "reports/m3_summary.md": {7.8},
+    "reports/stability_runs.md": {1.03, 2.96},
+    "reports/v1_ku_eval.md": {20.6, 77.8},
+})
 
 P4_PAT = re.compile(r"(?<![\d.])(\d\.\d{4,6})(?!\d)")
 PCT_PAT = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,2})?)%")
@@ -109,11 +143,11 @@ def _global_allowed(out: dict) -> dict[str, set]:
         pp2.add(round(diff * 100, 1))
     extra = _json_numbers()
     if not os.environ.get("ANCHORLINE_VERIFY_QUIET"):
-        print(f"白名单规模：num4={len(p4 | acc4 | diff4 | LEGACY_P | extra['num4'])} acc2={len(acc2 | LEGACY_ACC | extra['acc2'])} p={len(p4 | LEGACY_P)}")
+        print(f"白名单规模：num4={len(p4 | acc4 | diff4 | LEGACY_P | extra['num4'])} acc2={len(acc2 | extra['acc2'])} p={len(p4 | LEGACY_P)}")
     return {
         "num4": p4 | acc4 | diff4 | LEGACY_P | extra["num4"],
-        "acc2": acc2 | LEGACY_ACC | extra["acc2"],
-        "pp2": pp2 | LEGACY_PP,
+        "acc2": acc2 | extra["acc2"],
+        "pp2": pp2,  # H6/G8：pp 白名单改为文件级
         "p_raw": p4 | LEGACY_P,
     }
 
@@ -131,6 +165,8 @@ LEGACY_REPORTS = {"reports/d_arm_154.md"}  # 第一代产物（有废弃标注�
 FILE_P_BINDINGS = {
     "reports/m3_d_intent.md": ["D_run3_vs_D_intent", "D_run3_vs_D_run2"],  # H5：两处 p 恰好同为 0.8145
     "reports/m3_c1.md": ["B_run3_vs_C1", "C1_vs_D_run3", "C1_vs_D_neighbor"],
+    "reports/m3_168.md": ["B_vs_D_168_run2"],
+    "reports/m3_168_run3.md": ["B_vs_D_168_run3"],
 }
 
 
@@ -140,8 +176,17 @@ def check_file_p_binding(text: str, out: dict, rel: str) -> int:
         return 0
     allowed = {round(float(out[k]["p_exact"]), 4) for k in keys if out.get(k)}
     bad = 0
+    key_pat = re.compile(r"（([A-Za-z0-9_]+_vs_[A-Za-z0-9_]+)）")
     for m in re.finditer(r"p\s*[=：:]\s*\**\s*(0?\.\d{1,6})", text):
         v = round(float(m.group(1)), min(4, len(m.group(1).split(".")[1])))
+        # H5：p 后显式标注了 comparison key 时，按该 key 精确绑定（同值 p 不再混淆）
+        ann = key_pat.search(text, m.end(), min(len(text), m.end() + 40))
+        if ann and out.get(ann.group(1)):
+            expected = round(float(out[ann.group(1)]["p_exact"]), 4)
+            if abs(v - expected) > 1e-9:
+                print(f"MISMATCH {rel}: p={m.group(1)} 标注为 {ann.group(1)}，应为 {expected}")
+                bad += 1
+            continue
         if not any(abs(v - a) < 1e-9 for a in allowed):
             print(f"MISMATCH {rel}: 文件级 p={m.group(1)} 不属于 {sorted(allowed)}")
             bad += 1
@@ -358,7 +403,11 @@ def check_markdown(out: dict) -> int:
             v = float(m.group(1))
             if v == int(v) and int(v) in INT_PCT_WHITELIST:
                 continue
-            known = {float(x) for x in KNOWN_PCT} | {float(x) for x in file_pct} | {float(x) for x in LEGACY_ACC}
+            known = (
+                {float(x) for x in KNOWN_PCT_BY_FILE.get(rel, set())}
+                | {float(x) for x in file_pct}
+                | {float(x) for x in LEGACY_ACC_BY_FILE.get(rel, set())}
+            )
             if any(abs(v - a) < 0.06 for a in allow["acc2"]) or any(abs(v - a) < 0.06 for a in known):
                 continue
             print(f"MISMATCH {rel}: 百分比 {m.group(1)}% 不属于重算值/已知值")
@@ -368,14 +417,15 @@ def check_markdown(out: dict) -> int:
             digits = len(m.group(1).split(".")[1]) if "." in m.group(1) else 0
             # J7：按书写位数四舍五入后精确匹配（3.2 与 3.3 不再等价）
             allowed = {round(abs(float(r["diff_a_minus_b"])) * 100, digits) for r in out.values()}
-            known = {round(float(x), digits) for x in PP_RAW_WHITELIST}
+            known = {round(float(x), digits) for x in PP_RAW_BY_FILE.get(rel, set())}
             if raw in allowed or raw in known:
                 continue
             print(f"MISMATCH {rel}: 配对差 {m.group(1)}pp（裸值）不在重算/已知集合")
             file_bad += 1
         for m in SIGNED_PP_PAT.finditer(text):
             v = abs(float(m.group(1).replace("\u2212", "-").replace("+", "")))
-            if not any(abs(v - a) < 0.06 for a in allow["pp2"]):
+            extra_pp = {round(float(x), 2) for x in LEGACY_PP_BY_FILE.get(rel, set())}
+            if not any(abs(v - a) < 0.06 for a in (allow["pp2"] | extra_pp)):
                 print(f"MISMATCH {rel}: 配对差 {m.group(1)}pp 不在集合")
                 file_bad += 1
         file_bad += check_comparison_rows(text, out, rel)

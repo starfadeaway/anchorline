@@ -5,7 +5,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _no_real_index(monkeypatch, request):
-    if "test_facts_index" in request.node.nodeid:
+    # M6：需要真实索引的测试显式打 @pytest.mark.real_index，不再按文件名字符串豁免
+    if request.node.get_closest_marker("real_index"):
         yield
         return
     try:

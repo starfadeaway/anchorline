@@ -30,6 +30,9 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+markers = [
+    "real_index: 该测试需要真实 facts_index（不 stub 向量索引）",
+]
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"

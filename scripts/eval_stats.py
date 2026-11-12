@@ -14,7 +14,7 @@ def sign_flip_exact(diffs: list[float | Fraction]) -> float:
     """精确双侧符号翻转 p 值：P(|Σ ±d_i| >= |Σ d_i|)。diffs 为配对差。"""
     if not diffs:
         return 1.0
-    fr = [d if isinstance(d, Fraction) else Fraction(d).limit_denominator(1000) for d in diffs]
+    fr = [d if isinstance(d, Fraction) else Fraction(d).limit_denominator(max(1000, len(diffs))) for d in diffs]
     # U16：limit_denominator(1000) 是显式近似；n=154 时精确（分母 ≤154），n>1000 会失真
     denom = 1
     for f in fr:
