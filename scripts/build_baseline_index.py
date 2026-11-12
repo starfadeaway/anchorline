@@ -67,6 +67,11 @@ def _cap_head(text: str, cap: int) -> str:
 
 
 def main():
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--radius", type=int, default=DEFAULT_SLICE_RADIUS, help="切片半径（0=单 state；默认 1）")
+    args = ap.parse_args()
     qs = load_questions()
     small = load_small()
     idx = load_traj_index()
@@ -78,8 +83,8 @@ def main():
     goals = {}
     for tid, rec in iter_trajectories(web_trajs, offsets):
         goals[tid] = str(rec.get("goal") or "")
-        entries.extend(build_entries(rec, radius=DEFAULT_SLICE_RADIUS))
-    print(f"切片 {len(entries)} 条；开始 embedding（batch={BATCH}）")
+        entries.extend(build_entries(rec, radius=args.radius))
+    print(f"切片 {len(entries)} 条（radius={args.radius}）；开始 embedding（batch={BATCH}）")
 
     emb = embedding_client(Settings())
     rows = []

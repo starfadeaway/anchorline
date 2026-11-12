@@ -33,13 +33,30 @@ from anchorline.retrieval.baseline import (  # noqa: E402
 from anchorline.retrieval.store import open_lancedb  # noqa: E402
 
 TABLE = "v2_web_states_c1"
-BATCH = 1
+BATCH = int(os.environ.get("ANCHORLINE_INDEX_BATCH", "16"))  # 单 state 文本较短，可批量
 RADIUS = 1
 
 STATE_TEMPLATE = "State {idx}\nURL: {url}\nAction: {action}\nThought: {thought}\nA11y lines:\n{a11y}"
 
 
+def _embed(emb, texts):
+    """批量 embedding；整批失败时回退逐条。"""
+    try:
+        return emb.embed(texts)
+    except Exception as exc:
+        print(f"  batch failed ({type(exc).__name__}) -> per-item", flush=True)
+        out = []
+        for x in texts:
+            out.extend(emb.embed([x]))
+        return out
+
+
 def main():
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--radius", type=int, default=RADIUS, help="切片半径（0=单 state；默认 1）")
+    args = ap.parse_args()
     qs = load_questions()
     small = load_small()
     idx = load_traj_index()
@@ -62,8 +79,8 @@ def main():
             for i, st in enumerate(states)
         ]
         for i in range(len(per_state)):
-            lo = max(0, i - RADIUS)
-            hi = min(len(per_state), i + RADIUS + 1)
+            lo = max(0, i - args.radius)
+            hi = min(len(per_state), i + args.radius + 1)
             text = "\n\n".join(per_state[lo:hi])
             entries.append({
                 "id": f"{tid}:state:{i:04d}",
@@ -79,7 +96,7 @@ def main():
     t0 = time.time()
     for i in range(0, len(entries), BATCH):
         batch = entries[i:i + BATCH]
-        vectors = emb.embed([e["text"] for e in batch])
+        vectors = _embed(emb, [e["text"] for e in batch])
         for e, v in zip(batch, vectors):
             rows.append({**e, "vector": normalize_vector(v)})
         if (i // BATCH) % 100 == 0:
