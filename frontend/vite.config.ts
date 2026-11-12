@@ -15,12 +15,16 @@ export default defineConfig({
     },
   },
   build: {
-    // 拆 vendor，避免单个 chunk 过大（antd 单独成块，业务代码按路由懒加载）
+    // 拆 vendor：react / antd（含 icons）/ rc（@rc-component + rc-*）/ 其余 vendor。
+    // 四个块都 < 800KB，且避免 antd 全家单块超限。
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
-          antd: ["antd", "@ant-design/icons"],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom)[\\/]/.test(id)) return "react";
+          if (id.includes("node_modules/@rc-component") || /[\\/]node_modules[\\/]rc-/.test(id)) return "rc";
+          if (id.includes("node_modules/antd") || id.includes("node_modules/@ant-design")) return "antd";
+          return "vendor";
         },
       },
     },
