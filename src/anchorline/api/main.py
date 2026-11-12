@@ -15,6 +15,7 @@ import threading
 import time
 import uuid
 from datetime import datetime
+from functools import lru_cache
 from typing import Any, Literal
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request
@@ -45,15 +46,25 @@ app = FastAPI(title="Anchorline", version=__version__)
 configure_logging()
 
 
+@lru_cache(maxsize=1)
+def _auth_settings() -> Settings:
+    """鉴权用 Settings 缓存（第 35 轮）：避免每请求读一次 .env（实测 ~0.95ms/次）。
+
+    代价：修改 .env 的 API_TOKEN 后需重启 API 才生效（本地开发取舍，已文档化）。
+    """
+    return Settings()
+
+
 @app.middleware("http")
 async def _auth_middleware(request: Request, call_next):
-    """可选 API token：设置 API_TOKEN 后，除 /health 与文档外都要求 X-API-Token。默认关闭。"""
-    token = Settings().api_token
+    """可选 API token：设置 API_TOKEN 后，除 /health 与文档外都要求 X-API-Token
+    或 Authorization: Bearer（scheme 大小写不敏感，RFC 7235）。默认关闭。"""
+    token = _auth_settings().api_token
     if token:
         path = request.url.path
         if path not in ("/health", "/docs", "/openapi.json", "/redoc"):
             got = request.headers.get("x-api-token") or request.headers.get("authorization", "")
-            got = got.removeprefix("Bearer ").strip()
+            got = re.sub(r"(?i)^bearer\s+", "", got).strip()
             import hmac
 
             if not hmac.compare_digest(got.encode("utf-8"), token.encode("utf-8")):

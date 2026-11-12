@@ -11,6 +11,9 @@ def _no_api_token(monkeypatch):
     需要测试鉴权的用例在自己的函数里 monkeypatch.setenv 覆盖。
     """
     monkeypatch.setenv("API_TOKEN", "")
+    from anchorline.api import main as api_main
+
+    api_main._auth_settings.cache_clear()
 
 
 @pytest.fixture(autouse=True)
