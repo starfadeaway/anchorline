@@ -47,19 +47,20 @@ configure_logging()
 
 
 @lru_cache(maxsize=1)
-def _auth_settings() -> Settings:
-    """鉴权用 Settings 缓存（第 35 轮）：避免每请求读一次 .env（实测 ~0.95ms/次）。
+def _cached_api_token() -> str:
+    """只缓存 token 字符串（第 36 轮）：避免每请求读一次 .env（实测 ~0.95ms/次），
+    同时不让整个 Settings（provider keys / DB 口令）在进程里常驻。
 
     代价：修改 .env 的 API_TOKEN 后需重启 API 才生效（本地开发取舍，已文档化）。
     """
-    return Settings()
+    return Settings().api_token
 
 
 @app.middleware("http")
 async def _auth_middleware(request: Request, call_next):
     """可选 API token：设置 API_TOKEN 后，除 /health 与文档外都要求 X-API-Token
     或 Authorization: Bearer（scheme 大小写不敏感，RFC 7235）。默认关闭。"""
-    token = _auth_settings().api_token
+    token = _cached_api_token()
     if token:
         path = request.url.path
         if path not in ("/health", "/docs", "/openapi.json", "/redoc"):

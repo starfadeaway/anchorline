@@ -187,7 +187,7 @@ docker compose up -d --build
 部署安全要点：
 
 - **MySQL 不暴露 3306**（只在 compose 内网被 api 访问）；root 口令来自 `.env` 的 `MYSQL_PASSWORD`（单一来源，必填，缺失时 compose 直接报错）。
-- **鉴权**：设置 `API_TOKEN` 后，请求需带 `X-API-Token: <token>` 或 `Authorization: Bearer <token>`（scheme 大小写不敏感）。改 `.env` 后需重启 API 才生效（中间件缓存 Settings，换取每请求少读一次盘）。
+- **鉴权**：设置 `API_TOKEN` 后，请求需带 `X-API-Token: <token>`、`Authorization: Bearer <token>`（scheme 大小写不敏感），或 `Authorization: <token>`（无 scheme 裸值）。改 `.env` 后需重启 API 才生效（中间件只缓存 token 字符串本身）。
 - **API 只绑 `127.0.0.1:8000`**；但**前端 `8080` 的 `/api/*` 反代本身就是通路**（nginx 不做鉴权）——局域网访问 `http://<VM>:8080/api/chat/stream` 同样能消耗 provider 额度。因此**必须设置 `API_TOKEN`**（前端设置页填同一个 token），两条通路一起关；只绑回环不等于安全。
 - **向量索引**：`./data/lancedb` 已挂载进 api 容器；克隆后没有索引时检索会退化成 BM25，需要先跑索引构建（见「实验与复现」/`scripts/build_baseline_index.py`）。
 - `dataset/` 不入库——**评测/索引脚本需要先准备 `dataset/`**，否则会明确报错退出；容器默认不含评测数据，做评测时取消 compose 里 dataset 挂载的注释。

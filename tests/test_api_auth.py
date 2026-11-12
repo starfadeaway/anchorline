@@ -63,8 +63,6 @@ def test_health_is_exempt_even_with_token(client, monkeypatch):
     r = client.get("/health")
     assert r.status_code == 200
 
-import pytest
-
 
 @pytest.mark.parametrize("scheme", ["Bearer", "bearer", "BEARER"])
 def test_auth_accepts_bearer_case_insensitive(client, monkeypatch, scheme):
@@ -72,7 +70,7 @@ def test_auth_accepts_bearer_case_insensitive(client, monkeypatch, scheme):
     monkeypatch.setenv("API_TOKEN", "test-secret-token")
     from anchorline.api import main as api_main
 
-    api_main._auth_settings.cache_clear()
+    api_main._cached_api_token.cache_clear()
     r = client.get("/sessions?limit=1", headers={"Authorization": f"{scheme} test-secret-token"})
     assert r.status_code == 200
 
@@ -81,6 +79,6 @@ def test_auth_bearer_wrong_token_rejected(client, monkeypatch):
     monkeypatch.setenv("API_TOKEN", "test-secret-token")
     from anchorline.api import main as api_main
 
-    api_main._auth_settings.cache_clear()
+    api_main._cached_api_token.cache_clear()
     r = client.get("/sessions?limit=1", headers={"Authorization": "Bearer wrong"})
     assert r.status_code == 401

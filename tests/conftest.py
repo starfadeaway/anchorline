@@ -13,7 +13,7 @@ def _no_api_token(monkeypatch):
     monkeypatch.setenv("API_TOKEN", "")
     from anchorline.api import main as api_main
 
-    api_main._auth_settings.cache_clear()
+    api_main._cached_api_token.cache_clear()
 
 
 @pytest.fixture(autouse=True)
