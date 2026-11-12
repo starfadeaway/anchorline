@@ -465,7 +465,7 @@ def check_conclusion_phrases() -> int:
     # 旧句必须已经不在：否则「旧措辞留着 + 别处塞一个新词」就能绕过 presence-only。
     # 用正则覆盖「部分来自/源自/来源」「建立在…之上」「多余空格」等变体（第 32 轮）。
     forbidden = {
-        "reports/m3_2x2.md": [r"部分\s*(?:来自|源自|来源)\s*B?\s*索引缺陷", r"部分\s*建立在\s*B\s*索引缺陷"],
+        "reports/m3_2x2.md": [r"部分\s*(?:来自|源自|来源)\s*B?\s*索引缺陷", r"部分\s*建立在\s*B\s*索引缺陷", r"建立在\s*B\s*索引缺陷"],
         "reports/m3_summary.md": [r"(?:有|含)\s*B/C1\s*索引缺陷", r"索引缺陷.{0,10}(?:成分|已作废)"],
         "README.md": [r"部分\s*建立在\s*B\s*索引缺陷(?:上|之上)\s*[；;]"],
         "docs/b_c1_c2_single_state_experiment.md": [r"不再成立"],

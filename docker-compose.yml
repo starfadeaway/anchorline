@@ -2,17 +2,18 @@ services:
   mysql:
     image: mysql:8.4
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      # 单一来源：compose 顶层读取 .env 的 MYSQL_PASSWORD（同时也是 api 连接口令）
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 设置 MYSQL_PASSWORD（root 口令）}
       MYSQL_DATABASE: anchorline
-    ports:
-      - "3306:3306"
+    restart: unless-stopped
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
       timeout: 5s
       retries: 30
+    # 不暴露 3306 到宿主机：api 走 compose 内网 mysql:3306（P1-1）
 
   api:
     build: .
@@ -22,21 +23,35 @@ services:
       MYSQL_PORT: "3306"
       MYSQL_DATABASE: anchorline
       MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 设置 MYSQL_PASSWORD}
+    restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
     ports:
-      - "8000:8000"
-    # 可选：评测 / 索引构建需要 dataset（不入库，挂本地目录）
-    # volumes:
-    #   - ./dataset:/app/dataset:ro
+      # 只绑回环：外部通过 web(8080) 的 /api 代理访问；如需 API 直接对外，
+      # 改成 "8000:8000" 并务必在 .env 设置 API_TOKEN（否则局域网可白嫖 provider 额度）
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # 向量索引不打进镜像（体积/数据边界）；不挂载时 memory_search 只剩 BM25（检索退化）
+      - ./data/lancedb:/app/data/lancedb
+      # 可选：评测/索引构建需要 dataset（不入库）
+      # - ./dataset:/app/dataset:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=3)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
   web:
     build: frontend
+    restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
+      # 前端对局域网/宿主开放（VM 里从 Windows 浏览器访问）；api 不直接暴露
       - "8080:80"
 
 volumes:

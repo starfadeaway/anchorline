@@ -214,3 +214,10 @@ def test_forbidden_variant_on_readme(sandbox):
     assert "且本身很脆弱" in text  # 对照组：当前限定句不触发
     p.write_text(text.rstrip() + "\n\n> 部分建立在 B 索引缺陷上；\n", encoding="utf-8")
     assert _verify() == 1
+
+def test_forbidden_variant_bare_basis(sandbox):
+    """去掉「部分」的「建立在 B 索引缺陷之上」也要被抓（评审 §50 的 4/5 缺口）。"""
+    p = sandbox / "reports" / "m3_2x2.md"
+    text = p.read_text(encoding="utf-8")
+    p.write_text(text.rstrip() + "\n\n> 建立在 B 索引缺陷之上。\n", encoding="utf-8")
+    assert _verify() == 1

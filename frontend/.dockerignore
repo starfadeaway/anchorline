@@ -1,0 +1,10 @@
+# 构建上下文排除：宿主 node_modules（win32 二进制）不能进镜像，
+# 否则会覆盖容器里 npm ci 装好的 linux 依赖，npm run build 大概率失败。
+node_modules
+dist
+test-results
+playwright-report
+.git
+*.log
+.env
+.env.*

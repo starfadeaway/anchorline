@@ -167,23 +167,30 @@ Copy-Item .env.example .env   # 填 MySQL 与 provider key
 ## Docker 部署
 
 ```powershell
-# 1) 准备 .env（从 .env.example 复制并填 provider key；MySQL 用 compose 内的库）
+# 1) 准备 .env（从 .env.example 复制；MYSQL_PASSWORD 必填 = compose 内 MySQL 的 root 口令）
 Copy-Item .env.example .env
 
 # 2) 启动 MySQL + API + 前端
 docker compose up -d --build
 
 # 3) 访问
-#   前端  http://127.0.0.1:8080
-#   API   http://127.0.0.1:8000/health
+#   前端  http://127.0.0.1:8080（VM 部署用 VM 的 IP:8080）
+#   API   http://127.0.0.1:8000/health（只绑回环；外部经前端 /api 代理）
 ```
 
-说明：`dataset/` 不入库——**评测/索引脚本需要先准备 `dataset/`**，否则会明确报错退出（不再静默写全 0 报告）；容器默认不含评测数据；要做评测/索引构建，取消 `docker-compose.yml` 里 dataset 挂载的注释。
+部署安全要点：
+
+- **MySQL 不暴露 3306**（只在 compose 内网被 api 访问）；root 口令来自 `.env` 的 `MYSQL_PASSWORD`（单一来源，必填，缺失时 compose 直接报错）。
+- **API 只绑 `127.0.0.1:8000`**；前端 `8080` 是外部入口，`/api/*` 由 nginx 代理到 api。若要 API 直接对外，改 compose 端口并**务必设置 `API_TOKEN`**（否则局域网可白嫖 provider 额度）。
+- **向量索引**：`./data/lancedb` 已挂载进 api 容器；克隆后没有索引时检索会退化成 BM25，需要先跑索引构建（见「实验与复现」/`scripts/build_baseline_index.py`）。
+- `dataset/` 不入库——**评测/索引脚本需要先准备 `dataset/`**，否则会明确报错退出；容器默认不含评测数据，做评测时取消 compose 里 dataset 挂载的注释。
+- **历史重写过**：VM/其他机器上的旧 clone 需要重新拉取（`git fetch` 旧引用会失败）。
 
 ## B 臂口径（重要）
 
 - **B ≈ 官方基线的 a11y 通道子集**：官方 baseline 还有 event/note 通道、controller 生成的改写查询与动作序列/截图；本项目只复刻 a11y 通道（见 dataset/v2/official_repo/）。
-- **根因是「检索单元粒度」不一致，不是字符上限**：B/C1 的索引单元是 **3-state 拼接**（median 49,341 / 39,998 字符，p10 仍 >22k），D 是**单 state**（median 702 字符）→ 4k 预算下 B/C1 的 top-6 **没有一条能完整入预算**（必然 top-1 截断 + 5 条丢弃），而 D 的 92.7% 装得下。所以「B vs D」在注入完整性上不是同预算对照。
+- **当前口径（2026-11-12 起）：B/C1/C2 的索引单元是单 state**（每条 entry = center state 的 AXTree；B median 15,998 字符、cap 16000），与 D（median 702）粒度一致。**旧 3-state 口径**（median 49,341 / 39,998 字符）在 4k 预算下保头截断会丢掉 center——B 57.14→60.39、C1 53.90→57.14、C2 净值不变；两口径对照见 `docs/b_c1_c2_single_state_experiment.md`。
+- **单 state 数字需重建索引才能复现**：`data/lancedb/` 不入库，克隆后跑 `build_baseline_index.py --radius 0` / `build_c1_arm_index.py --radius 0`（各 1737 条 embedding），且 re-embedding 不保证逐位相同。
 - **按 `预算 ÷ top_k ≈ 2666` 封顶经实测不采用**：重建索引后 B 从 **57.14% 降到 43.51%**（配对差 −13.64pp，精确符号翻转 **p=0.0011**，39/154 题变化）。结论与证据见 `docs/b_arm_slice_cap_experiment.md`；默认封顶改为**预算字符数（16000）**，可用 `ANCHORLINE_INDEX_SLICE_CAP` 覆盖。
 - 因此 **B 的绝对准确率不代表官方基线全貌**，只用于本项目内部同预算对照（B vs C1/C2/D）。
 - **历史产物（b/c2/d/hybrid/intent）是旧代码路径生成的**：截断标记、system 合并、Similarity 标签是后续修复；重跑会与 `reports/` 中的旧数字不同（未重跑，因为需要 provider key 与索引重建）。
