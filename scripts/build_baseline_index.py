@@ -36,11 +36,27 @@ from anchorline.retrieval.baseline import (  # noqa: E402
 from anchorline.retrieval.store import open_lancedb  # noqa: E402
 
 TABLE = "v2_web_slices"
-BATCH = 1  # 单条最长 40k 字符；多条合计会触发 400 invalid parameter
+BATCH = int(os.environ.get("ANCHORLINE_INDEX_BATCH", "16"))  # 批量 embedding；失败会回退逐条
+
+
+def _embed(emb, texts):
+    """批量 embedding；若整批失败（如 400 参数过大），回退逐条，避免整轮重建报废。"""
+    try:
+        return emb.embed(texts)
+    except Exception as exc:
+        if len(texts) > 1:
+            print(f"  batch failed ({type(exc).__name__}: {str(exc)[:80]}) -> per-item", flush=True)
+            out = []
+            for x in texts:
+                out.extend(emb.embed([x]))
+            return out
+        raise
 
 # T1/Q1：B 臂单条切片上限 = 预算 4k tokens（chars/4）÷ top-6 ≈ 2666 字符。
 # 封 40k 没有意义——reader 只会读到预算内的前 16k，单条超预算仍会被截断。
-SLICE_CHAR_CAP = 4000 * 4 // 6
+SLICE_CHAR_CAP = int(os.environ.get("ANCHORLINE_INDEX_SLICE_CAP", str(4000 * 4)))
+# 曾按「预算 ÷ top_k ≈ 2666」封顶做实验：B 准确率从 57.14% 降到 43.51%（p=0.0011，显著变差），
+# 见 docs/b_arm_slice_cap_experiment.md。默认改为「预算字符数」= 旧有效行为，仍可 env 覆盖。
 
 
 def _cap_head(text: str, cap: int) -> str:
@@ -70,7 +86,7 @@ def main():
     t0 = time.time()
     for i in range(0, len(entries), BATCH):
         batch = entries[i:i + BATCH]
-        vectors = emb.embed([truncate_middle(e.axtree_text, EMBEDDING_PRETOKEN_CHAR_CAP) for e in batch])
+        vectors = _embed(emb, [truncate_middle(e.axtree_text, EMBEDDING_PRETOKEN_CHAR_CAP) for e in batch])
         for e, v in zip(batch, vectors):
             rows.append({
                 "id": e.entry_id,
@@ -83,8 +99,8 @@ def main():
                 "state_blocks": _cap_head(e.state_blocks, SLICE_CHAR_CAP),
                 "vector": normalize_vector(v),
             })
-        if (i // BATCH) % 20 == 0:
-            print(f"  {i + len(batch)}/{len(entries)}  {time.time() - t0:.0f}s")
+        if (i // BATCH) % 10 == 0:
+            print(f"  {i + len(batch)}/{len(entries)}  {time.time() - t0:.0f}s", flush=True)
 
     open_lancedb().create_table(TABLE, data=rows, mode="overwrite")
     print(f"写入 LanceDB 表 {TABLE}：{len(rows)} 行，用时 {time.time() - t0:.0f}s")

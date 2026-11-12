@@ -41,7 +41,7 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 
 
 # 历史/附录数字（第一代产物、被取代的旧结论）——显式白名单，改动白名单需说明原因
-LEGACY_P = {0.1098, 0.252, 0.25}
+LEGACY_P = {0.1098, 0.252, 0.25, 0.0011}  # 0.0011 = B 切片封顶实验的配对检验 p（docs/b_arm_slice_cap_experiment.md）
 # H6/G8：以下白名单按「文件 + 语境」限定（全局白名单已移除）。
 # 收集方式：清空字典 → 跑 verify → 把每个 MISSING 值归到它实际出现的文件（逐条确认后写入）。
 KNOWN_PCT_BY_FILE: dict[str, set[float]] = {}
@@ -59,7 +59,7 @@ KNOWN_PCT_BY_FILE.update({
     "reports/m2_l2_extraction.md": {1.39},
     "reports/m3_2x2.md": {12.0},
     "reports/m3_d_intent.md": {1.9, 44.4, 65.1},
-    "reports/m3_summary.md": {12.0},
+    "reports/m3_summary.md": {12.0, 43.51},
     "reports/stability_runs.md": {11.7, 12.0, 12.3},
     "reports/v1_ku_eval.md": {44.4, 44.44, 65.08, 65.1, 77.78, 98.6},
 })
