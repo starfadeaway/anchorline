@@ -14,6 +14,17 @@ export default defineConfig({
       },
     },
   },
+  // preview 也代理 /api：用于对 dist 产物做真实浏览器冒烟（生产由 nginx 反代）
+  preview: {
+    port: 4173,
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
   build: {
     // 拆 vendor：react / antd（含 icons）/ rc（@rc-component + rc-*）/ 其余 vendor。
     // 四个块都 < 800KB，且避免 antd 全家单块超限。

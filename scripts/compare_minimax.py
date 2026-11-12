@@ -31,6 +31,23 @@ ARBITRATION = {
 }
 
 
+def value_sentence(st_ok: int, nv_ok: int, n: int, arbitration_n: int) -> str:
+    """结论句必须由数据插值（U7：写死会让表格与结论在数据变化后自相矛盾）。"""
+    return f"2. 值层面：`stale` {st_ok}/{n}、`new` {nv_ok}/{n}；{arbitration_n} 道分歧经人工仲裁后，gold 保持人类标注。"
+
+
+def arbitration_sentence(arb: dict[str, tuple[str, str]]) -> str:
+    """把「真分歧 N 题 / 表述差异 M 题」也改成从 ARBITRATION 计算。"""
+    real = [q for q, (kind, _) in arb.items() if "表述差异" not in kind]
+    expr = [q for q, (kind, _) in arb.items() if "表述差异" in kind]
+    real_ids = "、".join(f"`{q}`" for q in real)
+    expr_ids = "、".join(f"`{q}`" for q in expr)
+    return (
+        f"**仲裁 {len(arb)} 项**：其中真分歧 {len(real)} 题（{real_ids}）均保留人类值；"
+        f"另 {len(expr)} 题（{expr_ids}）为表述差异，语义等价。"
+    )
+
+
 def main() -> int:
     human = {r["question_id"]: r for r in (json.loads(line) for line in open(HUMAN, encoding="utf-8") if line.strip())}
     mm_rows = [json.loads(line) for line in open(MM, encoding="utf-8") if line.strip()]
@@ -107,12 +124,12 @@ def main() -> int:
         lines.append(f"| `{qid}` | {kind} | {decision} |")
     lines.extend([
         "",
-        f"**仲裁 {len(ARBITRATION)} 项**：其中真分歧 2 题（`b01defab`、`5831f84d`）均保留人类值；另 2 题（`d7c942c3`、`89941a94`）为表述差异，语义等价。",
+        arbitration_sentence(ARBITRATION),
         "",
         "## 4. 结论与口径",
         "",
         f"1. 分层完全一致：MiniMax 与人类都是 **current {sum(1 for r in human.values() if r['query_form']=='current')} / retrospective {sum(1 for r in human.values() if r['query_form']=='retrospective')}**。",
-        "2. 值层面：`stale` 68/72、`new` 71/72；4 道分歧经人工仲裁后，gold 保持人类标注。",
+        value_sentence(st_ok, nv_ok, n, len(ARBITRATION)),
         "3. 报告口径：**「gold 由人类标注 + MiniMax agent 交叉标注 + 人类仲裁分歧题；无第二人类标注者」**。",
         "4. 不写「双人标注」；不写「模型自行标注即 gold」。",
         "",

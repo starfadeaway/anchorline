@@ -21,6 +21,11 @@ OUT_DOC = os.path.join(ROOT, "reports", "cross_model_16.md")  # U6：与 docstri
 OUT_DETAIL = os.path.join(ROOT, "dataset", "v1", "cross-model-16-compare.md")
 
 
+def qf_sentence(qf_ok: int, n: int) -> str:
+    """方向一致率必须由数据插值（U7）。"""
+    return f"1. **方向（`query_form`）{qf_ok}/{n} 一致**：双槽位题在提示词写入 v3.1 规则后，模型与人类判断一致。"
+
+
 def main() -> int:
     rows = [json.loads(line) for line in open(SRC, encoding="utf-8") if line.strip()]
     detail = ["# 跨模型交叉标注（MiniMax）逐题明细\n"]
@@ -77,7 +82,7 @@ def main() -> int:
     lines.extend([
         "## 4. 结论",
         "",
-        "1. **方向（`query_form`）16/16 一致**：双槽位题在提示词写入 v3.1 规则后，模型与人类判断一致。",
+        qf_sentence(qf_ok, n),
         "2. **值粒度差异大于方向差异**：剩余分歧集中在「模型给更具体值（`4 engineers` / `30 dozen` / `in my bedroom`）」 vs 「人类给短值（`4` / `30` / `in the bedroom`）」，方向没有错。",
         "3. **模型不能替代人类自重复**：它测的是协议可复现性；且两个模型可能共享偏差。人类自重复（间隔 ≥7 天或盲标）仍需单独做。",
         "4. 这份交叉检查已满足协议 §6 三件套中的「跨模型交叉」一项；报告分列两项一致率，不合并、不写「双人标注」。",

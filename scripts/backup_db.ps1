@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$OutDir = "$PSScriptRoot\..\data\backups",
     [string]$DbHost = "127.0.0.1",
     [int]$Port = 3306,
@@ -15,7 +15,14 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $file = Join-Path $OutDir "anchorline-$stamp.sql"
 
-Write-Host "正在导出 $Database -> $file"
-mysqldump --host=$DbHost --port=$Port --user=$User --password=$Password --single-transaction --routines --triggers $Database > $file
-if ($LASTEXITCODE -ne 0) { throw "mysqldump 失败（exit=$LASTEXITCODE）" }
+# 密码走临时 defaults 文件：不进命令行（进程列表）也不触发 insecure 警告
+$opt = [System.IO.Path]::GetTempFileName()
+Set-Content -Path $opt -Value "[client]`npassword=$Password" -Encoding ascii
+try {
+    Write-Host "正在导出 $Database -> $file"
+    mysqldump --defaults-extra-file="$opt" --host=$DbHost --port=$Port --user=$User --single-transaction --routines --triggers --default-character-set=utf8mb4 --result-file="$file" $Database
+    if ($LASTEXITCODE -ne 0) { throw "mysqldump 失败（exit=$LASTEXITCODE）" }
+} finally {
+    Remove-Item $opt -Force -ErrorAction SilentlyContinue
+}
 Write-Host "完成：$file（$([math]::Round((Get-Item $file).Length / 1KB, 1)) KB）"
