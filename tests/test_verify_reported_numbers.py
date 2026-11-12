@@ -187,3 +187,30 @@ def test_conclusion_phrases_missing_file_errors(sandbox):
     """文件缺失必须报错，不能静默 SKIP。"""
     (sandbox / "README.md").unlink()
     assert _verify() == 1
+
+# ---- 第 32 轮：forbidden 变体（精确串漏洞） ----
+
+
+def test_forbidden_variant_source(sandbox):
+    """「部分源自 B 索引缺陷」也必须被抓（旧实现只匹配「来自」）。"""
+    p = sandbox / "reports" / "m3_2x2.md"
+    text = p.read_text(encoding="utf-8")
+    p.write_text(text.rstrip() + "\n\n> 部分源自 B 索引缺陷。\n", encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_forbidden_variant_spacing(sandbox):
+    """去空格/多空格变体也要被抓。"""
+    p = sandbox / "reports" / "m3_2x2.md"
+    text = p.read_text(encoding="utf-8")
+    p.write_text(text.rstrip() + "\n\n> 部分   来自 B 索引缺陷。\n", encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_forbidden_variant_on_readme(sandbox):
+    """README 里「部分建立在 B 索引缺陷上；」旧句必须被抓，但带「且本身很脆弱」的限定句允许。"""
+    p = sandbox / "README.md"
+    text = p.read_text(encoding="utf-8")
+    assert "且本身很脆弱" in text  # 对照组：当前限定句不触发
+    p.write_text(text.rstrip() + "\n\n> 部分建立在 B 索引缺陷上；\n", encoding="utf-8")
+    assert _verify() == 1

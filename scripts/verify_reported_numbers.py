@@ -462,12 +462,13 @@ def check_conclusion_phrases() -> int:
         "README.md": ["高估"],
         "docs/b_c1_c2_single_state_experiment.md": ["高估", "跨口径"],
     }
-    # 旧句必须已经不在：否则「旧措辞留着 + 别处塞一个新词」就能绕过 presence-only
+    # 旧句必须已经不在：否则「旧措辞留着 + 别处塞一个新词」就能绕过 presence-only。
+    # 用正则覆盖「部分来自/源自/来源」「建立在…之上」「多余空格」等变体（第 32 轮）。
     forbidden = {
-        "reports/m3_2x2.md": ["部分来自 B 索引缺陷"],
-        "reports/m3_summary.md": ["有 B/C1 索引缺陷的成分", "含 B 索引缺陷（保头截断切掉 center），已作废"],
-        "README.md": ["部分建立在 B 索引缺陷上；"],
-        "docs/b_c1_c2_single_state_experiment.md": ["不再成立"],
+        "reports/m3_2x2.md": [r"部分\s*(?:来自|源自|来源)\s*B?\s*索引缺陷", r"部分\s*建立在\s*B\s*索引缺陷"],
+        "reports/m3_summary.md": [r"(?:有|含)\s*B/C1\s*索引缺陷", r"索引缺陷.{0,10}(?:成分|已作废)"],
+        "README.md": [r"部分\s*建立在\s*B\s*索引缺陷(?:上|之上)\s*[；;]"],
+        "docs/b_c1_c2_single_state_experiment.md": [r"不再成立"],
     }
     bad = 0
     for rel, phrases in required.items():
@@ -481,9 +482,9 @@ def check_conclusion_phrases() -> int:
             if phrase not in text:
                 print(f"MISMATCH {rel}: 缺少结论措辞「{phrase}」")
                 bad += 1
-        for phrase in forbidden.get(rel, []):
-            if phrase in text:
-                print(f"MISMATCH {rel}: 仍含旧措辞「{phrase}」")
+        for pattern in forbidden.get(rel, []):
+            if re.search(pattern, text):
+                print(f"MISMATCH {rel}: 仍含旧措辞（匹配 {pattern}）")
                 bad += 1
     return bad
 

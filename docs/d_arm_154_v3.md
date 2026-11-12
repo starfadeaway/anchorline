@@ -3,7 +3,8 @@
 # D 臂评测（154 题）
 
 > 配置：D = 完整轨迹 + 我方 L0（跨 state 去重）+ 单 state 检索 top-6 + 4k 预算；reader `deepseek-flash`，temperature 1.0。
-> 题集：确定性 web 题（seed=42），**D 每题 1 次**；B 参考文件 `b_arm_154_v2.json`。
+> 题集：确定性 web 题（seed=42），**D 每题 1 次**；B 参考文件 `b_arm_154_run3.json`（同批次）。
+> 注：早期版本这里误写为 `b_arm_154_v2.json`——那是跨批次文件（§40 U2），已弃用，不能作为本产物的参考。
 
 | 指标 | 值 |
 |---|---|
