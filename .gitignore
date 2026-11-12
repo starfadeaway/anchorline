@@ -68,3 +68,6 @@ image-request.json
 # 评测草稿（脚本默认输出，不入库）
 data/eval/_drafts/
 reports/_drafts/
+
+# 评审/调试临时探针（形如 .r25_tmp2/）
+.r*_tmp*/
