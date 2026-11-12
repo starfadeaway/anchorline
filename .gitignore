@@ -34,6 +34,7 @@ dataset/
 *.log
 logs/
 data/lancedb/
+data/backups/  # 索引备份/实验产物：本地保留，不入库
 data/mysql/
 *.sqlite
 *.db
