@@ -56,7 +56,7 @@ Thumbs.db
 frontend/test-results/
 frontend/playwright-report/
 
-# 界面截图仅本地（不入库）
+# 界面截图不随仓库推送：含真实会话/记忆内容（隐私约束）；用 scripts/make_screenshots.py 本地生成
 docs/screenshots/
 
 # 全库导出（真实聊天数据）不入库；脱敏示例例外

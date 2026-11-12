@@ -1,4 +1,5 @@
 {
+ "_note": "由 scripts/rebuild_m3_2x2.py 从 data/eval 逐题结果重算；diff = acc_b - acc_a（A -> B 方向）；p 为精确符号翻转。",
  "arms": {
   "B": {
    "input": "a11y-only",
@@ -19,6 +20,11 @@
    "input": "full",
    "compression": "L0+L3",
    "acc": 0.6623
+  },
+  "D_neighbor": {
+   "input": "full",
+   "compression": "L0+L3",
+   "acc": 0.6429
   }
  },
  "contrasts": [
@@ -28,7 +34,11 @@
    "acc_a": 0.5714,
    "acc_b": 0.539,
    "diff": -0.0325,
-   "p": 0.5011
+   "p": 0.4869,
+   "provenance": {
+    "a": "b_arm_154_run3.json",
+    "b": "c1_arm_154.json"
+   }
   },
   {
    "pair": "C2 -> D",
@@ -36,7 +46,11 @@
    "acc_a": 0.5714,
    "acc_b": 0.6623,
    "diff": 0.0909,
-   "p": 0.0357
+   "p": 0.0336,
+   "provenance": {
+    "a": "c2_arm_154.json",
+    "b": "d_arm_154_run3.json"
+   }
   },
   {
    "pair": "B -> C2",
@@ -44,7 +58,11 @@
    "acc_a": 0.5714,
    "acc_b": 0.5714,
    "diff": 0.0,
-   "p": 1.0
+   "p": 1.0,
+   "provenance": {
+    "a": "b_arm_154_run3.json",
+    "b": "c2_arm_154.json"
+   }
   },
   {
    "pair": "C1 -> D",
@@ -52,7 +70,47 @@
    "acc_a": 0.539,
    "acc_b": 0.6623,
    "diff": 0.1234,
-   "p": 0.0066
+   "p": 0.0066,
+   "provenance": {
+    "a": "c1_arm_154.json",
+    "b": "d_arm_154_run3.json"
+   }
+  },
+  {
+   "pair": "B -> D",
+   "n": 154,
+   "acc_a": 0.5714,
+   "acc_b": 0.6623,
+   "diff": 0.0909,
+   "p": 0.0385,
+   "provenance": {
+    "a": "b_arm_154_run3.json",
+    "b": "d_arm_154_run3.json"
+   }
+  },
+  {
+   "pair": "C1 -> D_neighbor",
+   "n": 154,
+   "acc_a": 0.539,
+   "acc_b": 0.6429,
+   "diff": 0.1039,
+   "p": 0.0195,
+   "provenance": {
+    "a": "c1_arm_154.json",
+    "b": "d_arm_154_neighbor.json"
+   }
+  },
+  {
+   "pair": "D -> D_neighbor",
+   "n": 154,
+   "acc_a": 0.6623,
+   "acc_b": 0.6429,
+   "diff": -0.0195,
+   "p": 0.7359,
+   "provenance": {
+    "a": "d_arm_154_run3.json",
+    "b": "d_arm_154_neighbor.json"
+   }
   }
  ]
 }

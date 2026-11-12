@@ -25,7 +25,7 @@
 | **X12** | Reader/Judge 圆点 `env ? "ok" : "bad"`（空模型名也亮绿） | ✅ | **本轮修复**：`env?.reader_model` / `env?.judge_model`（Embedding/Rerank 早已修） |
 | **X26** | StrictMode | ✅ 取舍 | `main.tsx` 注释说明「不包 StrictMode：React 19 dev 双调用会让记忆页明显卡顿」——已解释，非漏修 |
 | **X34** | `eval_m2_quality.py` / `verify_reported_numbers.py` 零 argparse | ⚠️ 部分 | **本轮给 `eval_m2_quality.py` 加 `--limit/--out/--md-out/--dry-run`**，默认输出改 `_drafts/`；`verify` 仍只有 `--write`（未改 argparse，属内部工具） |
-| **X42** | README 7 张截图死链（`docs/screenshots/` 被 gitignore） | ⚠️ 取舍 | README 已改为**代码块路径清单 + 明确说明"仅本地、不入库"**，不再渲染图片链接（无 404 图片）；但"面试官看不到截图"仍成立——这是用户明确约束（截图不推送），未擅自入库 |
+| **X42** | README 7 张截图死链（`docs/screenshots/` 被 gitignore） | ⚠️ 取舍（已复核） | 实测截图含**真实会话 query**（如 06-monitor 的 trace 列表），不能公开；已提供 `scripts/make_screenshots.py` 供本地复现，README 写明「不推送 + 如何生成」。这是隐私约束下的有意取舍，不是漏修 |
 | **D13** | 技能绑定实体的事实注入 value 无上限 | ✅ | `memory_context`：`v[:197] + "…(截断)"` |
 | **E16** | 技能草稿输出端无上限 | ✅ | `SkillDraftOut` 四字段 `max_length`（64/128/512/2000） |
 | **E17** | 限流只覆盖 1/4 调用点 | ✅ | `/chat`、`/chat/stream`、`/sessions`、`/skills/generate` 均覆盖（生成限流另有 `_GEN_LOCK`） |

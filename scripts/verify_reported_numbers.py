@@ -41,7 +41,13 @@ def _168_means(fname: str, key: str) -> dict[str, float]:
 
 
 # 历史/附录数字（第一代产物、被取代的旧结论）——显式白名单，改动白名单需说明原因
-LEGACY_P = {0.1098, 0.252, 0.25, 0.0011}  # 0.0011 = B 切片封顶实验的配对检验 p（docs/b_arm_slice_cap_experiment.md）
+LEGACY_P: set[float] = set()  # F4：已迁移到 LEGACY_P_BY_FILE
+LEGACY_P_BY_FILE: dict[str, set[float]] = {
+    "reports/d_arm_154.md": {0.1098},  # 第一代产物
+    "reports/lorekeeper_bridge.md": {0.252},
+    "reports/project_review.md": {0.25},
+    "reports/m3_summary.md": {0.0011},  # B 封顶实验的配对检验 p
+}
 # H6/G8：以下白名单按「文件 + 语境」限定（全局白名单已移除）。
 # 收集方式：清空字典 → 跑 verify → 把每个 MISSING 值归到它实际出现的文件（逐条确认后写入）。
 KNOWN_PCT_BY_FILE: dict[str, set[float]] = {}
@@ -143,12 +149,12 @@ def _global_allowed(out: dict) -> dict[str, set]:
         pp2.add(round(diff * 100, 1))
     extra = _json_numbers()
     if not os.environ.get("ANCHORLINE_VERIFY_QUIET"):
-        print(f"白名单规模：num4={len(p4 | acc4 | diff4 | LEGACY_P | extra['num4'])} acc2={len(acc2 | extra['acc2'])} p={len(p4 | LEGACY_P)}")
+        print(f"白名单规模：num4={len(p4 | acc4 | diff4 | extra['num4'])} acc2={len(acc2 | extra['acc2'])} p={len(p4 | LEGACY_P)}")
     return {
-        "num4": p4 | acc4 | diff4 | LEGACY_P | extra["num4"],
+        "num4": p4 | acc4 | diff4 | extra["num4"],
         "acc2": acc2 | extra["acc2"],
         "pp2": pp2,  # H6/G8：pp 白名单改为文件级
-        "p_raw": p4 | LEGACY_P,
+        "p_raw": p4,
     }
 
 
@@ -364,6 +370,58 @@ def check_direction_all(text: str, out: dict, rel: str) -> int:
     return bad
 
 
+_KEY_ANN = re.compile(r"对比\s*([A-Za-z0-9_]+_vs_[A-Za-z0-9_]+)")
+
+
+def check_annotated_pp(text: str, out: dict, rel: str) -> int:
+    """K5：pp 后带「对比 <key>」标注时，按该 comparison 绑定（不再靠全局集合放行）。"""
+    bad = 0
+    for m in re.finditer(r"([+\-\u2212]?\d+(?:\.\d+)?)\s*pp", text):
+        ann = _KEY_ANN.search(text[m.end() : m.end() + 80])
+        if not ann:
+            continue
+        row = out.get(ann.group(1))
+        if row is None:
+            continue
+        digits = len(m.group(1).split(".")[1]) if "." in m.group(1) else 0
+        exp = round(abs(float(row["diff_a_minus_b"])) * 100, digits)
+        got = round(abs(float(m.group(1).replace("\u2212", "-"))), digits)
+        if abs(got - exp) > 1e-9:
+            print(f"MISMATCH {rel}: 标注 {ann.group(1)} 的 pp={m.group(1)} 应为 {exp}pp")
+            bad += 1
+    return bad
+
+
+def check_m3_2x2_json(out: dict) -> int:
+    """Z6：data/eval/m3_2x2.json 必须与重算的 contrasts 一致（不再游离于保护网外）。"""
+    path = os.path.join(EVAL, "m3_2x2.json")
+    if not os.path.exists(path):
+        return 0
+    data = json.load(open(path, encoding="utf-8"))
+    bad = 0
+    for c in data.get("contrasts", []):
+        pair = str(c.get("pair", ""))
+        if " -> " not in pair:
+            continue
+        a, b = [x.strip() for x in pair.split(" -> ")]
+        fa, fb = ARM_FULL.get(a, a), ARM_FULL.get(b, b)
+        forward = out.get(f"{fa}_vs_{fb}")
+        reverse = out.get(f"{fb}_vs_{fa}")
+        if forward is None and reverse is None:
+            print(f"MISMATCH m3_2x2.json: 对比 {pair} 没有对应重算条目")
+            bad += 1
+            continue
+        row = forward or reverse
+        exp_diff = -float(row["diff_a_minus_b"]) if forward else float(row["diff_a_minus_b"])
+        exp_p = float(row["p_exact"])
+        got_diff = float(c.get("diff", 0.0))
+        got_p = float(c.get("p", 0.0))
+        if abs(got_diff - exp_diff) > 1e-4 or abs(got_p - exp_p) > 1e-4:
+            print(f"MISMATCH m3_2x2.json: {pair} 的 diff/p=({got_diff:+.4f},{got_p:.4f}) 应为 ({exp_diff:+.4f},{exp_p:.4f})")
+            bad += 1
+    return bad
+
+
 def check_markdown(out: dict) -> int:
     """A2：从 md 解析数字，与重算集合比对（子串存在性 → 数值比对）。"""
     bad = 0
@@ -375,28 +433,29 @@ def check_markdown(out: dict) -> int:
     for path in paths:
         rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
         text = open(path, encoding="utf-8").read()
+        file_p = LEGACY_P_BY_FILE.get(rel, set())  # F4：文件级 p 白名单
         file_bad = 0
         for m in P_PAT.finditer(text):
             digits = len(m.group(1).split(".")[1])
             v = round(float(m.group(1)), digits)
-            legacy2 = {round(x, digits) for x in LEGACY_P}
+            legacy2 = {round(x, digits) for x in file_p}
             if digits < 3 and v not in (0.0, 1.0) and v not in legacy2:
                 print(f"MISMATCH {rel}: p={m.group(1)} 精度不足（p 值至少写 3 位小数；0/1 除外）")
                 file_bad += 1
                 continue
-            cands = {round(x, digits) for x in allow["p_raw"]}
+            cands = {round(x, digits) for x in (allow["p_raw"] | file_p)}
             if v not in cands:
                 print(f"MISMATCH {rel}: p={m.group(1)} 与重算 p 不匹配（按 {digits} 位取整）")
                 file_bad += 1
         for m in P4_PAT.finditer(text):
             v = round(float(m.group(1)), 4)
-            if not any(abs(v - round(a, 4)) < 1e-9 for a in allow["num4"]):
+            if not any(abs(v - round(a, 4)) < 1e-9 for a in (allow["num4"] | {round(x, 4) for x in file_p})):
                 print(f"MISMATCH {rel}: 4 位数字 {m.group(1)} 不在重算集合")
                 file_bad += 1
         file_pct = FILE_PCT.get(rel, set())
         for m in SIX_PAT.finditer(text):
             v = float(m.group(1))
-            if not any(abs(v - float(x)) < 5e-5 for x in allow["p_raw"]):
+            if not any(abs(v - float(x)) < 5e-5 for x in (allow["p_raw"] | file_p)):
                 print(f"MISMATCH {rel}: 6 位 p {m.group(1)} 与重算 p 不匹配")
                 file_bad += 1
         for m in PCT_PAT.finditer(text):
@@ -434,6 +493,7 @@ def check_markdown(out: dict) -> int:
         file_bad += check_paragraph_bindings(text, out, rel)
         file_bad += check_direction_all(text, out, rel)
         file_bad += check_file_p_binding(text, out, rel)
+        file_bad += check_annotated_pp(text, out, rel)
         bad += file_bad
         checked += 1
     print(f"md 解析校验：覆盖 {checked} 个文件，问题 {bad} 处")
@@ -536,6 +596,7 @@ def main() -> int:
                 print(f"MISMATCH {name}.{key}: baseline={ref[key]} recomputed={cur[key]}")
                 bad += 1
     bad += check_markdown(out)
+    bad += check_m3_2x2_json(out)
     if bad:
         print(f"\n{bad} mismatch(es)：报告数字与重算不一致。")
         return 1

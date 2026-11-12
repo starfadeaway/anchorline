@@ -91,7 +91,7 @@ def test_bare_pp_rounding_caught(sandbox):
     """J7：裸 pp 按书写位数精确匹配，3.2→3.3 不是舍入等价。"""
     p = sandbox / "reports" / "m3_summary.md"
     text = p.read_text(encoding="utf-8")
-    old = "| **C2**（我方压缩，a11y-only） | 同 B 的切片 | **L0 行级去重** + 4k 组装 | **57.1%**（88/154） | **+3.2pp（vs run2 的 B 53.9%，源 p=0.219）** |"
+    old = "**+3.2pp（vs run2 的 B 53.9%，源 p=0.219；对比 B_run2_vs_C2）**"
     assert old in text
     p.write_text(text.replace(old, old.replace("+3.2pp", "+3.3pp"), 1), encoding="utf-8")
     assert _verify() == 1

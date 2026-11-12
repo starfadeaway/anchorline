@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, Card, Space, Typography, message } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { api, downloadMarkdown, type ChatSession, type EvalArm, type Fact } from "../api";
@@ -11,6 +11,7 @@ const FETCH_LIMIT = 1000; // 与后端 le=1000 一致
 export default function ReportsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);  // X6：批次进度
+  const abortRef = useRef(false);  // X6：取消导出
 
   const exportMemory = async () => {
     setBusy("memory");
@@ -44,6 +45,7 @@ export default function ReportsPage() {
 
   const exportSessions = async () => {
     setBusy("sessions");
+    abortRef.current = false;
     try {
       const sessions: ChatSession[] = await api.listSessions(FETCH_LIMIT);
       const truncated = sessions.length >= FETCH_LIMIT;
@@ -52,6 +54,10 @@ export default function ReportsPage() {
       const msgsList: (Awaited<ReturnType<typeof api.sessionMessages>> | null)[] = new Array(sessions.length).fill(null);
       const failed: string[] = [];
       for (let i = 0; i < sessions.length; i += BATCH) {
+        if (abortRef.current) {
+          message.info("已取消导出（未写入文件）");
+          return;
+        }
         setProgress(`正在拉取会话消息：${Math.min(i + BATCH, sessions.length)}/${sessions.length}`);
         const batch = sessions.slice(i, i + BATCH);
         const settled = await Promise.allSettled(batch.map((s) => api.sessionMessages(s.id)));
@@ -123,6 +129,11 @@ export default function ReportsPage() {
         <Button icon={<DownloadOutlined />} loading={busy === "sessions"} onClick={() => void exportSessions()}>
           会话报告（最多 {FETCH_LIMIT} 个会话）
         </Button>
+        {busy === "sessions" && (
+          <Button danger onClick={() => { abortRef.current = true; }}>
+            取消
+          </Button>
+        )}
         <Button icon={<DownloadOutlined />} loading={busy === "eval"} onClick={() => void exportEval()}>
           评测报告（臂对比）
         </Button>
@@ -133,7 +144,7 @@ export default function ReportsPage() {
         </Paragraph>
       )}
       <Paragraph type="secondary" style={{ marginTop: 12 }}>
-        <Text>提示</Text>：会话报告会并发拉取每个会话的消息（10 个/批），进度显示在按钮下方；会话很多时仍可能需要数秒。
+        <Text>提示</Text>：会话报告会并发拉取每个会话的消息（10 个/批），进度显示在按钮下方；导出中可点「取消」（不会写入文件）。
       </Paragraph>
     </Card>
   );
