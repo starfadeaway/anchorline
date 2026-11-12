@@ -46,7 +46,8 @@ LEGACY_P_BY_FILE: dict[str, set[float]] = {
     "reports/d_arm_154.md": {0.1098},  # 第一代产物
     "reports/lorekeeper_bridge.md": {0.252},
     "reports/project_review.md": {0.25},
-    "reports/m3_summary.md": {0.0011},  # B 封顶实验的配对检验 p
+    "reports/m3_summary.md": {0.0011, 0.0807},  # 0.0011 = 封顶实验 p；0.0807 = 脆弱性分析（D 少赢 1 题后的 p，非产物值）
+    "reports/m3_2x2.md": {0.0807},  # 脆弱性分析值（非产物可重算）
 }
 # H6/G8：以下白名单按「文件 + 语境」限定（全局白名单已移除）。
 # 收集方式：清空字典 → 跑 verify → 把每个 MISSING 值归到它实际出现的文件（逐条确认后写入）。
@@ -534,6 +535,7 @@ def main() -> int:
         "C1_vs_D_neighbor": ("c1_arm_154.json", "d_arm_154_neighbor.json"),
         # 单 state 口径（radius=0）：B/C1/C2 的索引与 D 同粒度
         "B_single_vs_D_run3": ("b_arm_154_single_state.json", "d_arm_154_run3.json"),
+        "B_single_vs_B_run3": ("b_arm_154_single_state.json", "b_arm_154_run3.json"),
         "B_single_vs_C1_single": ("b_arm_154_single_state.json", "c1_arm_154_single_state.json"),
         "B_single_vs_C2_single": ("b_arm_154_single_state.json", "c2_arm_154_single_state.json"),
         "C1_single_vs_D_run3": ("c1_arm_154_single_state.json", "d_arm_154_run3.json"),

@@ -71,6 +71,15 @@
   "diff_a_minus_b": -0.0584,
   "p_exact": 0.2327
  },
+ "B_single_vs_B_run3": {
+  "a_file": "b_arm_154_single_state.json",
+  "b_file": "b_arm_154_run3.json",
+  "n": 154,
+  "accuracy_a": 0.6039,
+  "accuracy_b": 0.5714,
+  "diff_a_minus_b": 0.0325,
+  "p_exact": 0.4996
+ },
  "B_single_vs_C1_single": {
   "a_file": "b_arm_154_single_state.json",
   "b_file": "c1_arm_154_single_state.json",
