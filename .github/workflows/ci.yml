@@ -154,7 +154,7 @@ jobs:
       MYSQL_PORT: "3306"
       MYSQL_DATABASE: "anchorline"
       MYSQL_USER: "root"
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD || 'placeholder-local-password' }}
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD || 'placeholder-local-password' }}  # 本机 runner 必须配 secrets.MYSQL_PASSWORD；占位符不是可用口令（第 31 轮移除真实口令 fallback）
       LOREKEEPER_ENABLED: "false"
       DEEPSEEK_API_KEY: "dummy-for-e2e"
       SILICONFLOW_API_KEY: "dummy-for-e2e"

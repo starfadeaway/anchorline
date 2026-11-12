@@ -1,3 +1,5 @@
+> ⚠️ **旧口径产物（3-state B/C1/C2 时期）**：其中 `B 参考 = 57.14%` 与 `p=0.0385` 已被单 state 口径取代（B 60.39%、B−D p=0.2327），且该 p 少赢 1 题即 0.0807。保留作历史记录，当前结论见 `reports/m3_2x2.md`。
+
 # D 臂评测（154 题）
 
 > 配置：D = 完整轨迹 + 我方 L0（跨 state 去重）+ 单 state 检索 top-6 + 4k 预算；reader `deepseek-flash`，temperature 1.0。

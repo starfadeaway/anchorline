@@ -15,6 +15,11 @@ import verify_reported_numbers as v
 def sandbox(tmp_path, monkeypatch):
     shutil.copytree(v.os.path.join(v.ROOT, "reports"), tmp_path / "reports")
     shutil.copytree(v.os.path.join(v.ROOT, "data", "eval"), tmp_path / "data" / "eval")
+    # 第 31 轮：结论措辞护栏（check_conclusion_phrases）也会检查 README 与当前口径结论文档
+    for rel in ("README.md", "docs/b_c1_c2_single_state_experiment.md"):
+        dst = tmp_path / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(v.os.path.join(v.ROOT, rel), dst)
     monkeypatch.setattr(v, "ROOT", str(tmp_path))
     monkeypatch.setattr(v, "EVAL", str(tmp_path / "data" / "eval"))
     monkeypatch.setattr(v, "BASELINE", str(tmp_path / "reports" / "reported_numbers.json"))
@@ -151,3 +156,34 @@ def test_annotated_pp_direction_sign_matrix(sandbox):
         assert ok_got == ok, f"{note}: expected ok={ok}, got ok={ok_got}"
     p.write_text(text, encoding="utf-8")
     assert _verify() == 0
+
+# ---- 第 31 轮：结论措辞护栏的自检（防「移除调用/文件缺失/旧句残留」三类洞） ----
+
+
+def test_conclusion_phrases_guard_registered():
+    """移除 check_conclusion_phrases() 调用行必须被测试发现（护栏自身要有自检）。"""
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts", "verify_reported_numbers.py"), encoding="utf-8").read()
+    assert "bad += check_conclusion_phrases()" in src
+
+
+def test_conclusion_phrases_detects_missing(sandbox):
+    """删掉必要措辞必须让 verify 变红。"""
+    p = sandbox / "reports" / "m3_2x2.md"
+    text = p.read_text(encoding="utf-8")
+    assert "少赢 1 题" in text
+    p.write_text(text.replace("少赢 1 题", "少赢 两 题", 1), encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_conclusion_phrases_forbids_old_sentence(sandbox):
+    """presence-only 绕过回归：旧措辞留在原地、别处塞新词也必须被抓。"""
+    p = sandbox / "reports" / "m3_2x2.md"
+    text = p.read_text(encoding="utf-8")
+    p.write_text(text.replace("少赢 1 题", "少赢 1 题 部分来自 B 索引缺陷", 1), encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_conclusion_phrases_missing_file_errors(sandbox):
+    """文件缺失必须报错，不能静默 SKIP。"""
+    (sandbox / "README.md").unlink()
+    assert _verify() == 1

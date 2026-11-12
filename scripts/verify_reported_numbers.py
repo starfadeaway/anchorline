@@ -49,6 +49,7 @@ LEGACY_P_BY_FILE: dict[str, set[float]] = {
     "reports/project_review.md": {0.25},
     "reports/m3_summary.md": {0.0011, 0.0807},  # 0.0011 = 封顶实验 p；0.0807 = 脆弱性分析（D 少赢 1 题后的 p，非产物值）
     "reports/m3_2x2.md": {0.0807},  # 脆弱性分析值（非产物可重算）
+    "reports/stability_runs.md": {0.0807},  # 同上（第 31 轮补）
 }
 # H6/G8：以下白名单按「文件 + 语境」限定（全局白名单已移除）。
 # 收集方式：清空字典 → 跑 verify → 把每个 MISSING 值归到它实际出现的文件（逐条确认后写入）。
@@ -454,24 +455,35 @@ def check_m3_2x2_json(out: dict) -> int:
 
 
 def check_conclusion_phrases() -> int:
-    """第 30 轮：把「结论措辞必须存在」变成 CI 断言，防止再出现「声称改了、实际 no-op」。"""
+    """第 30 轮：把「结论措辞必须存在」变成 CI 断言；第 31 轮补 presence-only 与文件缺失两个洞。"""
     required = {
         "reports/m3_2x2.md": ["少赢 1 题", "0.0807"],
         "reports/m3_summary.md": ["不稳健"],
         "README.md": ["高估"],
         "docs/b_c1_c2_single_state_experiment.md": ["高估", "跨口径"],
     }
+    # 旧句必须已经不在：否则「旧措辞留着 + 别处塞一个新词」就能绕过 presence-only
+    forbidden = {
+        "reports/m3_2x2.md": ["部分来自 B 索引缺陷"],
+        "reports/m3_summary.md": ["有 B/C1 索引缺陷的成分", "含 B 索引缺陷（保头截断切掉 center），已作废"],
+        "README.md": ["部分建立在 B 索引缺陷上；"],
+        "docs/b_c1_c2_single_state_experiment.md": ["不再成立"],
+    }
     bad = 0
     for rel, phrases in required.items():
         path = os.path.join(ROOT, rel)
         if not os.path.exists(path):
-            # 自检沙盒只镜像 reports/ 与 data/；措辞断言在真实仓库（CI）里生效
-            print(f"SKIP（沙盒缺文件）: {rel}")
+            print(f"MISMATCH: 缺少文件 {rel}（结论措辞护栏要求这些文件存在）")
+            bad += 1
             continue
         text = open(path, encoding="utf-8").read()
         for phrase in phrases:
             if phrase not in text:
                 print(f"MISMATCH {rel}: 缺少结论措辞「{phrase}」")
+                bad += 1
+        for phrase in forbidden.get(rel, []):
+            if phrase in text:
+                print(f"MISMATCH {rel}: 仍含旧措辞「{phrase}」")
                 bad += 1
     return bad
 
