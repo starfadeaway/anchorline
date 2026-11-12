@@ -41,19 +41,37 @@ docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
 
-## 界面截图（仅本地，未入库）
+## 界面截图
 
-截图**不随仓库推送**（截图中含真实会话/记忆内容，属隐私约束），用 `scripts/make_screenshots.py` 在本地生成（需要前端 dev + API 在跑）：
+> 截图中的会话、记忆与 trace 均来自测试数据（非真实用户数据）。
 
-| 页面 | 文件 |
-|---|---|
-| 聊天（用户右 / 模型左、Markdown 表格、主题分组） | `docs/screenshots/01-chat.png` |
-| 记忆（分组 / 越新越前 / 分组导出） | `docs/screenshots/02-memory.png` |
-| 评测（臂对比 + A/A 噪声底） | `docs/screenshots/03-eval.png` |
-| 审核（冲突裁决金标） | `docs/screenshots/04-review.png` |
-| 报告中心 | `docs/screenshots/05-reports.png` |
-| 监控（延迟 / 错误率 / trace） | `docs/screenshots/06-monitor.png` |
-| 设置（模型 / 预算 / 主题 / API Token） | `docs/screenshots/07-settings.png` |
+### 聊天（用户右 / 模型左、主题分组、技能提示）
+
+![聊天页](docs/screenshots/01-chat.png)
+
+### 记忆（容量提示、当前/失效、分组）
+
+![记忆页](docs/screenshots/02-memory.png)
+
+### 评测（臂对比 + A/A 噪声底 + LoreKeeper 桥接）
+
+![评测页](docs/screenshots/03-eval.png)
+
+### 审核（冲突裁决金标）
+
+![审核页](docs/screenshots/04-review.png)
+
+### 报告中心（记忆/会话/评测 Markdown 导出）
+
+![报告页](docs/screenshots/05-reports.png)
+
+### 监控（延迟 / 错误率 / trace）
+
+![监控页](docs/screenshots/06-monitor.png)
+
+### 设置（主题色 / 日夜模式）
+
+![设置页](docs/screenshots/07-settings.png)
 
 ## 当前状态
 
