@@ -129,3 +129,25 @@ def test_annotated_pp_missing_direction_caught(sandbox):
     assert old in text
     p.write_text(text.replace(old, old.replace("（后者−前者）", ""), 1), encoding="utf-8")
     assert _verify() == 1
+
+
+def test_annotated_pp_direction_sign_matrix(sandbox):
+    """第 27 轮：方向映射必须保留 diff 符号。
+
+    D_run3_vs_D_neighbor 的 diff = +0.0195（D 更强）：
+      前者−后者 = +1.95pp；后者−前者 = −1.95pp。
+    """
+    p = sandbox / "reports" / "m3_2x2.md"
+    text = p.read_text(encoding="utf-8")
+    cases = [
+        ("1.95pp 对比 D_run3_vs_D_neighbor（前者−后者）", True),
+        ("−1.95pp 对比 D_run3_vs_D_neighbor（前者−后者）", False),
+        ("−1.95pp 对比 D_run3_vs_D_neighbor（后者−前者）", True),
+        ("1.95pp 对比 D_run3_vs_D_neighbor（后者−前者）", False),
+    ]
+    for note, ok in cases:
+        p.write_text(text.rstrip() + "\n\n> " + note + "\n", encoding="utf-8")
+        ok_got = _verify() == 0
+        assert ok_got == ok, f"{note}: expected ok={ok}, got ok={ok_got}"
+    p.write_text(text, encoding="utf-8")
+    assert _verify() == 0

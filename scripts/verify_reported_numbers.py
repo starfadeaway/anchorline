@@ -404,8 +404,9 @@ def check_annotated_pp(text: str, out: dict, rel: str) -> int:
             bad += 1
             continue
         digits = len(m.group(1).split(".")[1]) if "." in m.group(1) else 0
-        base = round(abs(float(row["diff_a_minus_b"])) * 100, digits)
-        exp = base if direction == "后者−前者" else -base
+        # 保留 diff 的符号：前者−后者 = +diff，后者−前者 = −diff（第 27 轮修复）
+        base = round(float(row["diff_a_minus_b"]) * 100, digits)
+        exp = -base if direction == "后者−前者" else base
         got = round(float(m.group(1).replace("\u2212", "-")), digits)
         if abs(got - exp) > 1e-9:
             print(f"MISMATCH {rel}: 标注 {key}（{direction}）的 pp={m.group(1)} 应为 {exp:+.1f}pp")

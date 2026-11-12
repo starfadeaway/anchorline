@@ -9,8 +9,9 @@
 - AXTree 按 center 优先分配（center 50%，其余平分剩余 50%，可按 30/20 近似）；
 - 总长不超过给定字符预算，截断处带「…(截断)」标记。
 
-默认不启用（`answer_baseline(..., state_budget=True)` 或环境变量
-`ANCHORLINE_STATE_BUDGET=1` 打开），需先做 A/B 验证效果再决定是否默认。
+**定位（2026-11-12）**：本模块为 3-state 口径保留，**当前单 state 口径不使用**——单 state 索引下没有
+`center±1` 邻域可分配，保头截断丢 center 的病已结构性消失。默认不启用；若要回到 3-state 口径，
+用 `state_budget=True` 或 `ANCHORLINE_STATE_BUDGET=1` 打开，并先做 A/B 验证。
 """
 from __future__ import annotations
 
