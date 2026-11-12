@@ -54,7 +54,7 @@ services:
         condition: service_healthy
     ports:
       # 前端对局域网/宿主开放（VM 里从 Windows 浏览器访问）；api 不直接暴露
-      - "8080:80"
+      - "${WEB_HOST_PORT:-8080}:80"  # 宿主端口可配（默认 8080；冲突时在 .env 设 WEB_HOST_PORT）
 
 volumes:
   mysql_data:
