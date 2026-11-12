@@ -36,7 +36,7 @@ frontend/                  # React 前端（聊天/记忆/评测/审核/报告/�
 migrations/                # Alembic（0001 初始 → 0014：session.topic / trace.recalls / review_decisions / 表注释 / scoring_mode / 技能开关与绑定 / 自定义技能等）
 scripts/                   # 评测、索引构建、demo、桥接实验、数据清理
 reports/                   # 29 份评测/审计/整改报告（项目最核心的证据资产）
-tests/                     # pytest（152 项）
+tests/                     # pytest（173 项）
 docs/                      # 协议、许可、ADR、评测结果、桥接报告
 dataset/                   # 数据与核验产物（大文件不入库）
 ```
@@ -177,6 +177,7 @@ Copy-Item .env.example .env
 
 # 3) 启动 MySQL + API + 前端
 docker compose up -d --build
+#    端口冲突时（VM 上已有服务占用 8000/8080）：在 .env 设 API_HOST_PORT=18000、WEB_HOST_PORT=18080
 
 # 4) 访问
 #   前端  http://127.0.0.1:8080（VM 部署用 VM 的 IP:8080）
@@ -192,6 +193,24 @@ docker compose up -d --build
 - **向量索引**：`./data/lancedb` 已挂载进 api 容器；克隆后没有索引时检索会退化成 BM25，需要先跑索引构建（见「实验与复现」/`scripts/build_baseline_index.py`）。
 - `dataset/` 不入库——**评测/索引脚本需要先准备 `dataset/`**，否则会明确报错退出；容器默认不含评测数据，做评测时取消 compose 里 dataset 挂载的注释。
 - **历史重写过**：VM/其他机器上的旧 clone 需要重新拉取（`git fetch` 旧引用会失败）。
+
+### 部署验证
+
+```bash
+curl -s http://127.0.0.1:18000/health          # {"status":"ok","db":true,...}（默认 8000）
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:18080/   # 200（默认 8080）
+docker exec anchorline-api-1 python -c "from anchorline.retrieval import facts_index; print('index_ready:', facts_index.is_ready())"
+```
+
+### 常见问题
+
+| 现象 | 处理 |
+|---|---|
+| `port is already allocated`（8000/8080） | 在 `.env` 设 `API_HOST_PORT=18000` / `WEB_HOST_PORT=18080` 后 `docker compose up -d` |
+| 前端显示「未建索引（检索退回 BM25）」 | 确认 `./data/lancedb` 挂载且含 `facts_index.lance`；容器内 `index_ready` 应为 `True`（镜像已设 `ANCHORLINE_LANCEDB=/app/data/lancedb`） |
+| 前端请求 401 | 到「设置」页填与 `.env` 相同的 `API_TOKEN`；改 `.env` 后需 `docker compose restart api` |
+| 页面没有数据 | 新库是空的；导入演示数据见下方「演示数据」 |
+| VM 是 NAT，Windows 打不开 | 在 VMware 虚拟网络编辑器给 VMnet8 加端口转发，或把网络改为桥接 |
 
 ## B 臂口径（重要）
 
