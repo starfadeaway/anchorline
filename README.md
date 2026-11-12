@@ -218,6 +218,10 @@ docker compose up -d --build
 | 报告导出 | 记忆 / 会话 / 评测 Markdown 导出 | 前端「报告」页 |
 | 审核裁决金标 | 审核页裁决（保留 + 失效 + 原因）写入 `review_decisions`，评测页「审核裁决」Tab 展示 | `POST /review/decisions` |
 
+## 演示数据
+
+- data/exports/sample/anchorline-demo.sql：实验用途的完整 MySQL 导出（30 条事实 / 21 会话 / 50 消息 / 142 trace / 4 裁决；实体均为 user:demo），**不含真实用户数据**。导入：mysql -uroot -p < anchorline-demo.sql 前先建库并跑 lembic upgrade head。
+
 ## 实验与复现
 
 ```powershell
