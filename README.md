@@ -167,21 +167,27 @@ Copy-Item .env.example .env   # 填 MySQL 与 provider key
 ## Docker 部署
 
 ```powershell
-# 1) 准备 .env（从 .env.example 复制；MYSQL_PASSWORD 必填 = compose 内 MySQL 的 root 口令）
+# 1) 准备 .env（从 .env.example 复制）
+#    - MYSQL_PASSWORD 必填 = compose 内 MySQL 的 root 口令
+#    - API_TOKEN 必填 = 前后端共享的访问口令（见下方「反代也是通路」）
 Copy-Item .env.example .env
 
-# 2) 启动 MySQL + API + 前端
+# 2) 先构建向量索引（需要 dataset/ 与 SILICONFLOW_API_KEY；否则检索退化为 BM25）
+.venv\Scripts\python.exe scripts\build_baseline_index.py --radius 0
+
+# 3) 启动 MySQL + API + 前端
 docker compose up -d --build
 
-# 3) 访问
+# 4) 访问
 #   前端  http://127.0.0.1:8080（VM 部署用 VM 的 IP:8080）
 #   API   http://127.0.0.1:8000/health（只绑回环；外部经前端 /api 代理）
+#   首次打开前端：到「设置」页填入与 .env 相同的 API_TOKEN，否则请求会 401
 ```
 
 部署安全要点：
 
 - **MySQL 不暴露 3306**（只在 compose 内网被 api 访问）；root 口令来自 `.env` 的 `MYSQL_PASSWORD`（单一来源，必填，缺失时 compose 直接报错）。
-- **API 只绑 `127.0.0.1:8000`**；前端 `8080` 是外部入口，`/api/*` 由 nginx 代理到 api。若要 API 直接对外，改 compose 端口并**务必设置 `API_TOKEN`**（否则局域网可白嫖 provider 额度）。
+- **API 只绑 `127.0.0.1:8000`**；但**前端 `8080` 的 `/api/*` 反代本身就是通路**（nginx 不做鉴权）——局域网访问 `http://<VM>:8080/api/chat/stream` 同样能消耗 provider 额度。因此**必须设置 `API_TOKEN`**（前端设置页填同一个 token），两条通路一起关；只绑回环不等于安全。
 - **向量索引**：`./data/lancedb` 已挂载进 api 容器；克隆后没有索引时检索会退化成 BM25，需要先跑索引构建（见「实验与复现」/`scripts/build_baseline_index.py`）。
 - `dataset/` 不入库——**评测/索引脚本需要先准备 `dataset/`**，否则会明确报错退出；容器默认不含评测数据，做评测时取消 compose 里 dataset 挂载的注释。
 - **历史重写过**：VM/其他机器上的旧 clone 需要重新拉取（`git fetch` 旧引用会失败）。

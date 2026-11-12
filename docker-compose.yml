@@ -9,7 +9,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p'$$MYSQL_ROOT_PASSWORD'"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -38,7 +38,7 @@ services:
       # 可选：评测/索引构建需要 dataset（不入库）
       # - ./dataset:/app/dataset:ro
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=3)\""]
+      test: ["CMD-SHELL", "python -c \"import json,urllib.request;d=json.load(urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=3));assert d.get('db') is True, d\""]
       interval: 10s
       timeout: 5s
       retries: 12
