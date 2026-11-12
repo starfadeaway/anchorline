@@ -373,21 +373,39 @@ def check_direction_all(text: str, out: dict, rel: str) -> int:
 _KEY_ANN = re.compile(r"对比\s*([A-Za-z0-9_]+_vs_[A-Za-z0-9_]+)")
 
 
+_KEY_ANN = re.compile(r"对比\s*([A-Za-z0-9_]+_vs_[A-Za-z0-9_]+)\s*(?:（(后者−前者|前者−后者)）)?")
+
+
 def check_annotated_pp(text: str, out: dict, rel: str) -> int:
-    """K5：pp 后带「对比 <key>」标注时，按该 comparison 绑定（不再靠全局集合放行）。"""
+    """K5：pp 后带「对比 <key>（方向）」标注时，按该 comparison 绑定并校验**符号**。
+
+    第 26 轮评审的 3 个洞：
+      1) 旧实现用 abs() 对比，符号翻转查不出 -> 现在按 direction 算带符号期望；
+      2) 标注 key 不存在时旧实现静默跳过 -> 现在报错；
+      3) 标注缺少方向时旧实现只能查绝对值 -> 现在报错（强制写方向）。
+    删掉标注再改值仍会回退到全局检查（旁证可编辑的固有边界，见 docs）。
+    """
     bad = 0
     for m in re.finditer(r"([+\-\u2212]?\d+(?:\.\d+)?)\s*pp", text):
         ann = _KEY_ANN.search(text[m.end() : m.end() + 80])
         if not ann:
             continue
-        row = out.get(ann.group(1))
+        key, direction = ann.group(1), ann.group(2)
+        row = out.get(key)
         if row is None:
+            print(f"MISMATCH {rel}: 标注的对比 {key} 不存在")
+            bad += 1
+            continue
+        if direction is None:
+            print(f"MISMATCH {rel}: 标注 {key} 缺少方向（后者−前者 / 前者−后者）")
+            bad += 1
             continue
         digits = len(m.group(1).split(".")[1]) if "." in m.group(1) else 0
-        exp = round(abs(float(row["diff_a_minus_b"])) * 100, digits)
-        got = round(abs(float(m.group(1).replace("\u2212", "-"))), digits)
+        base = round(abs(float(row["diff_a_minus_b"])) * 100, digits)
+        exp = base if direction == "后者−前者" else -base
+        got = round(float(m.group(1).replace("\u2212", "-")), digits)
         if abs(got - exp) > 1e-9:
-            print(f"MISMATCH {rel}: 标注 {ann.group(1)} 的 pp={m.group(1)} 应为 {exp}pp")
+            print(f"MISMATCH {rel}: 标注 {key}（{direction}）的 pp={m.group(1)} 应为 {exp:+.1f}pp")
             bad += 1
     return bad
 

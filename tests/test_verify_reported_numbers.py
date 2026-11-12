@@ -91,7 +91,41 @@ def test_bare_pp_rounding_caught(sandbox):
     """J7：裸 pp 按书写位数精确匹配，3.2→3.3 不是舍入等价。"""
     p = sandbox / "reports" / "m3_summary.md"
     text = p.read_text(encoding="utf-8")
-    old = "**+3.2pp（vs run2 的 B 53.9%，源 p=0.219；对比 B_run2_vs_C2）**"
+    old = "**+3.2pp（vs run2 的 B 53.9%，源 p=0.219；对比 B_run2_vs_C2（后者−前者））**"
     assert old in text
     p.write_text(text.replace(old, old.replace("+3.2pp", "+3.3pp"), 1), encoding="utf-8")
+    assert _verify() == 1
+
+
+def _annotated_c2_row() -> str:
+    return "**+3.2pp（vs run2 的 B 53.9%，源 p=0.219；对比 B_run2_vs_C2（后者−前者））**"
+
+
+def test_annotated_pp_symbol_flip_caught(sandbox):
+    """第 26 轮洞 1：+3.2 → −3.2 必须被抓（旧实现 abs() 比较会放过）。"""
+    p = sandbox / "reports" / "m3_summary.md"
+    text = p.read_text(encoding="utf-8")
+    old = _annotated_c2_row()
+    assert old in text
+    p.write_text(text.replace(old, old.replace("+3.2pp", "−3.2pp"), 1), encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_annotated_pp_unknown_key_caught(sandbox):
+    """第 26 轮洞 2：标注 key 不存在必须报错（旧实现静默跳过）。"""
+    p = sandbox / "reports" / "m3_summary.md"
+    text = p.read_text(encoding="utf-8")
+    old = _annotated_c2_row()
+    assert old in text
+    p.write_text(text.replace(old, old.replace("B_run2_vs_C2", "B_run2_vs_ZZ"), 1), encoding="utf-8")
+    assert _verify() == 1
+
+
+def test_annotated_pp_missing_direction_caught(sandbox):
+    """第 26 轮洞 3 的一半：标注缺方向必须报错（否则只能查绝对值）。"""
+    p = sandbox / "reports" / "m3_summary.md"
+    text = p.read_text(encoding="utf-8")
+    old = _annotated_c2_row()
+    assert old in text
+    p.write_text(text.replace(old, old.replace("（后者−前者）", ""), 1), encoding="utf-8")
     assert _verify() == 1

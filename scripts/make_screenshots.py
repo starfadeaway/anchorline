@@ -67,7 +67,7 @@ def main() -> int:
         print(f"{name}: {'ok' if r.returncode == 0 else 'FAIL'} -> {dst}")
         if r.returncode != 0:
             print(r.stderr[-400:], file=sys.stderr)
-    print("截图含真实会话内容，不要提交（docs/screenshots/ 已在 .gitignore）")
+    print("注意：截图直接来自运行中的实例（不脱敏）；只有实例里全是测试数据时才可提交。")
     return 0
 
 
