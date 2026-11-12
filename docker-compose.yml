@@ -33,7 +33,7 @@ services:
     ports:
       # 只绑回环：外部通过 web(8080) 的 /api 代理访问；如需 API 直接对外，
       # 改成 "8000:8000" 并务必在 .env 设置 API_TOKEN（否则局域网可白嫖 provider 额度）
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${API_HOST_PORT:-8000}:8000"  # 宿主端口可配（默认 8000；冲突时在 .env 设 API_HOST_PORT）
     volumes:
       # 向量索引不打进镜像（体积/数据边界）；不挂载时 memory_search 只剩 BM25（检索退化）
       - ./data/lancedb:/app/data/lancedb
