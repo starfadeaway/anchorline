@@ -4,7 +4,7 @@
   "B": {
    "input": "a11y-only",
    "compression": "official",
-   "acc": 0.5714
+   "acc": 0.6039
   },
   "C2": {
    "input": "a11y-only",
@@ -14,7 +14,7 @@
   "C1": {
    "input": "full",
    "compression": "official",
-   "acc": 0.539
+   "acc": 0.5714
   },
   "D": {
    "input": "full",
@@ -31,13 +31,13 @@
   {
    "pair": "B -> C1",
    "n": 154,
-   "acc_a": 0.5714,
-   "acc_b": 0.539,
+   "acc_a": 0.6039,
+   "acc_b": 0.5714,
    "diff": -0.0325,
-   "p": 0.4869,
+   "p": 0.5224,
    "provenance": {
-    "a": "b_arm_154_run3.json",
-    "b": "c1_arm_154.json"
+    "a": "b_arm_154_single_state.json",
+    "b": "c1_arm_154_single_state.json"
    }
   },
   {
@@ -46,57 +46,57 @@
    "acc_a": 0.5714,
    "acc_b": 0.6623,
    "diff": 0.0909,
-   "p": 0.0336,
+   "p": 0.0488,
    "provenance": {
-    "a": "c2_arm_154.json",
+    "a": "c2_arm_154_single_state.json",
     "b": "d_arm_154_run3.json"
    }
   },
   {
    "pair": "B -> C2",
    "n": 154,
-   "acc_a": 0.5714,
+   "acc_a": 0.6039,
    "acc_b": 0.5714,
-   "diff": 0.0,
-   "p": 1.0,
+   "diff": -0.0325,
+   "p": 0.4049,
    "provenance": {
-    "a": "b_arm_154_run3.json",
-    "b": "c2_arm_154.json"
+    "a": "b_arm_154_single_state.json",
+    "b": "c2_arm_154_single_state.json"
    }
   },
   {
    "pair": "C1 -> D",
    "n": 154,
-   "acc_a": 0.539,
+   "acc_a": 0.5714,
    "acc_b": 0.6623,
-   "diff": 0.1234,
-   "p": 0.0066,
+   "diff": 0.0909,
+   "p": 0.0201,
    "provenance": {
-    "a": "c1_arm_154.json",
+    "a": "c1_arm_154_single_state.json",
     "b": "d_arm_154_run3.json"
    }
   },
   {
    "pair": "B -> D",
    "n": 154,
-   "acc_a": 0.5714,
+   "acc_a": 0.6039,
    "acc_b": 0.6623,
-   "diff": 0.0909,
-   "p": 0.0385,
+   "diff": 0.0584,
+   "p": 0.2327,
    "provenance": {
-    "a": "b_arm_154_run3.json",
+    "a": "b_arm_154_single_state.json",
     "b": "d_arm_154_run3.json"
    }
   },
   {
    "pair": "C1 -> D_neighbor",
    "n": 154,
-   "acc_a": 0.539,
+   "acc_a": 0.5714,
    "acc_b": 0.6429,
-   "diff": 0.1039,
-   "p": 0.0195,
+   "diff": 0.0714,
+   "p": 0.1263,
    "provenance": {
-    "a": "c1_arm_154.json",
+    "a": "c1_arm_154_single_state.json",
     "b": "d_arm_154_neighbor.json"
    }
   },

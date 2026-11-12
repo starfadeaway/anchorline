@@ -40,18 +40,18 @@ def test_direction_flip_caught(sandbox):
 def test_gap_style_p_caught(sandbox):
     p = sandbox / "reports" / "m3_2x2.md"
     text = p.read_text(encoding="utf-8")
-    old = "D 66.23% vs B 57.14%（+9.09pp，p=0.0385）"
+    old = "| C2 -> D | 0.5714 → 0.6623 | 154 | +0.0909 | 0.0488 |"
     assert old in text
-    p.write_text(text.replace(old, "D 66.23% vs B 57.14%（+9.09pp，p=0.0336）", 1), encoding="utf-8")
+    p.write_text(text.replace(old, old.replace("0.0488", "0.0336"), 1), encoding="utf-8")
     assert _verify() == 1
 
 
 def test_row_level_binding_caught(sandbox):
     p = sandbox / "reports" / "m3_2x2.md"
     text = p.read_text(encoding="utf-8")
-    old = "| C2 -> D | 0.5714 → 0.6623 | 154 | +0.0909 | 0.0336 |"
+    old = "| C2 -> D | 0.5714 → 0.6623 | 154 | +0.0909 | 0.0488 |"
     assert old in text
-    p.write_text(text.replace(old, old.replace("0.0336", "0.0385"), 1), encoding="utf-8")
+    p.write_text(text.replace(old, old.replace("0.0488", "0.0336"), 1), encoding="utf-8")
     assert _verify() == 1
 
 

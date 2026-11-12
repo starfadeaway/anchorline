@@ -255,3 +255,28 @@ docker compose up -d --build
 - V1-S 的 MIT 只覆盖 benchmark 自身；**session 原文不入库**
 - PerLTQA / engram-eval / LoCoMo 等非商用数据不入库
 - **API Key 只经 `.env` 读取**，不入库、不进日志、不进对话；`.env.example` 只有占位符
+
+## 术语表（评测口径）
+
+- **trajectory（轨迹）**：一次完整的 web 任务会话，按 step 排列多个 state。
+- **state**：轨迹里的一个时间点快照，含 `URL / Action / AXTree`（C1/D 的模板还含 thought）。记忆评测的「旧值 / 当前值」分布在不同 state 里——检索命中哪个 state 决定能否拿到答案。
+- **AXTree（可访问性树）**：浏览器导出的页面语义树（角色、名字、可见/可点击等，如 `[227] link 'My Account', clickable, visible`）。Web Agent（WebArena baseline）读它而不是截图/HTML。
+- **a11y-only**：只用可访问性树作页面输入，不含截图/DOM。B/C2 属于该模态；C1/D 是「完整轨迹」（模板额外含 thought）。
+- **entry（检索单元）**：向量索引里的一行 = 一段文本 + 它的 embedding；检索返回 top-k。
+- **radius / 3-state / 单 state**：radius=1 时 entry 是 `center−1, center, center+1` 三个 state 的拼接；radius=0 只含 center。3-state 在 4k 预算下会被保头截断，**丢掉 center**——本项目 2026-11-12 起 B/C1/C2 改为单 state。
+- **top-k / 预算**：检索取前 6 条；每题上下文预算 4k tokens（按 chars/4 近似）。
+
+## 评测口径修正（2026-11-12）
+
+B/C1/C2 的索引从 **3-state 邻域**改为**单 state**：旧口径下 4k 预算的保头截断会切掉 center，注入内容与检索命中的 state 错位。
+
+| 臂 | 旧（3-state） | 单 state |
+|---|---|---|
+| B | 57.14% | **60.39%** |
+| C1 | 53.90% | **57.14%** |
+| C2 | 57.14% | 57.14% |
+| D | 66.23% | 66.23% |
+
+**结论变化**：`B → D` 的显著性消失（+5.84pp，**p=0.2327**；旧 0.0385）——旧「D 是唯一显著优于 B 的臂」部分建立在 B 索引缺陷上；`C1 → D_neighbor` 也不再显著（+7.14pp，p=0.1263）。C1→D 仍显著（+9.09pp，p=0.0201）。
+
+旧口径产物保留在 `data/eval/*_run3.json`、`c1_arm_154.json`、`c2_arm_154.json`（历史可复现）；单 state 产物为 `*_single_state.json`。完整记录见 `docs/b_c1_c2_single_state_experiment.md`。

@@ -164,8 +164,11 @@ ROW_PAT = re.compile(
 # E2/G4：按文件映射（不同报告的臂名可能指不同代次；legacy 报告在方向检查里整体豁免）
 ARM_FULL = {"B": "B_run3", "C1": "C1", "C2": "C2", "D": "D_run3", "D_neighbor": "D_neighbor"}
 ARM_BY_FILE = {
-    # m3_summary 默认 run3；run2 对照用显式臂名（B_run2 → C2）
+    # m3_2x2 已切到单 state 口径（2026-11-12）：B/C1/C2 的臂名映射到单 state 键
+    "reports/m3_2x2.md": {"B": "B_single", "C1": "C1_single", "C2": "C2_single", "D": "D_run3", "D_neighbor": "D_neighbor"},
 }
+# m3_2x2.json 的 pair -> 单 state 键映射
+M3_2X2_ARMS = {"B": "B_single", "C1": "C1_single", "C2": "C2_single", "D": "D_run3", "D_neighbor": "D_neighbor"}
 LEGACY_REPORTS = {"reports/d_arm_154.md"}  # 第一代产物（有废弃标注），方向检查豁免
 # G7：单主题报告的 p 值可以绑定到文件级对比（句子不必写出臂名）
 FILE_P_BINDINGS = {
@@ -422,7 +425,7 @@ def check_m3_2x2_json(out: dict) -> int:
         if " -> " not in pair:
             continue
         a, b = [x.strip() for x in pair.split(" -> ")]
-        fa, fb = ARM_FULL.get(a, a), ARM_FULL.get(b, b)
+        fa, fb = M3_2X2_ARMS.get(a, a), M3_2X2_ARMS.get(b, b)
         forward = out.get(f"{fa}_vs_{fb}")
         reverse = out.get(f"{fb}_vs_{fa}")
         if forward is None and reverse is None:
@@ -528,6 +531,13 @@ def main() -> int:
         "C1_vs_D_run3": ("c1_arm_154.json", "d_arm_154_run3.json"),
         "C2_vs_D_run3": ("c2_arm_154.json", "d_arm_154_run3.json"),
         "C1_vs_D_neighbor": ("c1_arm_154.json", "d_arm_154_neighbor.json"),
+        # 单 state 口径（radius=0）：B/C1/C2 的索引与 D 同粒度
+        "B_single_vs_D_run3": ("b_arm_154_single_state.json", "d_arm_154_run3.json"),
+        "B_single_vs_C1_single": ("b_arm_154_single_state.json", "c1_arm_154_single_state.json"),
+        "B_single_vs_C2_single": ("b_arm_154_single_state.json", "c2_arm_154_single_state.json"),
+        "C1_single_vs_D_run3": ("c1_arm_154_single_state.json", "d_arm_154_run3.json"),
+        "C2_single_vs_D_run3": ("c2_arm_154_single_state.json", "d_arm_154_run3.json"),
+        "C1_single_vs_D_neighbor": ("c1_arm_154_single_state.json", "d_arm_154_neighbor.json"),
         "D_run3_vs_D_neighbor": ("d_arm_154_run3.json", "d_arm_154_neighbor.json"),
         "D_run3_vs_D_hybrid": ("d_arm_154_run3.json", "d_arm_154_hybrid.json"),
         "D_run3_vs_D_intent": ("d_arm_154_run3.json", "d_arm_154_intent.json"),

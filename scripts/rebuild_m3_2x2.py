@@ -20,9 +20,9 @@ EVAL = os.path.join(ROOT, "data", "eval")
 OUT = os.path.join(EVAL, "m3_2x2.json")
 
 ARMS = {
-    "B": ("b_arm_154_run3.json", "a11y-only", "official"),
-    "C2": ("c2_arm_154.json", "a11y-only", "L0+L3"),
-    "C1": ("c1_arm_154.json", "full", "official"),
+    "B": ("b_arm_154_single_state.json", "a11y-only", "official"),
+    "C2": ("c2_arm_154_single_state.json", "a11y-only", "L0+L3"),
+    "C1": ("c1_arm_154_single_state.json", "full", "official"),
     "D": ("d_arm_154_run3.json", "full", "L0+L3"),
     "D_neighbor": ("d_arm_154_neighbor.json", "full", "L0+L3"),
 }
