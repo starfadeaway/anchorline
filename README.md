@@ -4,6 +4,15 @@
 
 不是「再做一个 RAG」，也不是「又一个聊天机器人」。**可复现、可防守的记忆工程**，不是研究前沿。
 
+> 🐳 **3 分钟跑起来**：`docker compose up -d --build` → API `:8000` / Web `:5173`（首次启动自动构建镜像）。注意：改 `.env` 后要用 `up -d` 重建容器，`restart` 不会重读。
+
+![评测页](docs/screenshots/03-eval.png)
+![报告页](docs/screenshots/05-reports.png)
+
+> 截图中的会话、记忆与 trace 均来自测试数据（非真实用户数据，已获授权公开）；`scripts/make_screenshots.py` 直接对运行中的实例截图，不做脱敏——只有在实例里全是测试数据时才可提交截图。
+
+> 检索层完整实现见 [LoreKeeper](https://github.com/starfadeaway/lorekeeper)（56 题三库评测 + 774 项测试）；本仓库只复用其检索组件做对照实验。
+
 ## 两个基准（能力面不重叠，互不合并）
 
 | 基准 | 角色 | 分母 |
